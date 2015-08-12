@@ -36,6 +36,7 @@ def download_OD_state_year( state_od_url, stateN, year ):
             f = f[0]
         else:
             print '{0} does not exist!'.format(search_href)
+            continue
             
         downloadFilePath = os.path.join(downloadFolder, f.attrs['href'])    # .csv.gz file
         
