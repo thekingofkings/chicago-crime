@@ -64,8 +64,8 @@ public class TractFlow {
 
         try (BufferedWriter bw = new BufferedWriter(new FileWriter("../data/state_all_tract_level_od_JT00_2010")) ) {
             for (long org : tracts.keySet()) {
-                bw.write(Long.toString(org) + ",");
                 for (long dst : tracts.get(org).keySet()) {
+                    bw.write(Long.toString(org) + ",");
                     bw.write(Long.toString(dst));
                     for (int val : tracts.get(org).get(dst)) {
                         bw.write("," + Integer.toString(val));
