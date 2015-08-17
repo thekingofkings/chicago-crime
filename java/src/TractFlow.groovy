@@ -14,8 +14,8 @@ class TractCensusMerge {
 
 
     static void main(String[] argv) {
-        def tracts = new HashMap<String, HashMap<String, int[]>>()
-        String dirPath = "../data/2010/"
+        def tracts = new HashMap<Long, HashMap<Long, int[]>>()
+        String dirPath = "../data/2009/"
         File p = new File(dirPath)
         String[] fnames = p.list()
 
@@ -26,8 +26,10 @@ class TractCensusMerge {
                 String l = reader.readLine() // get rid of header
                 while ((l = reader.readLine()) != null) {
                     String[] ls = l.split(",")
-                    String org = ls[0].substring(0, ls[0].length() - 3)
-                    String dst = ls[1].substring(0, ls[1].length() - 3)
+//                    String org = ls[0].substring(0, ls[0].length() - 4)
+//                    String dst = ls[1].substring(0, ls[1].length() - 4)
+                    long org = Long.parseLong(ls[0]) / 10000;
+                    long dst = Long.parseLong(ls[1]) / 10000;
                     int[] counts = new int[10]
                     for (int i = 0; i < 10; i++)
                         counts[i] = ls[i+2].toInteger()
@@ -48,13 +50,13 @@ class TractCensusMerge {
         }
 
 
-        new File("../data/state_all_tract_level_od_JT00_2010").withWriter{ fout ->
+        new File("../data/state_all_tract_level_od_JT00_2009.csv").withWriter{ fout ->
             tracts.each{
-                String org, HashMap<String, int[]> dict_dst ->
-                    fout.write(org + ",")
+                Long org, HashMap<Long, int[]> dict_dst ->
                     dict_dst.each {
-                        String dst, int[] counts ->
-                            fout.write(dst)
+                        Long dst, int[] counts ->
+                            fout.write(org.toString() + ",")
+                            fout.write(dst.toString())
                             counts.each { it ->
                                 fout.write(",")
                                 fout.write(it.toString())

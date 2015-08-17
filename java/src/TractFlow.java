@@ -21,7 +21,7 @@ public class TractFlow {
 
     public static void main(String[] args) {
         HashMap<Long, HashMap<Long, int[]>> tracts = new HashMap<>();
-        String dirPath = "../data/2010/";
+        String dirPath = "../data/2011/";
         File folder = new File(dirPath);
         String[] fnames = folder.list();
 
@@ -32,10 +32,10 @@ public class TractFlow {
                 br.readLine();  // get rid of header
                 while ((l = br.readLine())!= null) {
                     String[] ls = l.split(",");
-//                    String org = ls[0].substring(0, ls[0].length()-3);
-//                    String dst = ls[1].substring(0, ls[1].length()-3);
-                    long org = Long.parseLong(ls[0]) / 1000;
-                    long dst = Long.parseLong(ls[1]) / 1000;
+//                    String org = ls[0].substring(0, ls[0].length()-4);
+//                    String dst = ls[1].substring(0, ls[1].length()-4);
+                    long org = Long.parseLong(ls[0]) / 10000;
+                    long dst = Long.parseLong(ls[1]) / 10000;
                     int[] counts = new int[10];
                     for (int i = 0; i < 10; i++)
                         counts[i] = Integer.parseInt(ls[i+2]);
@@ -62,7 +62,7 @@ public class TractFlow {
         }
 
 
-        try (BufferedWriter bw = new BufferedWriter(new FileWriter("../data/state_all_tract_level_od_JT00_2010")) ) {
+        try (BufferedWriter bw = new BufferedWriter(new FileWriter("../data/state_all_tract_level_od_JT00_2011")) ) {
             for (long org : tracts.keySet()) {
                 for (long dst : tracts.get(org).keySet()) {
                     bw.write(Long.toString(org) + ",");
