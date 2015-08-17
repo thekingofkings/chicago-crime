@@ -8,7 +8,7 @@ Author: Hongjian Wang
 Date: 8/14/2015
 """
 
-
+import sys
 import shapefile
 from TractFlow import mergeBlockCensus, savePairWiseTractsFeatures
 
@@ -65,34 +65,38 @@ def get_Tract_CA_ref():
 if __name__ == '__main__':
     
 #    sf = generate_Tract_CA_reference()
+    args = {}
+    
+    if len(sys.argv) % 2 == 1:
+        args[sys.argv[1]] = sys.argv[2]   # year 2010
+        
     
     TC_ref = get_Tract_CA_ref()
     
     CA_census = {}
     
-    with open('../data/state_all_tract_level_od_JT00_2010') as fin:
+    with open('../data/state_all_tract_level_od_JT00_{0}.csv'.format(args['year'])) as fin:
         for line in fin:
             ls = line.split(",")
             src_tract = int(ls[0])
             dst_tract = int(ls[1])
             
-            if src_tract >= 17031010100L and src_tract <= 17031980100L:
-                print src_tract
             
-#            if src_tract in TC_ref and src_tract in TC_ref:
-#                d = []
-#                src_ca = TC_ref[src_tract]
-#                dst_ca = TC_ref[dst_tract]
-#                for val in ls[2:]:
-#                    d.append(int(val))
-#                    if src_ca in CA_census:
-#                        if dst_ca in CA_census[src_ca]:
-#                            CA_census[src_ca][dst_ca] = mergeCACensus(CA_census[src_ca][dst_ca], d)
-#                        else:
-#                            CA_census[src_ca][dst_ca] = d
-#                    else:
-#                        CA_census[src_ca] = {}
-#                        CA_census[src_ca][dst_ca] = d
+            if src_tract in TC_ref and dst_tract in TC_ref:
+                d = []
+                src_ca = TC_ref[src_tract]
+                dst_ca = TC_ref[dst_tract]
+                for val in ls[2:]:
+                    d.append(int(val))
+                    
+                if src_ca in CA_census:
+                    if dst_ca in CA_census[src_ca]:
+                        CA_census[src_ca][dst_ca] = mergeCACensus(CA_census[src_ca][dst_ca], d)
+                    else:
+                        CA_census[src_ca][dst_ca] = d
+                else:
+                    CA_census[src_ca] = {}
+                    CA_census[src_ca][dst_ca] = d
                         
     
-    savePairWiseCAFeatures('../data/chicago_ca_od_2010', CA_census)
+    savePairWiseCAFeatures('../data/chicago_ca_od_{0}.csv'.format(args['year']), CA_census)

@@ -19,7 +19,7 @@ import os
 def mergeBlockCensus( a , b ):
     if len(a) != len(b):
         print "Two list length do not match!"
-        exit()
+        return None
         
     for idx, val in enumerate(a):
         a[idx] += b[idx]
