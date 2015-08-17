@@ -10,6 +10,19 @@ Date: 8/14/2015
 
 
 import shapefile
+from TractFlow import mergeBlockCensus, savePairWiseTractsFeatures
+
+
+"""
+reuse the mergeBlockCensus function, which takes the sum of two list
+"""
+mergeCACensus = mergeBlockCensus
+
+
+"""
+reuse the savePairWiseTractsFeatures function, which save dictionary of dictionary into file
+"""
+savePairWiseCAFeatures = savePairWiseTractsFeatures
 
 
 
@@ -19,7 +32,7 @@ def generate_Tract_CA_reference():
     """
     sf = shapefile.Reader('../data/chicago-shp-2010/CensusTractsTIGER2010')
     
-    fields = [ sf.fields[i][0] for i in range(2, len(sf.fields)) ]
+    fields = [ sf.fields[i][0] for i in range(1, len(sf.fields)) ]
     for f in fields:
         print f
         
@@ -27,14 +40,19 @@ def generate_Tract_CA_reference():
     
     with open('../data/chicago-tract-ca', 'w') as fout:
         for rec in records:
-            fout.write('{0},{1}'.format(rec[2], rec[6]))
+            fout.write('{0},{1}'.format(rec[3], rec[6]))
             fout.write('\n')
+            
+    return sf
         
 
 
 def get_Tract_CA_ref():
     """
     Retrieve tract to CA reference from file
+    
+    Return value:
+        A Map from tract ID to CA ID, both are integer
     """
     tract_ca_ref = {}
     with open('../data/chicago-tract-ca', 'r') as fin:
@@ -46,4 +64,35 @@ def get_Tract_CA_ref():
 
 if __name__ == '__main__':
     
+#    sf = generate_Tract_CA_reference()
+    
     TC_ref = get_Tract_CA_ref()
+    
+    CA_census = {}
+    
+    with open('../data/state_all_tract_level_od_JT00_2010') as fin:
+        for line in fin:
+            ls = line.split(",")
+            src_tract = int(ls[0])
+            dst_tract = int(ls[1])
+            
+            if src_tract >= 17031010100L and src_tract <= 17031980100L:
+                print src_tract
+            
+#            if src_tract in TC_ref and src_tract in TC_ref:
+#                d = []
+#                src_ca = TC_ref[src_tract]
+#                dst_ca = TC_ref[dst_tract]
+#                for val in ls[2:]:
+#                    d.append(int(val))
+#                    if src_ca in CA_census:
+#                        if dst_ca in CA_census[src_ca]:
+#                            CA_census[src_ca][dst_ca] = mergeCACensus(CA_census[src_ca][dst_ca], d)
+#                        else:
+#                            CA_census[src_ca][dst_ca] = d
+#                    else:
+#                        CA_census[src_ca] = {}
+#                        CA_census[src_ca][dst_ca] = d
+                        
+    
+    savePairWiseCAFeatures('../data/chicago_ca_od_2010', CA_census)

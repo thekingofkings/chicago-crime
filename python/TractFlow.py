@@ -21,11 +21,26 @@ def mergeBlockCensus( a , b ):
         print "Two list length do not match!"
         exit()
         
-    c = []
     for idx, val in enumerate(a):
-        c.append(val + b[idx])
+        a[idx] += b[idx]
         
-    return c
+    return a
+    
+    
+    
+def savePairWiseTractsFeatures( fname, tracts ):
+    """
+    The tracts is a dictionary of dictionary, where pairwise tracts flow features are stored
+    """
+    # write out tract-tract flows
+    with open(fname, 'w') as fout:
+        for org, dict_dst in tracts.items():
+            for dst, counts in dict_dst.items():
+                counts_str = [ str(x) for x in counts ]
+                l = ','.join([org, dst] + counts_str)
+                fout.write(l)
+                fout.write('\n')
+    
 
 if __name__ == '__main__':
     
@@ -41,8 +56,8 @@ if __name__ == '__main__':
         next(f)
         for line in f:
             ls = line.split(",")    # ls length 13
-            tract_org = ls[0][:-3]
-            tract_dst = ls[1][:-3]
+            tract_org = ls[0][:-4]
+            tract_dst = ls[1][:-4]
             # get count S000 SA01 SA02 SA03 SE01 SE02 SE03 SI01 SI02 SI03
             counts = []
             for s in ls[2:-1]:
@@ -62,15 +77,8 @@ if __name__ == '__main__':
             print '{0} out of {1} files processed.'.format(cnt, len(files))
             
             
-    # write out tract-tract flows
-    with open('../data/state_all_tract_level_od_JT00_2010.csv', 'w') as fout:
-        for org, dict_dst in tracts.items():
-            for dst, counts in dict_dst.items():
-                counts_str = [ str(x) for x in counts ]
-                l = ','.join([org, dst] + counts_str)
-                fout.write(l)
-                fout.write('\n')
-        
+    savePairWiseTractsFeatures('../data/state_all_tract_level_od_JT00_2010.csv', tracts)
+    
             
     
                         
