@@ -37,7 +37,7 @@ def savePairWiseTractsFeatures( fname, tracts ):
         for org, dict_dst in tracts.items():
             for dst, counts in dict_dst.items():
                 counts_str = [ str(x) for x in counts ]
-                l = ','.join([org, dst] + counts_str)
+                l = ','.join([str(org), str(dst)] + counts_str)
                 fout.write(l)
                 fout.write('\n')
     
@@ -56,8 +56,8 @@ if __name__ == '__main__':
         next(f)
         for line in f:
             ls = line.split(",")    # ls length 13
-            tract_org = ls[0][:-4]
-            tract_dst = ls[1][:-4]
+            tract_org = long(ls[0]) / 10000
+            tract_dst = long(ls[1]) / 10000
             # get count S000 SA01 SA02 SA03 SE01 SE02 SE03 SI01 SI02 SI03
             counts = []
             for s in ls[2:-1]:
@@ -65,7 +65,7 @@ if __name__ == '__main__':
             
             if tract_org in tracts:
                 if tract_dst in tracts[tract_org]:
-                    tracts[tract_org][tract_dst] = mergeBlockCensus(tracts[tract_org][tract_dst], counts)
+                    mergeBlockCensus(tracts[tract_org][tract_dst], counts)
                 else:
                     tracts[tract_org][tract_dst] = counts
             else:
