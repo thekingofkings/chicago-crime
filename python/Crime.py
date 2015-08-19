@@ -2,6 +2,9 @@
 Parse chicago crime file
 """
 
+import shapefile
+from shapely.geometry import Polygon
+
 
 class CrimeRecord:
 
@@ -17,19 +20,21 @@ class CrimeRecord:
         
     def __str__( self ):
         return ' '.join( [self.id, self.caseNumber, self.date, self.type, self.lat, self.lon ] )
+            
+        
 
         
 class CrimeDataset:
     
     def __init__( self, fname ):
         self.f = open( fname, 'r' )
-        header = self.f.readline()
         
         
     def splitFileIntoYear( self ):
         """
         Split the file according to the year filed
         """        
+        header = self.f.readline()  # get rid of header line
         years = {}
         for line in self.f:
             cr = CrimeRecord(line)
@@ -43,7 +48,34 @@ class CrimeDataset:
             
             
   
+   
         
+        
+class Tract:
+    
+    
+    def __init__( self, shp ):
+        """
+        Build one Tract object from the shapefile._Shape object
+        """
+        self.bbox = Polygon(shp.bbox)
+        self.polygon = Polygon(shp.points)
+        
+        
+    @classmethod
+    def createAllTractsObjects( cls ):
+        cls.sf = shapefile.Reader('../data/chicago-shp-2010-gps/chicago_tract_wgs84')
+        cls.tracts = {}
+        
+        shps = cls.sf.shapes()
+        for shp, idx in enumerate(shps):
+            tid = cls.sf.record(idx)[3]
+            trt = Tract(shp)
+            cls.tracts[tid] = trt
+            
+            
+            
+            
         
 if __name__ == '__main__':
     
