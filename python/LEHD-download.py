@@ -1,3 +1,10 @@
+"""
+Batch download the LEHD data for given states for given year
+
+author: Hongjian Wang
+"""
+
+
 import urllib2
 import re
 from bs4 import BeautifulSoup as bs

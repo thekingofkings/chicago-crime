@@ -30,7 +30,7 @@ def generate_Tract_CA_reference():
     """
     For all tracts in Chicago, find their corresponding Community Area
     """
-    sf = shapefile.Reader('../data/chicago-shp-2010/CensusTractsTIGER2010')
+    sf = shapefile.Reader('../data/chicago-shp-2010-gps/chicago_tract_wgs84')
     
     fields = [ sf.fields[i][0] for i in range(1, len(sf.fields)) ]
     for f in fields:

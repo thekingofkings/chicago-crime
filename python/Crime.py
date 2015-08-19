@@ -1,3 +1,6 @@
+"""
+Parse chicago crime file
+"""
 
 
 class CrimeRecord:
@@ -20,7 +23,25 @@ class CrimeDataset:
     
     def __init__( self, fname ):
         self.f = open( fname, 'r' )
-        header = f.readline()
+        header = self.f.readline()
+        
+        
+    def splitFileIntoYear( self ):
+        """
+        Split the file according to the year filed
+        """        
+        years = {}
+        for line in self.f:
+            cr = CrimeRecord(line)
+            year = cr.date[6:10]
+            if year not in years:
+                years[year] = open('../data/chicago-crime-{0}.csv'.format(year), 'w')
+            years[year].write(line)
+            
+        for F in years.values():
+            F.close()
+            
+            
   
         
         
@@ -28,4 +49,4 @@ if __name__ == '__main__':
     
     c = CrimeDataset('../data/Crimes_-_2001_to_present.csv')
         
-        
+    c.splitFileIntoYear()
