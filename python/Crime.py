@@ -3,19 +3,30 @@ Parse chicago crime file
 """
 
 import shapefile
-from shapely.geometry import Polygon
+from shapely.geometry import Polygon, Point, box
 
 
 class CrimeRecord:
+    
+    cntBadRecord = 0    # record without GPS is bad
+    cntTotal = 0
 
     def __init__( self, line ):
         ls = line.split(",")
-        self.id = ls[0]
-        self.caseNumber = ls[1]
-        self.date = ls[2]
-        self.type = ls[5]
-        self.lat = ls[-4]
-        self.lon = ls[-3]
+        if len(ls) > 21:
+            try:
+                self.point = Point( float(ls[-3]), float(ls[-4]) )  # longitude, latitude
+                self.id = ls[0]
+                self.caseNumber = ls[1]
+                self.date = ls[2]
+                self.type = ls[5]
+                CrimeRecord.cntTotal += 1
+            except ValueError:
+                print line
+                self.id = None
+                CrimeRecord.cntBadRecord += 1
+        else:
+            self.id = None
         
         
     def __str__( self ):
@@ -30,13 +41,31 @@ class CrimeDataset:
         self.f = open( fname, 'r' )
         
         
-    def splitFileIntoYear( self ):
+    def crimeCount_PerTract( self, tracts ):
         """
-        Split the file according to the year filed
-        """        
-        header = self.f.readline()  # get rid of header line
-        years = {}
+        count the number of crimes for each tract
+        
+        Input:
+            tracts - a map of tract ID to tract object
+        """
         for line in self.f:
+            cr = CrimeRecord( line )
+            if cr.id != None:
+                for tract in tracts.values():
+                    if tract.containCrime (cr):
+                        tract.count += 1
+            
+        
+        
+    @classmethod
+    def splitFileIntoYear( cls, rawfileName ):
+        """
+        Split the raw file according to the year filed
+        """
+        cls.f = open(rawfileName, 'r')
+        header = cls.f.readline()  # get rid of header line
+        years = {}
+        for line in cls.f:
             cr = CrimeRecord(line)
             year = cr.date[6:10]
             if year not in years:
@@ -47,7 +76,6 @@ class CrimeDataset:
             F.close()
             
             
-  
    
         
         
@@ -58,27 +86,50 @@ class Tract:
         """
         Build one Tract object from the shapefile._Shape object
         """
-        self.bbox = Polygon(shp.bbox)
+        self.bbox = box(*shp.bbox)
         self.polygon = Polygon(shp.points)
+        self.count = 0
+        
+    
+    def containCrime( self, cr ):
+        """
+        return true if the cr record happened within current tract
+        """
+        if self.bbox.contains(cr.point):
+            if self.polygon.contains(cr.point):
+                return True
+        return False
         
         
     @classmethod
-    def createAllTractsObjects( cls ):
+    def createAllTractObjects( cls ):
         cls.sf = shapefile.Reader('../data/chicago-shp-2010-gps/chicago_tract_wgs84')
         cls.tracts = {}
         
         shps = cls.sf.shapes()
-        for shp, idx in enumerate(shps):
+        for idx, shp in enumerate(shps):
             tid = cls.sf.record(idx)[3]
             trt = Tract(shp)
             cls.tracts[tid] = trt
-            
+        
+        return cls.tracts
             
             
             
         
 if __name__ == '__main__':
     
-    c = CrimeDataset('../data/Crimes_-_2001_to_present.csv')
+#    CrimeDataset.splitFileIntoYear('../data/Crimes_-_2001_to_present.csv')
+    year = 2009
+    
+    c = CrimeDataset('../data/chicago-crime-{0}.csv'.format(year))
+    T = Tract.createAllTractObjects()
+    c.crimeCount_PerTract(T)
         
-    c.splitFileIntoYear()
+    with open('../data/chicago-crime-tract-level-{0}.csv'.format(year), 'w') as fout:
+        for k, v in T.items():
+            fout.write(','.join( [k, str(v.count)] ))
+            fout.write("\n")
+            
+    print "Bad records: {0}".format(CrimeRecord.cntBadRecord)
+    print "Total records: {0}".format(CrimeRecord.cntTotal)          
