@@ -26,6 +26,18 @@ savePairWiseCAFeatures = savePairWiseTractsFeatures
 
 
 
+def saveNodalCAFeatures(foutName, CA_features):
+    """
+    The CA_features is a dicationary
+    """
+    with open(foutName, 'w') as fout:
+        for caID, features in CA_features.items():
+            fstr = [str(x) for x in features]
+            fout.write( ",".join( [str(caID)] + fstr) )
+            fout.write("\n")
+            
+            
+
 def generate_Tract_CA_reference():
     """
     For all tracts in Chicago, find their corresponding Community Area
@@ -60,22 +72,20 @@ def get_Tract_CA_ref():
             ls = line.split(",")    # tract ID, CA ID
             tract_ca_ref[int(ls[0])] = int(ls[1])
     return tract_ca_ref
-            
 
-if __name__ == '__main__':
-    
-#    sf = generate_Tract_CA_reference()
-    args = {}
-    
-    if len(sys.argv) % 2 == 1:
-        args[sys.argv[1]] = sys.argv[2]   # year 2010
-        
-    
+
+
+def tract_CA_flowAggregate(finName, foutName):
+    """
+    aggregate flow information from tract to CA
+    flow format:
+        srcID, dstID, f1, f2, ...
+    """
     TC_ref = get_Tract_CA_ref()
     
     CA_census = {}
     
-    with open('../data/state_all_tract_level_od_JT00_{0}.csv'.format(args['year'])) as fin:
+    with open(finName) as fin:
         for line in fin:
             ls = line.split(",")
             src_tract = int(ls[0])
@@ -99,4 +109,61 @@ if __name__ == '__main__':
                     CA_census[src_ca][dst_ca] = d
                         
     
-    savePairWiseCAFeatures('../data/chicago_ca_od_{0}.csv'.format(args['year']), CA_census)
+    savePairWiseCAFeatures(foutName, CA_census)    
+    return CA_census
+
+
+
+def tract_CA_nodalFeatureAggregate(finName, foutName):
+    """
+    Aggregate nodal feature from tract to CA
+    feature format:
+        srcID, f1, f2
+    """
+    TC_ref = get_Tract_CA_ref()
+    
+    CA_features = {}
+    
+    with open(finName) as fin:
+        for line in fin:
+            ls = line.split(",")
+            tracID = int(ls[0])
+            
+            if tracID in TC_ref:
+                d = []
+                caID = TC_ref[tracID]
+                for val in ls[1:]:
+                    d.append(int(val))
+                    
+                if caID in CA_features:
+                    mergeCACensus(CA_features[caID], d)
+                else:
+                    CA_features[caID] = d
+                    
+                    
+    saveNodalCAFeatures(foutName, CA_features)
+    return CA_features
+
+
+if __name__ == '__main__':
+    
+#    sf = generate_Tract_CA_reference()
+    args = {}
+    
+    if len(sys.argv) % 2 == 1:
+        for i in range(1, len(sys.argv), 2):
+            args[sys.argv[i]] = sys.argv[i+1]   # year 2010 # datatype (lehd/crime)
+
+    
+    finName = '../data/state_all_tract_level_od_JT00_{0}.csv'.format(args['year'])
+    foutName = '../data/chicago_ca_od_{0}.csv'.format(args['year'])
+    if 'datatype' in args:
+        if args['datatype'] == 'crime':
+            finName = '../data/chicago-crime-tract-level-{0}.csv'.format(args['year'])
+            foutName = '../data/chicago-crime-ca-level-{0}.csv'.format(args['year'])
+            r = tract_CA_nodalFeatureAggregate(finName, foutName)
+        elif args['datatype'] == 'lehd':    
+            finName = '../data/state_all_tract_level_od_JT00_{0}.csv'.format(args['year'])
+            foutName = '../data/chicago_ca_od_{0}.csv'.format(args['year'])
+            tract_CA_flowAggregate(finName, foutName)
+    

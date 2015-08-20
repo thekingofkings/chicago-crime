@@ -40,6 +40,7 @@ def savePairWiseTractsFeatures( fname, tracts ):
                 l = ','.join([str(org), str(dst)] + counts_str)
                 fout.write(l)
                 fout.write('\n')
+                
     
 
 if __name__ == '__main__':
