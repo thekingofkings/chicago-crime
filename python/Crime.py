@@ -6,6 +6,7 @@ import shapefile
 from shapely.geometry import Polygon, Point, box
 
 
+
 class CrimeRecord:
     
     cntBadRecord = 0    # record without GPS is bad
