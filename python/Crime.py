@@ -11,6 +11,7 @@ class CrimeRecord:
     
     cntBadRecord = 0    # record without GPS is bad
     cntTotal = 0
+    CrimeType = ['total']
 
     def __init__( self, line ):
         ls = line.split(",")
@@ -21,6 +22,8 @@ class CrimeRecord:
                 self.caseNumber = ls[1]
                 self.date = ls[2]
                 self.type = ls[5]
+                if self.type not in CrimeRecord.CrimeType:
+                    CrimeRecord.CrimeType.append(self.type)
                 CrimeRecord.cntTotal += 1
             except ValueError:
                 print line
@@ -54,7 +57,12 @@ class CrimeDataset:
             if cr.id != None:
                 for tract in tracts.values():
                     if tract.containCrime (cr):
-                        tract.count += 1
+                        tract.count['total'] += 1
+                        if cr.type not in tract.count:
+                            tract.count[cr.type] = 1
+                        else:
+                            tract.count[cr.type] += 1
+                        
             
         
         
@@ -89,7 +97,8 @@ class Tract:
         """
         self.bbox = box(*shp.bbox)
         self.polygon = Polygon(shp.points)
-        self.count = 0
+        self.count = {'total': 0} # type: value
+        
         
     
     def containCrime( self, cr ):
@@ -125,11 +134,20 @@ if __name__ == '__main__':
     
     c = CrimeDataset('../data/chicago-crime-{0}.csv'.format(year))
     T = Tract.createAllTractObjects()
-    c.crimeCount_PerTract(T)
+    c.crimeCount_PerTract(T)    
+    CrimeRecord.CrimeType.sort()
+    cntKey = CrimeRecord.CrimeType
+    print len(cntKey), cntKey
         
     with open('../data/chicago-crime-tract-level-{0}.csv'.format(year), 'w') as fout:
         for k, v in T.items():
-            fout.write(','.join( [k, str(v.count)] ))
+            cntstr = []
+            for tp in cntKey:
+                if tp in v.count:
+                    cntstr.append( str(v.count[tp]) )
+                else:
+                    cntstr.append('0')
+            fout.write(','.join( [k] + cntstr ))
             fout.write("\n")
             
     print "Bad records: {0}".format(CrimeRecord.cntBadRecord)
