@@ -45,7 +45,7 @@ def savePairWiseTractsFeatures( fname, tracts ):
 
 if __name__ == '__main__':
     
-    print 'Warning: you need more than 8GB memroy to run this script. 16GB is recommended'
+    print 'Warning: you need more than 8GB memroy to run this script. 16GB is recommended.'
     
     arguments = {}
     if len(sys.argv) % 2 == 1:
@@ -66,6 +66,11 @@ if __name__ == '__main__':
     dirPath = '../data/{0}'.format(year)
     files = os.listdir(dirPath)
     cnt = 0
+    foutName = '../data/state_all_tract_level_od_JT00_{0}.csv'.format(year)
+    
+    if os.path.exists(foutName):
+        print 'The year {0} is already merged.\nQuit Program'.format(year)
+        sys.exit(0)
     
     for fn in files:
         f = open(os.path.join(dirPath, fn), 'r')
@@ -95,7 +100,7 @@ if __name__ == '__main__':
             print '{0} out of {1} files processed.'.format(cnt, len(files))
             
             
-    savePairWiseTractsFeatures('../data/state_all_tract_level_od_JT00_{0}.csv'.format(year), tracts)
+    savePairWiseTractsFeatures(foutName, tracts)
     
             
     
