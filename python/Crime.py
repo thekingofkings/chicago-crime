@@ -29,7 +29,6 @@ class CrimeRecord:
                     CrimeRecord.CrimeType.append(self.type)
                 CrimeRecord.cntTotal += 1
             except ValueError:
-                print line
                 self.id = None
                 CrimeRecord.cntBadRecord += 1
         else:
@@ -163,6 +162,7 @@ if __name__ == '__main__':
     c.crimeCount_PerTract(T)    
     CrimeRecord.CrimeType.sort()
     cntKey = CrimeRecord.CrimeType
+    print year
     print len(cntKey), cntKey
         
     with open(foutName, 'w') as fout:
