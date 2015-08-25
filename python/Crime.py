@@ -4,6 +4,9 @@ Parse chicago crime file
 
 import shapefile
 from shapely.geometry import Polygon, Point, box
+import sys
+import os
+
 
 
 
@@ -129,8 +132,31 @@ class Tract:
         
 if __name__ == '__main__':
     
-#    CrimeDataset.splitFileIntoYear('../data/Crimes_-_2001_to_present.csv')
-    year = 2001
+    year = 2010
+    arguments = {}
+    if len(sys.argv) % 2 == 1:
+        for i in range(1, len(sys.argv), 2):
+            arguments[sys.argv[i]] = sys.argv[i+1]
+    else:
+        print """Usage: Crime.py [options] [value]
+        Possible options:
+            year       e.g. 2010 default '2010'
+            splitfile  e.g. true default false"""
+
+    if 'splitfile' in arguments:
+        if arguments['splitfile'] == 'true':
+            CrimeDataset.splitFileIntoYear('../data/Crimes_-_2001_to_present.csv')
+            sys.exit(0)
+            
+    if 'year' in arguments:
+        year = arguments['year']
+        
+    foutName = '../data/chicago-crime-tract-level-{0}.csv'.format(year)
+    
+    if os.path.exists(foutName):
+        print 'The year {0} is already merged.\nQuit Program'.format(year)
+        sys.exit(0)
+            
     
     c = CrimeDataset('../data/chicago-crime-{0}.csv'.format(year))
     T = Tract.createAllTractObjects()
@@ -139,7 +165,7 @@ if __name__ == '__main__':
     cntKey = CrimeRecord.CrimeType
     print len(cntKey), cntKey
         
-    with open('../data/chicago-crime-tract-level-{0}.csv'.format(year), 'w') as fout:
+    with open(foutName, 'w') as fout:
         for k, v in T.items():
             cntstr = []
             for tp in cntKey:
