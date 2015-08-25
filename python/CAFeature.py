@@ -153,10 +153,21 @@ if __name__ == '__main__':
     if len(sys.argv) % 2 == 1:
         for i in range(1, len(sys.argv), 2):
             args[sys.argv[i]] = sys.argv[i+1]   # year 2010 # datatype (lehd/crime)
+    else:
+        print """Usage: CAFeature.py [options] [value]
+        Possible options:
+            year         e.g. 2010 default '2010'
+            datatype     e.g. lehd default crime"""
 
     
     finName = '../data/state_all_tract_level_od_JT00_{0}.csv'.format(args['year'])
     foutName = '../data/chicago_ca_od_{0}.csv'.format(args['year'])
+    
+    if os.path.exists(foutName):
+        print 'The year {0} is already merged.\nQuit Program'.format(year)
+        sys.exit(0)
+        
+        
     if 'datatype' in args:
         if args['datatype'] == 'crime':
             finName = '../data/chicago-crime-tract-level-{0}.csv'.format(args['year'])
