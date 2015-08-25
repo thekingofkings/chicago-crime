@@ -9,6 +9,7 @@ Date: 8/14/2015
 """
 
 import sys
+import os
 import shapefile
 from TractFlow import mergeBlockCensus, savePairWiseTractsFeatures
 
