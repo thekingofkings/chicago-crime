@@ -12,7 +12,7 @@ This task is memory consuming. On my 8GB laptop it cannot be executed.
 Rewrite in Groovy.
 """
 
-
+import sys
 import os
 
 
@@ -45,8 +45,25 @@ def savePairWiseTractsFeatures( fname, tracts ):
 
 if __name__ == '__main__':
     
+    print 'Warning: you need more than 8GB memroy to run this script. 16GB is recommended'
+    
+    arguments = {}
+    if len(sys.argv) % 2 == 1:
+        for i in range(1, len(sys.argv), 2):
+            arguments[sys.argv[i]] = sys.argv[i+1]
+    else:
+        print """Usage: TractFlow.py [options] [value]
+        Possible options:
+            year       e.g. 2010 default '2010'"""
+            
+            
+    year = 2010
+    if 'year' in arguments:
+        year = arguments['year']
+        
+    
     tracts = {}
-    dirPath = '../data/2010'
+    dirPath = '../data/{0}'.format(year)
     files = os.listdir(dirPath)
     cnt = 0
     
@@ -78,7 +95,7 @@ if __name__ == '__main__':
             print '{0} out of {1} files processed.'.format(cnt, len(files))
             
             
-    savePairWiseTractsFeatures('../data/state_all_tract_level_od_JT00_2010.csv', tracts)
+    savePairWiseTractsFeatures('../data/state_all_tract_level_od_JT00_{0}.csv'.format(year), tracts)
     
             
     

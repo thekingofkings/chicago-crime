@@ -162,7 +162,7 @@ if __name__ == '__main__':
             finName = '../data/chicago-crime-tract-level-{0}.csv'.format(args['year'])
             foutName = '../data/chicago-crime-ca-level-{0}.csv'.format(args['year'])
             r = tract_CA_nodalFeatureAggregate(finName, foutName)
-        elif args['datatype'] == 'lehd':    
+        elif args['datatype'] == 'lehd':
             finName = '../data/state_all_tract_level_od_JT00_{0}.csv'.format(args['year'])
             foutName = '../data/chicago_ca_od_{0}.csv'.format(args['year'])
             tract_CA_flowAggregate(finName, foutName)

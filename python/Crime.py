@@ -130,7 +130,7 @@ class Tract:
 if __name__ == '__main__':
     
 #    CrimeDataset.splitFileIntoYear('../data/Crimes_-_2001_to_present.csv')
-    year = 2009
+    year = 2001
     
     c = CrimeDataset('../data/chicago-crime-{0}.csv'.format(year))
     T = Tract.createAllTractObjects()
