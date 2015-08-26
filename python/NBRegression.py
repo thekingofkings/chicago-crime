@@ -14,7 +14,8 @@ from shapely.geometry import MultiLineString
 import numpy as np
 from scipy import stats
 import matplotlib.pyplot as plt
-
+from scipy.stats import nbinom
+from statsmodels.base.model import GenericLikelihoodModel
 
 
 """
@@ -23,7 +24,7 @@ Generate vairous features
 """
 
 
-def generate_geographical_SpatialLag(foutName):
+def generate_geographical_SocialLag(foutName):
     """
     Generate the spatial lag from the geographically adjacent CAs.
     """
@@ -44,12 +45,12 @@ def generate_geographical_SpatialLag(foutName):
 
 
 
-def generate_transition_SpatialLag():
+def generate_transition_SocialLag(year = 2010):
     """
     Generate the spatial lag from the transition flow connected CAs.
     """
     listIdx = {}
-    fin = open('../data/chicago_ca_od_2010.csv')
+    fin = open('../data/chicago_ca_od_{0}.csv'.format(year))
     for line in fin:
         ls = line.split(",")
         srcid = int(ls[0])
@@ -74,12 +75,12 @@ def generate_transition_SpatialLag():
 
 
 
-def retrieve_crime_count():
+def retrieve_crime_count(year):
     """
     Retrieve the crime count in a vector
     """
     Y =np.zeros( (77,1) )
-    with open('../data/chicago-crime-ca-level-2010.csv') as fin:
+    with open('../data/chicago-crime-ca-level-{0}.csv'.format(year)) as fin:
         for line in fin:
             ls = line.split(",")
             idx = int(ls[0])
@@ -88,15 +89,78 @@ def retrieve_crime_count():
 
     return Y
 
-
-
-if __name__ == '__main__':
-    # generate_geographical_SpatialLag('../data/chicago-CA-geo-neighbor')
-    W = generate_transition_SpatialLag()
-    Y = retrieve_crime_count()
     
-    f1 = np.dot(W, Y).reshape((77,))
-    Y = Y.reshape((77,))
+
+def linearRegression(features, Y):
+    """
+    learn the linear regression model from features to Y
+    output the regression analysis parameters
+    plot scatter plot
+    """
     sl, intcpt, rval, pval, stderr = stats.linregress(f1, Y)
     print sl, intcpt, rval, pval, stderr
     plt.scatter(f1, Y)
+
+
+    
+    
+
+class NegBin(GenericLikelihoodModel):
+    """
+    negative binomial regression
+    """
+    
+    def __init__(self, endog, exog, **kwds):
+        super(NegBin, self).__init__(endog, exog, **kwds)
+        
+        
+    def nloglikeobs(self, params):
+        alpha = params[-1]
+        beta = params[:-1]
+        mu = np.exp(np.dot(self.exog, beta))
+        size = 1 / alpha
+        prob = size / (size+mu)
+        ll = nbinom.logpmf( self.endog, size, prob)
+        return - ll
+        
+    def fit(self, start_params=None, maxiter = 10000, maxfun=10000, **kwds):
+        if start_params == None:
+            start_params = np.append(np.zeros(self.exog.shape[1]), .5)
+            start_params[0] = np.log(self.endog.mean())
+        return super(NegBin, self).fit(start_params=start_params, maxiter=maxiter,
+                maxfun=maxfun, **kwds)
+                
+        
+  
+
+    
+def negativeBinomialRegression(features, Y):
+    """
+    learn the NB regression
+    """
+    mod = NegBin(Y, features)
+    res = mod.fit()
+    print res.summary()
+    return res
+
+
+    
+def unitTest_negativeBinomialRegression():
+    import patsy
+    import pandas as pd
+    url = 'http://vincentarelbundock.github.com/Rdatasets/csv/COUNT/medpar.csv'
+    medpar = pd.read_csv(url)
+    y, X = patsy.dmatrices('los~type2+type3+hmo+white', medpar)
+    
+    
+if __name__ == '__main__':
+    # generate_geographical_SocialLag('../data/chicago-CA-geo-neighbor')
+    W = generate_transition_SocialLag(2010)
+    Y = retrieve_crime_count(2010)
+    
+    f1 = np.dot(W, Y).reshape((77,))
+    Y = Y.reshape((77,))
+    
+    # linearRegression(f1, Y)
+    
+    res = negativeBinomialRegression(f1, Y)
