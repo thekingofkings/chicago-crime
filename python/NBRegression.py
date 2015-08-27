@@ -75,16 +75,19 @@ def generate_transition_SocialLag(year = 2010):
 
 
 
-def retrieve_crime_count(year):
+def retrieve_crime_count(year, col=-1):
     """
     Retrieve the crime count in a vector
+    Input:
+        year - the year to retrieve
+        col  - the type of crime
     """
     Y =np.zeros( (77,1) )
     with open('../data/chicago-crime-ca-level-{0}.csv'.format(year)) as fin:
         for line in fin:
             ls = line.split(",")
             idx = int(ls[0])
-            val = int(ls[1])
+            val = int(ls[col])
             Y[idx-1] = val
 
     return Y
@@ -140,7 +143,8 @@ def negativeBinomialRegression(features, Y):
     """
     mod = NegBin(Y, features)
     res = mod.fit()
-    print res.summary()
+    if res.mle_retvals['converged']:
+        print res.summary()
     return res
 
 
@@ -155,12 +159,20 @@ def unitTest_negativeBinomialRegression():
     
 if __name__ == '__main__':
     # generate_geographical_SocialLag('../data/chicago-CA-geo-neighbor')
+    header = ['ARSON', 'ASSAULT', 'BATTERY', 'BURGLARY', 'CRIM SEXUAL ASSAULT', 
+    'CRIMINAL DAMAGE', 'CRIMINAL TRESPASS', 'DECEPTIVE PRACTICE', 
+    'GAMBLING', 'HOMICIDE', 'INTERFERENCE WITH PUBLIC OFFICER', 
+    'INTIMIDATION', 'KIDNAPPING', 'LIQUOR LAW VIOLATION', 'MOTOR VEHICLE THEFT', 
+    'NARCOTICS', 'OBSCENITY', 'OFFENSE INVOLVING CHILDREN', 'OTHER NARCOTIC VIOLATION',
+    'OTHER OFFENSE', 'PROSTITUTION', 'PUBLIC INDECENCY', 'PUBLIC PEACE VIOLATION',
+    'ROBBERY', 'SEX OFFENSE', 'STALKING', 'THEFT', 'WEAPONS VIOLATION', 'total']
     W = generate_transition_SocialLag(2010)
-    Y = retrieve_crime_count(2010)
-    
-    f1 = np.dot(W, Y).reshape((77,))
-    Y = Y.reshape((77,))
-    
-    # linearRegression(f1, Y)
-    
-    res = negativeBinomialRegression(f1, Y)
+    for idx, val in enumerate(header):
+        Y = retrieve_crime_count(2010, idx+1)
+        
+        f1 = np.dot(W, Y).reshape((77,))
+        Y = Y.reshape((77,))
+        
+        # linearRegression(f1, Y)
+        print val
+        res = negativeBinomialRegression(f1, Y)
