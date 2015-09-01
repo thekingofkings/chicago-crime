@@ -121,6 +121,7 @@ class NegBin(GenericLikelihoodModel):
         alpha = params[-1]
         beta = params[:-1]
         mu = np.exp(np.dot(self.exog, beta))
+        # print np.dot(self.exog, beta)
         size = 1 / alpha
         prob = size / (size+mu)
         ll = nbinom.logpmf( self.endog, size, prob)
@@ -129,7 +130,7 @@ class NegBin(GenericLikelihoodModel):
     def fit(self, start_params=None, maxiter = 10000, maxfun=10000, **kwds):
         if start_params == None:
             start_params = np.append(np.zeros(self.exog.shape[1]), .5)
-            start_params[0] = np.log(self.endog.mean())
+            start_params[0:-1] = np.ones(self.exog.shape[1]) * np.log(self.endog.mean())  / self.exog.mean()
         return super(NegBin, self).fit(start_params=start_params, maxiter=maxiter,
                 maxfun=maxfun, **kwds)
                 
@@ -149,16 +150,29 @@ def negativeBinomialRegression(features, Y):
 
 
     
-def unitTest_negativeBinomialRegression():
+def unitTest_withOnlineSource():
     import patsy
     import pandas as pd
     url = 'http://vincentarelbundock.github.com/Rdatasets/csv/COUNT/medpar.csv'
     medpar = pd.read_csv(url)
     y, X = patsy.dmatrices('los~type2+type3+hmo+white', medpar)
+    res = negativeBinomialRegression(X, y)
+    return y, X, medpar
     
     
-if __name__ == '__main__':
-    # generate_geographical_SocialLag('../data/chicago-CA-geo-neighbor')
+def unitTest_onChicagoCrimeData():
+
+    W = generate_transition_SocialLag(2010)
+    Y = retrieve_crime_count(2010, -1)
+        
+    f1 = np.dot(W, Y)
+    f = np.concatenate((f1, np.ones(f1.shape)), axis=1)
+    Y = Y.reshape((77,))
+    res = negativeBinomialRegression(f, Y)
+     
+    
+
+def crimeRegression_eachCategory():
     header = ['ARSON', 'ASSAULT', 'BATTERY', 'BURGLARY', 'CRIM SEXUAL ASSAULT', 
     'CRIMINAL DAMAGE', 'CRIMINAL TRESPASS', 'DECEPTIVE PRACTICE', 
     'GAMBLING', 'HOMICIDE', 'INTERFERENCE WITH PUBLIC OFFICER', 
@@ -166,13 +180,36 @@ if __name__ == '__main__':
     'NARCOTICS', 'OBSCENITY', 'OFFENSE INVOLVING CHILDREN', 'OTHER NARCOTIC VIOLATION',
     'OTHER OFFENSE', 'PROSTITUTION', 'PUBLIC INDECENCY', 'PUBLIC PEACE VIOLATION',
     'ROBBERY', 'SEX OFFENSE', 'STALKING', 'THEFT', 'WEAPONS VIOLATION', 'total']
-    W = generate_transition_SocialLag(2010)
+    W = generate_transition_SocialLag(2009)
+    predCrimes = {}
+    unpredCrimes = {}
     for idx, val in enumerate(header):
-        Y = retrieve_crime_count(2010, idx+1)
+        Y = retrieve_crime_count(2009, idx+1)
         
-        f1 = np.dot(W, Y).reshape((77,))
+        f1 = np.dot(W, Y)
+        f = np.concatenate( (f1, np.ones(f1.shape)), axis=1 )
         Y = Y.reshape((77,))
         
         # linearRegression(f1, Y)
         print val
-        res = negativeBinomialRegression(f1, Y)
+        cnt = 0
+        for z in Y:
+            if z == 0:
+                cnt += 1
+        print 'Sparseness', cnt, len(Y)
+        res = negativeBinomialRegression(f, Y)
+        if res.mle_retvals['converged']:
+            predCrimes[val] = [cnt, len(Y)]
+        else:
+            unpredCrimes[val] = [cnt, len(Y)]
+            
+
+    
+    
+    
+    
+    
+if __name__ == '__main__':
+    # generate_geographical_SocialLag('../data/chicago-CA-geo-neighbor')
+   
+    crimeRegression_eachCategory()
