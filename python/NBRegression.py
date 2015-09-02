@@ -143,9 +143,9 @@ def negativeBinomialRegression(features, Y):
     learn the NB regression
     """
     mod = NegBin(Y, features)
-    res = mod.fit()
+    res = mod.fit(disp=False)
     if res.mle_retvals['converged']:
-        print res.summary()
+        print res.params[0], ",", res.pvalues[0]
     return res
 
 
@@ -172,7 +172,7 @@ def unitTest_onChicagoCrimeData():
      
     
 
-def crimeRegression_eachCategory():
+def crimeRegression_eachCategory(year=2010):
     header = ['ARSON', 'ASSAULT', 'BATTERY', 'BURGLARY', 'CRIM SEXUAL ASSAULT', 
     'CRIMINAL DAMAGE', 'CRIMINAL TRESPASS', 'DECEPTIVE PRACTICE', 
     'GAMBLING', 'HOMICIDE', 'INTERFERENCE WITH PUBLIC OFFICER', 
@@ -180,30 +180,29 @@ def crimeRegression_eachCategory():
     'NARCOTICS', 'OBSCENITY', 'OFFENSE INVOLVING CHILDREN', 'OTHER NARCOTIC VIOLATION',
     'OTHER OFFENSE', 'PROSTITUTION', 'PUBLIC INDECENCY', 'PUBLIC PEACE VIOLATION',
     'ROBBERY', 'SEX OFFENSE', 'STALKING', 'THEFT', 'WEAPONS VIOLATION', 'total']
-    W = generate_transition_SocialLag(2009)
+    W = generate_transition_SocialLag(year)
     predCrimes = {}
     unpredCrimes = {}
     for idx, val in enumerate(header):
-        Y = retrieve_crime_count(2009, idx+1)
+        Y = retrieve_crime_count(year, idx+1)
         
         f1 = np.dot(W, Y)
         f = np.concatenate( (f1, np.ones(f1.shape)), axis=1 )
         Y = Y.reshape((77,))
         
         # linearRegression(f1, Y)
-        print val
         cnt = 0
         for z in Y:
             if z == 0:
                 cnt += 1
-        print 'Sparseness', cnt, len(Y)
+        print ",".join( [val, str(cnt), ""] ),  # sparseness
         res = negativeBinomialRegression(f, Y)
         if res.mle_retvals['converged']:
             predCrimes[val] = [cnt, len(Y)]
         else:
             unpredCrimes[val] = [cnt, len(Y)]
-            
-
+        
+    return predCrimes, unpredCrimes
     
     
     
@@ -212,4 +211,4 @@ def crimeRegression_eachCategory():
 if __name__ == '__main__':
     # generate_geographical_SocialLag('../data/chicago-CA-geo-neighbor')
    
-    crimeRegression_eachCategory()
+   crimeRegression_eachCategory()
