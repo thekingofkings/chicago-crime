@@ -26,7 +26,7 @@ Generate vairous features
 """
 
 
-def generate_geographical_SocialLag(foutName):
+def generate_geographical_SpatialLag(foutName):
     """
     Generate the spatial lag from the geographically adjacent CAs.
     """
@@ -103,7 +103,18 @@ def retrieve_income_features():
     """
     wb = load_workbook("../data/chicago-ca-income.xlsx")
     ws = wb.active
-    header = []
+    header = ws['l3':'aa3']
+    header = [c.value for c in tuple(header)[0]]
+    l = len(header)
+    I = np.zeros((77,l))
+    for idx, row in enumerate(ws.iter_rows('k4:aa80')):
+        total = 0
+        for j, c in enumerate(row):
+            if j == 0:
+                total = float(c.value)
+            else:
+                I[idx][j-1] = c.value / total
+    return header, I
 
 
 
@@ -113,7 +124,22 @@ def retrieve_education_features():
     """
     read the xlsx file: ../data/chicago-ca-education.xlsx
     """
-    pass
+    wb = load_workbook("../data/chicago-ca-education.xlsx")
+    ws = wb.active
+    header = ws['k3':'n3']
+    header = [c.value for c in tuple(header)[0]]
+    l = len(header)
+    E = np.zeros((77,l))
+    for i, row in enumerate(ws.iter_rows('j4:n80')):
+        total = 0
+        for j, c in enumerate(row):
+            if j == 0:
+                total = float(c.value)
+            else:
+                E[i][j-1] = c.value / total
+    return header, E
+                    
+        
     
     
     
@@ -210,6 +236,7 @@ def unitTest_onChicagoCrimeData():
      
     
 
+
 def crimeRegression_eachCategory(year=2010):
     header = ['ARSON', 'ASSAULT', 'BATTERY', 'BURGLARY', 'CRIM SEXUAL ASSAULT', 
     'CRIMINAL DAMAGE', 'CRIMINAL TRESPASS', 'DECEPTIVE PRACTICE', 
@@ -250,4 +277,5 @@ if __name__ == '__main__':
     # generate_geographical_SocialLag('../data/chicago-CA-geo-neighbor')
    
 #   crimeRegression_eachCategory()
-   retrieve_income_features()
+   i = retrieve_income_features()
+   e = retrieve_education_features()
