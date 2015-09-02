@@ -16,6 +16,8 @@ from scipy import stats
 import matplotlib.pyplot as plt
 from scipy.stats import nbinom
 from statsmodels.base.model import GenericLikelihoodModel
+from openpyxl import *
+
 
 
 """
@@ -91,6 +93,42 @@ def retrieve_crime_count(year, col=-1):
             Y[idx-1] = val
 
     return Y
+
+
+
+
+def retrieve_income_features():
+    """
+    read the xlsx file: ../data/chicago-ca-income.xlsx
+    """
+    wb = load_workbook("../data/chicago-ca-income.xlsx")
+    ws = wb.active
+    header = []
+
+
+
+
+
+def retrieve_education_features():
+    """
+    read the xlsx file: ../data/chicago-ca-education.xlsx
+    """
+    pass
+    
+    
+    
+    
+def retrieve_race_features():
+    """
+    read the xlsx file: ../data/chicago-ca-race.xlsx
+    """
+    pass
+
+
+"""
+Part Two
+Regression models
+"""
 
     
 
@@ -211,4 +249,5 @@ def crimeRegression_eachCategory(year=2010):
 if __name__ == '__main__':
     # generate_geographical_SocialLag('../data/chicago-CA-geo-neighbor')
    
-   crimeRegression_eachCategory()
+#   crimeRegression_eachCategory()
+   retrieve_income_features()
