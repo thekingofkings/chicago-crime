@@ -20,6 +20,7 @@ from openpyxl import *
 import pandas as pd
 from sklearn.preprocessing import scale
 import statsmodels.api as sm
+from sklearn import cross_validation
 
 
 """
@@ -249,9 +250,9 @@ def negativeBinomialRegression(features, Y):
     """
     mod = NegBin(Y, features)
     res = mod.fit(disp=False)
-    if res.mle_retvals['converged']:
-        print res.params[0], ",", res.pvalues[0]
-    return res
+    if not res.mle_retvals['converged']:
+        print "NBreg not converged.", res.params[0], ",", res.pvalues[0]
+    return res, mod
 
 
     
@@ -293,6 +294,42 @@ def unitTest_onChicagoCrimeData():
     return res
      
     
+
+
+def leaveOneOut_evaluation_onChicagoCrimeData():
+    """
+    Generate the social lag from previous year
+    use income/race/education of current year
+    """
+    W = generate_transition_SocialLag(2009)
+    Y = retrieve_crime_count(2010, -1)
+    i = retrieve_income_features()
+    e = retrieve_education_features()
+    r = retrieve_race_features()
+    
+    f1 = np.dot(W, Y)
+    f = np.concatenate( (f1, i[1], e[1], r[1], np.ones(f1.shape)), axis=1)
+    f = pd.DataFrame(f, columns=['social lag'] + i[0] + e[0] + r[0] + ['intercept'])
+    
+    Y = Y.reshape((77,))
+    
+    loo = cross_validation.LeaveOneOut(77)
+    
+    mae = 0
+    for train_idx, test_idx in loo:
+        f_train, f_test = f[train_idx], f[test_idx]
+        Y_train, Y_test = Y[train_idx], Y[test_idx]
+        res, mod = negativeBinomialRegression(f_train, Y_train)
+        ybar = mod.predict(f_test)
+        mae += np.abs(Y_test - ybar)
+        
+    mae /= 77
+    print mae
+    
+
+
+
+
 
 
 def crimeRegression_eachCategory(year=2010):
@@ -338,5 +375,8 @@ if __name__ == '__main__':
     # generate_geographical_SocialLag('../data/chicago-CA-geo-neighbor')
    
 #   crimeRegression_eachCategory()
-   f = unitTest_onChicagoCrimeData()
-   print f.summary()
+#   f = unitTest_onChicagoCrimeData()
+#   print f.summary()
+   
+   
+   leaveOneOut_evaluation_onChicagoCrimeData()
