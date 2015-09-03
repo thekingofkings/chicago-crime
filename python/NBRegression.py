@@ -17,7 +17,9 @@ import matplotlib.pyplot as plt
 from scipy.stats import nbinom
 from statsmodels.base.model import GenericLikelihoodModel
 from openpyxl import *
-
+import pandas as pd
+from sklearn.preprocessing import scale
+import statsmodels.api as sm
 
 
 """
@@ -100,21 +102,35 @@ def retrieve_crime_count(year, col=-1):
 def retrieve_income_features():
     """
     read the xlsx file: ../data/chicago-ca-income.xlsx
+    
+    Three kinds of features we can generate: 
+    1. population count in each category
+    2. probability distribution over all categories (normalize by population)
+    3. Grouped mean, variance    
     """
     wb = load_workbook("../data/chicago-ca-income.xlsx")
     ws = wb.active
     header = ws['l3':'aa3']
     header = [c.value for c in tuple(header)[0]]
+    
+    bins = [5000, 12500, 17500, 22500, 27500, 32500, 37500, 42500, 47500, 55000, 67500,
+            87500, 112500, 137500, 175000, 300000]
     l = len(header)
     I = np.zeros((77,l))
+    stats_header = ['income mean', 'std var']
+    stats = np.zeros((77,2))    # mean, variance
     for idx, row in enumerate(ws.iter_rows('k4:aa80')):
         total = 0
+        bin_vals = []
         for j, c in enumerate(row):
             if j == 0:
                 total = float(c.value)
             else:
-                I[idx][j-1] = c.value / total
-    return header, I
+                I[idx][j-1] = c.value # / total
+        stats[idx][0] = np.dot(bins, I[idx][:]) / total
+        stats[idx][1] = np.sqrt( np.dot(I[idx][:], (bins - stats[idx][0])**2) / total )
+#    return header, I
+    return stats_header, stats
 
 
 
@@ -128,16 +144,22 @@ def retrieve_education_features():
     ws = wb.active
     header = ws['k3':'n3']
     header = [c.value for c in tuple(header)[0]]
+    
+    bins = range(1,5)
     l = len(header)
     E = np.zeros((77,l))
+    stats_header = ['education level', 'std var']
+    stats = np.zeros((77,2))
     for i, row in enumerate(ws.iter_rows('j4:n80')):
         total = 0
         for j, c in enumerate(row):
             if j == 0:
                 total = float(c.value)
             else:
-                E[i][j-1] = c.value / total
-    return header, E
+                E[i][j-1] = c.value # / total
+        stats[i][0] = np.dot(E[i][:], bins) / total
+        stats[i][1] = np.sqrt( np.dot(E[i][:], (bins - stats[i][0])**2) / total)
+    return stats_header, stats
                     
         
     
@@ -148,7 +170,22 @@ def retrieve_race_features():
     """
     read the xlsx file: ../data/chicago-ca-race.xlsx
     """
-    pass
+    wb = load_workbook("../data/chicago-ca-race.xlsx")
+    ws = wb.active
+    header = ws['j2':'p2']
+    header = [c.value for c in tuple(header)[0]]
+    l = len(header)
+    R = np.zeros((77,l))
+    for i, row in enumerate(ws.iter_rows('j4:p80')):
+        total = 0
+        for c in row:
+            total += float(c.value)
+        for j, c in enumerate(row):
+            R[i][j] = c.value # / total
+    return header, R
+    
+    
+    
 
 
 """
@@ -164,9 +201,9 @@ def linearRegression(features, Y):
     output the regression analysis parameters
     plot scatter plot
     """
-    sl, intcpt, rval, pval, stderr = stats.linregress(f1, Y)
-    print sl, intcpt, rval, pval, stderr
-    plt.scatter(f1, Y)
+    mod = sm.OLS(Y, features )
+    res = mod.fit()
+    print res.summary()
 
 
     
@@ -185,7 +222,6 @@ class NegBin(GenericLikelihoodModel):
         alpha = params[-1]
         beta = params[:-1]
         mu = np.exp(np.dot(self.exog, beta))
-        # print np.dot(self.exog, beta)
         size = 1 / alpha
         prob = size / (size+mu)
         ll = nbinom.logpmf( self.endog, size, prob)
@@ -194,7 +230,12 @@ class NegBin(GenericLikelihoodModel):
     def fit(self, start_params=None, maxiter = 10000, maxfun=10000, **kwds):
         if start_params == None:
             start_params = np.append(np.zeros(self.exog.shape[1]), .5)
-            start_params[0:-1] = np.ones(self.exog.shape[1]) * np.log(self.endog.mean())  / self.exog.mean()
+            if self.exog.mean() > 1:
+                start_params[:-1] = np.ones(self.exog.shape[1]) * np.log(self.endog.mean())  / self.exog.mean()
+            else:
+                start_params[:-1] = np.ones(self.exog.shape[1]) * np.log(self.endog.mean())
+            print "endog mean:", self.endog.mean(), "log endog mean:", np.log(self.endog.mean())
+            print "exog mean", self.exog.mean()
         return super(NegBin, self).fit(start_params=start_params, maxiter=maxiter,
                 maxfun=maxfun, **kwds)
                 
@@ -228,11 +269,28 @@ def unitTest_onChicagoCrimeData():
 
     W = generate_transition_SocialLag(2010)
     Y = retrieve_crime_count(2010, -1)
+    i = retrieve_income_features()
+    e = retrieve_education_features()
+    r = retrieve_race_features()
         
     f1 = np.dot(W, Y)
-    f = np.concatenate((f1, np.ones(f1.shape)), axis=1)
+    f = np.concatenate((f1, i[1], e[1], r[1], np.ones(f1.shape)), axis=1)
+#    f = scale(f)
+#    f = np.concatenate((f, np.ones(f1.shape)), axis=1)
+#    f = np.concatenate( (i[1], np.ones(f1.shape)), axis=1 )
+    f = pd.DataFrame(f, columns=['social lag'] + i[0] + e[0] + r[0] + ['intercept'])
+    np.savetxt("Y.csv", Y, delimiter=",")
+#    f = pd.DataFrame(f, columns=i[0] + ['intercept'])
+    f.to_csv("f.csv", sep=",", )
     Y = Y.reshape((77,))
+    print "Y", Y.mean()
     res = negativeBinomialRegression(f, Y)
+    
+    
+    print "f shape", f.shape
+    print "Y shape", Y.shape
+    linearRegression(f, Y)
+    return res
      
     
 
@@ -246,6 +304,9 @@ def crimeRegression_eachCategory(year=2010):
     'OTHER OFFENSE', 'PROSTITUTION', 'PUBLIC INDECENCY', 'PUBLIC PEACE VIOLATION',
     'ROBBERY', 'SEX OFFENSE', 'STALKING', 'THEFT', 'WEAPONS VIOLATION', 'total']
     W = generate_transition_SocialLag(year)
+    i = retrieve_income_features()
+    e = retrieve_education_features()
+    r = retrieve_race_features()
     predCrimes = {}
     unpredCrimes = {}
     for idx, val in enumerate(header):
@@ -277,5 +338,5 @@ if __name__ == '__main__':
     # generate_geographical_SocialLag('../data/chicago-CA-geo-neighbor')
    
 #   crimeRegression_eachCategory()
-   i = retrieve_income_features()
-   e = retrieve_education_features()
+   f = unitTest_onChicagoCrimeData()
+   print f.summary()
