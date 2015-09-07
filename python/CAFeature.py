@@ -115,6 +115,8 @@ def tract_CA_flowAggregate(finName, foutName):
 
 
 
+    
+
 def tract_CA_nodalFeatureAggregate(finName, foutName):
     """
     Aggregate nodal feature from tract to CA
@@ -146,8 +148,11 @@ def tract_CA_nodalFeatureAggregate(finName, foutName):
     return CA_features
 
 
-if __name__ == '__main__':
     
+    
+    
+def main():
+
 #    sf = generate_Tract_CA_reference()
     args = {}
     year = 2010
@@ -185,3 +190,7 @@ if __name__ == '__main__':
                 sys.exit(0)
             tract_CA_flowAggregate(finName, foutName)
     
+    
+    
+if __name__ == '__main__':
+    main()

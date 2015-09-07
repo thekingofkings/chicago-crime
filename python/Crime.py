@@ -128,6 +128,20 @@ class Tract:
             
             
             
+            
+    @classmethod
+    def createAllCAObjects( cls ):
+        cls.casf = shapefile.Reader('../data/ChiCA_gps/CommAreas')
+        cls.cas = {}
+        
+        shps = cls.casf.shapes()
+        for idx, shp in enumerate(shps):
+            tid = cls.casf.record(idx)[4]
+            trt = Tract(shp)
+            cls.cas[int(tid)] = trt
+            
+        return cls.cas
+            
         
 if __name__ == '__main__':
     

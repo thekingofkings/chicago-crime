@@ -48,7 +48,25 @@ def generate_geographical_SpatialLag(foutName):
         
         
 
+def generate_geographical_SpatialLag_ca():
+    
+    
+    cas = Tract.createAllCAObjects()
+    centers = []
+    for i in range(1,78):
+        centers.append(cas[i].polygon.centroid)
+    
+    W = np.zeros( (77,77) )
+    for i, src in enumerate(centers):
+        for j, dst in enumerate(centers):
+            if src != dst:
+                W[i][j] = src.distance(dst)
+    return W
+    
+        
 
+        
+        
 
 def generate_transition_SocialLag(year = 2010):
     """
@@ -303,6 +321,9 @@ def leaveOneOut_evaluation_onChicagoCrimeData():
     """
     W = generate_transition_SocialLag(2009)
     Y = retrieve_crime_count(2010, -1)
+    
+    W2 = generate_geographical_SpatialLag_ca()
+    
     i = retrieve_income_features()
     e = retrieve_education_features()
     r = retrieve_race_features()
@@ -379,4 +400,6 @@ if __name__ == '__main__':
 #   print f.summary()
    
    
-   leaveOneOut_evaluation_onChicagoCrimeData()
+   # leaveOneOut_evaluation_onChicagoCrimeData()
+   
+   t = generate_graphical_SpatialLag_ca()
