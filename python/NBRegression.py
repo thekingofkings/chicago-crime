@@ -114,8 +114,9 @@ def retrieve_income_features():
     header = ws['l3':'aa3']
     header = [c.value for c in tuple(header)[0]]
     
-    bins = [5000, 12500, 17500, 22500, 27500, 32500, 37500, 42500, 47500, 55000, 67500,
-            87500, 112500, 137500, 175000, 300000]
+#    bins = [5000, 12500, 17500, 22500, 27500, 32500, 37500, 42500, 47500, 55000, 67500,
+#            87500, 112500, 137500, 175000, 300000]
+    bins = range(1,17)
     l = len(header)
     I = np.zeros((77,l))
     stats_header = ['income mean', 'std var']
@@ -177,12 +178,21 @@ def retrieve_race_features():
     header = [c.value for c in tuple(header)[0]]
     l = len(header)
     R = np.zeros((77,l))
+    
+    bins = range(1,8)
+    
+    stats_header = ['race level', 'std var']
+    stats = np.zeros((77,2))
     for i, row in enumerate(ws.iter_rows('j4:p80')):
         total = 0
         for c in row:
             total += float(c.value)
         for j, c in enumerate(row):
-            R[i][j] = c.value # / total
+            R[i][j] = c.value / total
+        
+        stats[i][0] = np.dot(R[i][:], bins) / total
+        stats[i][1] = np.sqrt( np.dot(R[i][:], (bins - stats[i][0])**2) / total)
+#    return stats_header, stats
     return header, R
     
     
@@ -204,7 +214,7 @@ def linearRegression(features, Y):
     """
     mod = sm.OLS(Y, features )
     res = mod.fit()
-    print res.summary()
+    return res
 
 
     
@@ -235,13 +245,20 @@ class NegBin(GenericLikelihoodModel):
                 start_params[:-1] = np.ones(self.exog.shape[1]) * np.log(self.endog.mean())  / self.exog.mean()
             else:
                 start_params[:-1] = np.ones(self.exog.shape[1]) * np.log(self.endog.mean())
-            print "endog mean:", self.endog.mean(), "log endog mean:", np.log(self.endog.mean())
-            print "exog mean", self.exog.mean()
+#            print "endog mean:", self.endog.mean(), "log endog mean:", np.log(self.endog.mean())
+#            print "exog mean", self.exog.mean()
         return super(NegBin, self).fit(start_params=start_params, maxiter=maxiter,
                 maxfun=maxfun, **kwds)
                 
-        
+    
+    def predict(self, params, exog=None, *args, **kwargs):
+        """
+        predict the acutal endogenous count from exog
+        """
+        beta = params[:-1]
+        return np.exp(exog.dot(beta))
   
+
 
     
 def negativeBinomialRegression(features, Y):
@@ -296,7 +313,7 @@ def unitTest_onChicagoCrimeData():
     
 
 
-def leaveOneOut_evaluation_onChicagoCrimeData():
+def leaveOneOut_evaluation_onChicagoCrimeData(features="all"):
     """
     Generate the social lag from previous year
     use income/race/education of current year
@@ -308,23 +325,47 @@ def leaveOneOut_evaluation_onChicagoCrimeData():
     r = retrieve_race_features()
     
     f1 = np.dot(W, Y)
-    f = np.concatenate( (f1, i[1], e[1], r[1], np.ones(f1.shape)), axis=1)
-    f = pd.DataFrame(f, columns=['social lag'] + i[0] + e[0] + r[0] + ['intercept'])
+    if features == "all":
+        f = np.concatenate( (f1, i[1], e[1], r[1], np.ones(f1.shape)), axis=1)
+        f = pd.DataFrame(f, columns=['social lag'] + i[0] + e[0] + r[0] + ['intercept'])
+    elif features == "sociallag":
+        f = np.concatenate( (f1, np.ones(f1.shape)), axis=1)
+        f = pd.DataFrame(f, columns=['social lag', 'intercept'])
+    elif features == "income":
+        f = np.concatenate( (i[1],  np.ones(f1.shape)), axis=1)
+        f = pd.DataFrame(f, columns=i[0] + ['intercept'])
+    elif features == "race":
+        f = np.concatenate( (r[1],  np.ones(f1.shape)), axis=1)
+        f = pd.DataFrame(f, columns=r[0] + ['intercept'])
+    elif features == "education":
+        f = np.concatenate( (e[1],  np.ones(f1.shape)), axis=1)
+        f = pd.DataFrame(f, columns=e[0] + ['intercept'])
+        
+        
     
     Y = Y.reshape((77,))
-    
     loo = cross_validation.LeaveOneOut(77)
-    
     mae = 0
+    mae2 = 0
     for train_idx, test_idx in loo:
-        f_train, f_test = f[train_idx], f[test_idx]
+        f_train, f_test = f.loc[train_idx], f.loc[test_idx]
         Y_train, Y_test = Y[train_idx], Y[test_idx]
         res, mod = negativeBinomialRegression(f_train, Y_train)
-        ybar = mod.predict(f_test)
-        mae += np.abs(Y_test - ybar)
+        ybar = mod.predict(res.params, exog=f_test)
+        mae += np.abs(Y_test - ybar.values[0])[0]
+        
+        r2 = linearRegression(f_train, Y_train)
+        y2 = r2.predict(f_test)
+        mae2 += np.abs(Y_test - y2)[0]
+        print test_idx, Y_test[0], ybar.values[0], y2[0]
         
     mae /= 77
-    print mae
+    mae2 /= 77
+    mre = mae / Y.mean()
+    mre2 = mae2 / Y.mean()
+    print "NegBio Regression MAE", mae, "MRE", mre
+    print "Linear Regression MAE", mae2, "MRE", mre2
+    return f, Y
     
 
 
@@ -379,4 +420,4 @@ if __name__ == '__main__':
 #   print f.summary()
    
    
-   leaveOneOut_evaluation_onChicagoCrimeData()
+   f, Y = leaveOneOut_evaluation_onChicagoCrimeData()
