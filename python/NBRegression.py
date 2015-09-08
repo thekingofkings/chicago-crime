@@ -165,18 +165,18 @@ def retrieve_income_features():
     I = np.zeros((77,l))
     stats_header = ['income mean', 'std var']
     stats = np.zeros((77,2))    # mean, variance
+    total = np.zeros( (77,1) )
     for idx, row in enumerate(ws.iter_rows('k4:aa80')):
-        total = 0
         bin_vals = []
         for j, c in enumerate(row):
             if j == 0:
-                total = float(c.value)
+                total[idx] =  float(c.value)
             else:
                 I[idx][j-1] = c.value # / total
-        stats[idx][0] = np.dot(bins, I[idx][:]) / total
-        stats[idx][1] = np.sqrt( np.dot(I[idx][:], (bins - stats[idx][0])**2) / total )
+        stats[idx][0] = np.dot(bins, I[idx][:]) / total[idx]
+        stats[idx][1] = np.sqrt( np.dot(I[idx][:], (bins - stats[idx][0])**2) / total[idx] )
 #    return header, I
-    return stats_header, stats
+    return stats_header, stats, ['total'], total
 
 
 
@@ -232,7 +232,7 @@ def retrieve_race_features():
         for c in row:
             total += float(c.value)
         for j, c in enumerate(row):
-            R[i][j] = c.value / total
+            R[i][j] = c.value # / total
         
         stats[i][0] = np.dot(R[i][:], bins) / total
         stats[i][1] = np.sqrt( np.dot(R[i][:], (bins - stats[i][0])**2) / total)
@@ -373,6 +373,7 @@ def leaveOneOut_evaluation_onChicagoCrimeData(features= ["all"]):
     r = retrieve_race_features()
     
     f1 = np.dot(W, Y)
+    f2 = np.dot(W2, Y)
     # add intercept
     columnName = ['intercept']
     f = np.ones(f1.shape)
@@ -395,10 +396,11 @@ def leaveOneOut_evaluation_onChicagoCrimeData(features= ["all"]):
     elif 'corina' in features :
         f = np.concatenate( (f, C[1]), axis=1)
         columnName += C[0]
-    print f.shape, f1.shape
+    elif 'spatiallag' in features:
+        f = np.concatenate( (f, f2), axis=1)
+        columnName += ['spatial lag']
     f = pd.DataFrame(f, columns = columnName)
 
-        
         
     
     Y = Y.reshape((77,))
