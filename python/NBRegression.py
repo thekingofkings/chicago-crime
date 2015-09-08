@@ -21,12 +21,39 @@ import pandas as pd
 from sklearn.preprocessing import scale
 import statsmodels.api as sm
 from sklearn import cross_validation
+import csv
+
+
 
 
 """
 Part One
 Generate vairous features
 """
+
+
+def generate_corina_features():
+    """
+    Generate the features recommended by Corina
+    """
+    f = open('../data/Chicago_demographics.csv', 'r')
+    c = csv.reader(f)
+    header = c.next()
+    fields = ['totpop00_sum', 'popden00', 'pprpovW00', 'Dis46pf0', 'Stb26pf0', 'Divers5f00', 
+            'pnhblWc0', 'phispWc0']
+    fields_dsp = ['total population', 'population density', 'poverty index', 'disadvantage index', 'residential stability',
+            'ethnic diversity', 'pct black', 'hispanic']
+    hidx = []
+    for fd in fields:
+        hidx.append( header.index(fd) )
+    
+    C = np.zeros( (77,len(hidx)) )
+    for i, row in enumerate(c):
+        for j, k in enumerate( hidx ):
+            C[i][j] = float(row[k])
+
+    return  fields_dsp, C
+
 
 
 def generate_geographical_SpatialLag(foutName):
@@ -64,9 +91,8 @@ def generate_geographical_SpatialLag_ca():
     return W
     
         
+        
 
-        
-        
 
 def generate_transition_SocialLag(year = 2010):
     """
@@ -331,13 +357,14 @@ def unitTest_onChicagoCrimeData():
     
 
 
-def leaveOneOut_evaluation_onChicagoCrimeData(features="all"):
+def leaveOneOut_evaluation_onChicagoCrimeData(features= ["all"]):
     """
     Generate the social lag from previous year
     use income/race/education of current year
     """
     W = generate_transition_SocialLag(2009)
     Y = retrieve_crime_count(2010, -1)
+    C = generate_corina_features()
     
     W2 = generate_geographical_SpatialLag_ca()
     
@@ -346,21 +373,31 @@ def leaveOneOut_evaluation_onChicagoCrimeData(features="all"):
     r = retrieve_race_features()
     
     f1 = np.dot(W, Y)
-    if features == "all":
-        f = np.concatenate( (f1, i[1], e[1], r[1], np.ones(f1.shape)), axis=1)
-        f = pd.DataFrame(f, columns=['social lag'] + i[0] + e[0] + r[0] + ['intercept'])
-    elif features == "sociallag":
-        f = np.concatenate( (f1, np.ones(f1.shape)), axis=1)
-        f = pd.DataFrame(f, columns=['social lag', 'intercept'])
-    elif features == "income":
-        f = np.concatenate( (i[1],  np.ones(f1.shape)), axis=1)
-        f = pd.DataFrame(f, columns=i[0] + ['intercept'])
-    elif features == "race":
-        f = np.concatenate( (r[1],  np.ones(f1.shape)), axis=1)
-        f = pd.DataFrame(f, columns=r[0] + ['intercept'])
-    elif features == "education":
-        f = np.concatenate( (e[1],  np.ones(f1.shape)), axis=1)
-        f = pd.DataFrame(f, columns=e[0] + ['intercept'])
+    # add intercept
+    columnName = ['intercept']
+    f = np.ones(f1.shape)
+
+    if "all" in features:
+        f = np.concatenate( (f, f1, i[1], e[1], r[1]), axis=1)
+        f = pd.DataFrame(f, columns=['social lag'] + i[0] + e[0] + r[0])
+    elif "sociallag" in features: 
+        f = np.concatenate( (f, f1), axis=1)
+        columnName += ['social lag']
+    elif  "income" in features:
+        f = np.concatenate( (f, i[1]), axis=1)
+        columnName += i[0]
+    elif "race" in features:
+        f = np.concatenate( (f, r[1]), axis=1)
+        columnName += r[0]
+    elif "education" in features :
+        f = np.concatenate( (f, e[1]), axis=1)
+        columnName += e[0]
+    elif 'corina' in features :
+        f = np.concatenate( (f, C[1]), axis=1)
+        columnName += C[0]
+    print f.shape, f1.shape
+    f = pd.DataFrame(f, columns = columnName)
+
         
         
     
@@ -439,5 +476,6 @@ if __name__ == '__main__':
 #   crimeRegression_eachCategory()
 #   f = unitTest_onChicagoCrimeData()
 #   print f.summary()
-   
-   f, Y = leaveOneOut_evaluation_onChicagoCrimeData()
+
+    f, Y = leaveOneOut_evaluation_onChicagoCrimeData(['corina'])
+    
