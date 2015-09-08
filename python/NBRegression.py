@@ -407,24 +407,29 @@ def leaveOneOut_evaluation_onChicagoCrimeData(features= ["all"]):
     loo = cross_validation.LeaveOneOut(77)
     mae = 0
     mae2 = 0
+    errors1 = []
+    errors2 = []
     for train_idx, test_idx in loo:
         f_train, f_test = f.loc[train_idx], f.loc[test_idx]
         Y_train, Y_test = Y[train_idx], Y[test_idx]
         res, mod = negativeBinomialRegression(f_train, Y_train)
         ybar = mod.predict(res.params, exog=f_test)
-        mae += np.abs(Y_test - ybar.values[0])[0]
-        
+        errors1.append( np.abs(Y_test - ybar.values[0])[0] )
+
+
         r2 = linearRegression(f_train, Y_train)
         y2 = r2.predict(f_test)
-        mae2 += np.abs(Y_test - y2)[0]
+        errors2.append( np.abs( Y_test - y2 ) )
         print test_idx, Y_test[0], ybar.values[0], y2[0]
         
-    mae /= 77
-    mae2 /= 77
+    mae = np.mean(errors1)
+    mae2 = np.mean(errors2)
+    var = np.sqrt( np.var(errors1) )
+    var2 = np.sqrt( np.var(errors2) )
     mre = mae / Y.mean()
     mre2 = mae2 / Y.mean()
-    print "NegBio Regression MAE", mae, "MRE", mre
-    print "Linear Regression MAE", mae2, "MRE", mre2
+    print "NegBio Regression MAE", mae, "std", var, "MRE", mre
+    print "Linear Regression MAE", mae2, "std", var2, "MRE", mre2
     return f, Y
     
 
