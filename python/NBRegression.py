@@ -139,18 +139,18 @@ def retrieve_income_features():
     I = np.zeros((77,l))
     stats_header = ['income mean', 'std var']
     stats = np.zeros((77,2))    # mean, variance
+    total = np.zeros( (77,1) )
     for idx, row in enumerate(ws.iter_rows('k4:aa80')):
-        total = 0
         bin_vals = []
         for j, c in enumerate(row):
             if j == 0:
-                total = float(c.value)
+                total[idx] =  float(c.value)
             else:
                 I[idx][j-1] = c.value # / total
-        stats[idx][0] = np.dot(bins, I[idx][:]) / total
-        stats[idx][1] = np.sqrt( np.dot(I[idx][:], (bins - stats[idx][0])**2) / total )
+        stats[idx][0] = np.dot(bins, I[idx][:]) / total[idx]
+        stats[idx][1] = np.sqrt( np.dot(I[idx][:], (bins - stats[idx][0])**2) / total[idx] )
 #    return header, I
-    return stats_header, stats
+    return stats_header, stats, ['total'], total
 
 
 
@@ -206,7 +206,7 @@ def retrieve_race_features():
         for c in row:
             total += float(c.value)
         for j, c in enumerate(row):
-            R[i][j] = c.value / total
+            R[i][j] = c.value # / total
         
         stats[i][0] = np.dot(R[i][:], bins) / total
         stats[i][1] = np.sqrt( np.dot(R[i][:], (bins - stats[i][0])**2) / total)
@@ -331,7 +331,7 @@ def unitTest_onChicagoCrimeData():
     
 
 
-def leaveOneOut_evaluation_onChicagoCrimeData(features="all"):
+def leaveOneOut_evaluation_onChicagoCrimeData(features="spatiallag"):
     """
     Generate the social lag from previous year
     use income/race/education of current year
@@ -346,6 +346,7 @@ def leaveOneOut_evaluation_onChicagoCrimeData(features="all"):
     r = retrieve_race_features()
     
     f1 = np.dot(W, Y)
+    f2 = np.dot(W2, Y)
     if features == "all":
         f = np.concatenate( (f1, i[1], e[1], r[1], np.ones(f1.shape)), axis=1)
         f = pd.DataFrame(f, columns=['social lag'] + i[0] + e[0] + r[0] + ['intercept'])
@@ -361,6 +362,12 @@ def leaveOneOut_evaluation_onChicagoCrimeData(features="all"):
     elif features == "education":
         f = np.concatenate( (e[1],  np.ones(f1.shape)), axis=1)
         f = pd.DataFrame(f, columns=e[0] + ['intercept'])
+    elif features == "spatiallag":
+        f = np.concatenate( (f2, np.ones(f2.shape)), axis=1)
+        f = pd.DataFrame(f, columns=['spatial lag', 'intercept'])
+    elif features == "population":
+        f = np.concatenate( (i[3],  np.ones(f1.shape)), axis=1)
+        f = pd.DataFrame(f, columns=i[2] + ['intercept'])
         
         
     
