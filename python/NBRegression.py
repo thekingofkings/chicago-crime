@@ -23,6 +23,7 @@ from sklearn.preprocessing import scale
 import statsmodels.api as sm
 from sklearn import cross_validation
 import csv
+import subprocess
 
 
 
@@ -334,13 +335,14 @@ def unitTest_withOnlineSource():
 def unitTest_onChicagoCrimeData():
 
     W = generate_transition_SocialLag(2010)
+    Yhat = retrieve_crime_count(2009, -1)
     Y = retrieve_crime_count(2010, -1)
     i = retrieve_income_features()
     e = retrieve_education_features()
     r = retrieve_race_features()
     C = generate_corina_features()
         
-    f1 = np.dot(W, Y)
+    f1 = np.dot(W, Yhat)
     # f = np.concatenate((f1, i[1], e[1], r[1], np.ones(f1.shape)), axis=1)
     # f = pd.DataFrame(f, columns=['social lag'] + i[0] + e[0] + r[0] + ['intercept'])
 #    f = scale(f)
@@ -348,7 +350,7 @@ def unitTest_onChicagoCrimeData():
     f = np.concatenate( (C[1], np.ones(f1.shape)), axis=1 )
     np.savetxt("Y.csv", Y, delimiter=",")
     f = pd.DataFrame(f, columns=C[0] + ['intercept'])
-    f.to_csv("f.csv", sep=",", )
+    f.to_csv("f.csv", sep="," )
     Y = Y.reshape((77,))
     print "Y", Y.mean()
     res = negativeBinomialRegression(f, Y)
@@ -368,6 +370,7 @@ def leaveOneOut_evaluation_onChicagoCrimeData(features= ["all"]):
     use income/race/education of current year
     """
     W = generate_transition_SocialLag(2009)
+    Yhat = retrieve_crime_count(2009, -1)
     Y = retrieve_crime_count(2010, -1)
     C = generate_corina_features()
     
@@ -377,8 +380,8 @@ def leaveOneOut_evaluation_onChicagoCrimeData(features= ["all"]):
     e = retrieve_education_features()
     r = retrieve_race_features()
     
-    f1 = np.dot(W, Y)
-    f2 = np.dot(W2, Y)
+    f1 = np.dot(W, Yhat)
+    f2 = np.dot(W2, Yhat)
     # add intercept
     columnName = ['intercept']
     f = np.ones(f1.shape)
@@ -407,6 +410,10 @@ def leaveOneOut_evaluation_onChicagoCrimeData(features= ["all"]):
     f = pd.DataFrame(f, columns = columnName)
 
         
+    # call the Rscript to get Negative Binomial Regression results
+    np.savetxt("Y.csv", Y, delimiter=",")
+    f.to_csv("f.csv", sep="," )
+    subprocess.call( ['Rscript', 'nbr_eval.R'] )
     
     Y = Y.reshape((77,))
     loo = cross_validation.LeaveOneOut(77)
