@@ -364,14 +364,14 @@ def unitTest_onChicagoCrimeData():
     
 
 
-def leaveOneOut_evaluation_onChicagoCrimeData(features= ["all"]):
+def leaveOneOut_evaluation_onChicagoCrimeData(year=2010, features= ["all"]):
     """
     Generate the social lag from previous year
     use income/race/education of current year
     """
-    W = generate_transition_SocialLag(2009)
-    Yhat = retrieve_crime_count(2009, -1)
-    Y = retrieve_crime_count(2010, -1)
+    W = generate_transition_SocialLag(year-1)
+    Yhat = retrieve_crime_count(year-1, -1)
+    Y = retrieve_crime_count(year, -1)
     C = generate_corina_features()
     
     W2 = generate_geographical_SpatialLag_ca()
@@ -496,5 +496,5 @@ if __name__ == '__main__':
     # f = unitTest_onChicagoCrimeData()
 #   print f.summary()
 
-    f, Y = leaveOneOut_evaluation_onChicagoCrimeData(['corina', 'spatiallag'])
+    f, Y = leaveOneOut_evaluation_onChicagoCrimeData(2009, ['corina', 'spatiallag'])
     
