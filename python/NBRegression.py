@@ -15,6 +15,7 @@ import numpy as np
 from scipy import stats
 import matplotlib.pyplot as plt
 from scipy.stats import nbinom
+from scipy.special import gammaln
 from statsmodels.base.model import GenericLikelihoodModel
 from openpyxl import *
 import pandas as pd
@@ -279,8 +280,11 @@ class NegBin(GenericLikelihoodModel):
         mu = np.exp(np.dot(self.exog, beta))
         size = 1 / alpha
         prob = size / (size+mu)
+      #  ll = 0
+        # for idx, y in enumerate(self.endog):
+         #    ll += gammaln(y + size) - gammaln(size) - gammaln(y+1) + y * np.log(mu * alpha / (mu *alpha + 1))- size * np.log(mu * alpha + 1)
         ll = nbinom.logpmf( self.endog, size, prob)
-        return - ll
+        return -ll
         
     def fit(self, start_params=None, maxiter = 10000, maxfun=10000, **kwds):
         if start_params == None:
@@ -334,15 +338,16 @@ def unitTest_onChicagoCrimeData():
     i = retrieve_income_features()
     e = retrieve_education_features()
     r = retrieve_race_features()
+    C = generate_corina_features()
         
     f1 = np.dot(W, Y)
-    f = np.concatenate((f1, i[1], e[1], r[1], np.ones(f1.shape)), axis=1)
+    # f = np.concatenate((f1, i[1], e[1], r[1], np.ones(f1.shape)), axis=1)
+    # f = pd.DataFrame(f, columns=['social lag'] + i[0] + e[0] + r[0] + ['intercept'])
 #    f = scale(f)
 #    f = np.concatenate((f, np.ones(f1.shape)), axis=1)
-#    f = np.concatenate( (i[1], np.ones(f1.shape)), axis=1 )
-    f = pd.DataFrame(f, columns=['social lag'] + i[0] + e[0] + r[0] + ['intercept'])
+    f = np.concatenate( (C[1], np.ones(f1.shape)), axis=1 )
     np.savetxt("Y.csv", Y, delimiter=",")
-#    f = pd.DataFrame(f, columns=i[0] + ['intercept'])
+    f = pd.DataFrame(f, columns=C[0] + ['intercept'])
     f.to_csv("f.csv", sep=",", )
     Y = Y.reshape((77,))
     print "Y", Y.mean()
@@ -381,22 +386,22 @@ def leaveOneOut_evaluation_onChicagoCrimeData(features= ["all"]):
     if "all" in features:
         f = np.concatenate( (f, f1, i[1], e[1], r[1]), axis=1)
         f = pd.DataFrame(f, columns=['social lag'] + i[0] + e[0] + r[0])
-    elif "sociallag" in features: 
+    if "sociallag" in features: 
         f = np.concatenate( (f, f1), axis=1)
         columnName += ['social lag']
-    elif  "income" in features:
+    if  "income" in features:
         f = np.concatenate( (f, i[1]), axis=1)
         columnName += i[0]
-    elif "race" in features:
+    if "race" in features:
         f = np.concatenate( (f, r[1]), axis=1)
         columnName += r[0]
-    elif "education" in features :
+    if "education" in features :
         f = np.concatenate( (f, e[1]), axis=1)
         columnName += e[0]
-    elif 'corina' in features :
+    if 'corina' in features :
         f = np.concatenate( (f, C[1]), axis=1)
         columnName += C[0]
-    elif 'spatiallag' in features:
+    if 'spatiallag' in features:
         f = np.concatenate( (f, f2), axis=1)
         columnName += ['spatial lag']
     f = pd.DataFrame(f, columns = columnName)
@@ -481,8 +486,8 @@ if __name__ == '__main__':
     # generate_geographical_SocialLag('../data/chicago-CA-geo-neighbor')
    
 #   crimeRegression_eachCategory()
-#   f = unitTest_onChicagoCrimeData()
+    # f = unitTest_onChicagoCrimeData()
 #   print f.summary()
 
-    f, Y = leaveOneOut_evaluation_onChicagoCrimeData(['corina'])
+    f, Y = leaveOneOut_evaluation_onChicagoCrimeData(['corina', 'spatiallag'])
     
