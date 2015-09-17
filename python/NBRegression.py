@@ -97,9 +97,19 @@ def generate_geographical_SpatialLag_ca():
         
 
 
-def generate_transition_SocialLag(year = 2010):
+def generate_transition_SocialLag(year = 2010, lehd_type=0):
     """
     Generate the spatial lag from the transition flow connected CAs.
+    
+    0 - #jobs age under 29, 
+    1 - #jobs age from 30 to 54, 
+    2 - #jobs above 55, 
+    3 - #jobs earning under $1250/month, 
+    4 - #jobs earnings from $1251 to $3333/month, 
+    5 - #jobs above $3333/month,
+    6 - #jobs in goods producing, 
+    7 - #jobs in trade transportation, 
+    8 - #jobs in other services
     """
     listIdx = {}
     fin = open('../data/chicago_ca_od_{0}.csv'.format(year))
@@ -107,7 +117,7 @@ def generate_transition_SocialLag(year = 2010):
         ls = line.split(",")
         srcid = int(ls[0])
         dstid = int(ls[1])
-        val = int(ls[2])
+        val = int(ls[2 + lehd_type])
         if srcid in listIdx:
             listIdx[srcid][dstid] = val
         else:
@@ -120,7 +130,10 @@ def generate_transition_SocialLag(year = 2010):
         total = (float) (sum( sdict.values() ))
         for dstid, val in sdict.items():
             if srcid != dstid:
-                W[srcid-1][dstid-1] = val / total
+                if total == 0:
+                    W[srcid-1][dstid-1] = 0
+                else:
+                    W[srcid-1][dstid-1] = val / total
 
     return W
 
@@ -365,14 +378,14 @@ def unitTest_onChicagoCrimeData():
     
 
 
-def leaveOneOut_evaluation_onChicagoCrimeData(year=2010, features= ["all"]):
+def leaveOneOut_evaluation_onChicagoCrimeData(year=2010, features= ["all"], crime_idx=-1, flow_type=0):
     """
     Generate the social lag from previous year
     use income/race/education of current year
     """
-    W = generate_transition_SocialLag(year-1)
-    Yhat = retrieve_crime_count(year-1, -1)
-    Y = retrieve_crime_count(year, -1)
+    W = generate_transition_SocialLag(year-1, lehd_type=flow_type)
+    Yhat = retrieve_crime_count(year-1, crime_idx)
+    Y = retrieve_crime_count(year, crime_idx)
     C = generate_corina_features()
     
     W2 = generate_geographical_SpatialLag_ca()
@@ -413,8 +426,8 @@ def leaveOneOut_evaluation_onChicagoCrimeData(year=2010, features= ["all"]):
         
     # call the Rscript to get Negative Binomial Regression results
     np.savetxt("Y.csv", Y, delimiter=",")
-    f.to_csv("f.csv", sep="," )
-    subprocess.call( ['Rscript', 'nbr_eval.R'] )
+    f.to_csv("f.csv", sep=",", index=False)
+    nbres = subprocess.check_output( ['Rscript', 'nbr_eval.R'] )
     
     Y = Y.reshape((77,))
     loo = cross_validation.LeaveOneOut(77)
@@ -425,32 +438,34 @@ def leaveOneOut_evaluation_onChicagoCrimeData(year=2010, features= ["all"]):
     for train_idx, test_idx in loo:
         f_train, f_test = f.loc[train_idx], f.loc[test_idx]
         Y_train, Y_test = Y[train_idx], Y[test_idx]
-        res, mod = negativeBinomialRegression(f_train, Y_train)
-        ybar = mod.predict(res.params, exog=f_test)
-        errors1.append( np.abs(Y_test - ybar.values[0])[0] )
+#        res, mod = negativeBinomialRegression(f_train, Y_train)
+#        ybar = mod.predict(res.params, exog=f_test)
+#        errors1.append( np.abs(Y_test - ybar.values[0])[0] )
 
 
         r2 = linearRegression(f_train, Y_train)
         y2 = r2.predict(f_test)
         errors2.append( np.abs( Y_test - y2 ) )
-        print test_idx, Y_test[0], ybar.values[0], y2[0]
+#        print test_idx, Y_test[0], ybar.values[0], y2[0]
         
-    mae = np.mean(errors1)
+#    mae = np.mean(errors1)
     mae2 = np.mean(errors2)
-    var = np.sqrt( np.var(errors1) )
+#    var = np.sqrt( np.var(errors1) )
     var2 = np.sqrt( np.var(errors2) )
-    mre = mae / Y.mean()
+#    mre = mae / Y.mean()
     mre2 = mae2 / Y.mean()
-    print "NegBio Regression MAE", mae, "std", var, "MRE", mre
-    print "Linear Regression MAE", mae2, "std", var2, "MRE", mre2
-    return f, Y
+#    print "NegBio Regression MAE", mae, "std", var, "MRE", mre
+#    print "Linear Regression MAE", mae2, "std", var2, "MRE", mre2
+    print nbres
+    print mae2, var2, mre2
+    return np.array([[float(e) for e in nbres.split(" ")], [mae2, var2, mre2]])
     
 
 
 
 
 
-def permutationTest_onChicagoCrimeData(year=2010, features= ["all"]):
+def permutationTest_onChicagoCrimeData(year=2010, features= ["all"], iters=1001):
     """
     Permutation test with regression model residuals
     """
@@ -467,7 +482,7 @@ def permutationTest_onChicagoCrimeData(year=2010, features= ["all"]):
     
     LR_coeffs = []
     if not os.path.exists('coefficients.txt'):
-        for i in range(1001):
+        for i in range(iters):
             if i == 0:
                 pidx = range(len(Y))
             else:
@@ -597,6 +612,19 @@ if __name__ == '__main__':
     # f = unitTest_onChicagoCrimeData()
 #   print f.summary()
 
-#    f, Y = leaveOneOut_evaluation_onChicagoCrimeData(2009, ['corina', 'spatiallag'])
+    header = ['ARSON', 'ASSAULT', 'BATTERY', 'BURGLARY', 'CRIM SEXUAL ASSAULT', 
+    'CRIMINAL DAMAGE', 'CRIMINAL TRESPASS', 'DECEPTIVE PRACTICE', 
+    'GAMBLING', 'HOMICIDE', 'INTERFERENCE WITH PUBLIC OFFICER', 
+    'INTIMIDATION', 'KIDNAPPING', 'LIQUOR LAW VIOLATION', 'MOTOR VEHICLE THEFT', 
+    'NARCOTICS', 'OBSCENITY', 'OFFENSE INVOLVING CHILDREN', 'OTHER NARCOTIC VIOLATION',
+    'OTHER OFFENSE', 'PROSTITUTION', 'PUBLIC INDECENCY', 'PUBLIC PEACE VIOLATION',
+    'ROBBERY', 'SEX OFFENSE', 'STALKING', 'THEFT', 'WEAPONS VIOLATION', 'total']
     
-    permutationTest_onChicagoCrimeData(2010, ['corina', 'sociallag'])
+    errors = np.zeros((9, len(header)))
+    for idx, val in enumerate(header):
+        for j in range(9):
+            r1 = leaveOneOut_evaluation_onChicagoCrimeData(2010, ['corina'], crime_idx=idx+1, flow_type=j)
+            r2 = leaveOneOut_evaluation_onChicagoCrimeData(2010, ['corina', 'sociallag'], crime_idx=idx+1, flow_type=j)
+            errors[j][idx] = r1[0,2] - r2[0,2]
+    
+#    permutationTest_onChicagoCrimeData(2010, ['corina', 'sociallag'])
