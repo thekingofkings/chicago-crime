@@ -532,17 +532,17 @@ def permutationTest_onChicagoCrimeData(year=2010, features= ["all"]):
             if e > lr_trg:
                 lr_cnt += 1
                 
-        plt.figure()
+        plt.figure(figsize=(8,3))
         # NB
         plt.subplot(1,2,1)
         plt.hist(column)
         plt.axvline(x = targ, linewidth=4, color='r')
-        plt.title("NB {0} coeff pvalue {1}".format(columnName[idx], cnt / len(column)))
+        plt.title("NB {0} coeff pvalue {1:.4f}".format(columnName[idx], cnt / len(column)))
         # LR
         plt.subplot(1,2,2)
         plt.hist(lr_col)
         plt.axvline(x = lr_trg, linewidth=4, color='r')
-        plt.title("LR {0} coeff pvalue {1}".format(columnName[idx], lr_cnt / len(lr_col)))
+        plt.title("LR {0} coeff pvalue {1:.4f}".format(columnName[idx], lr_cnt / len(lr_col)))
         plt.savefig('PT-{0}.png'.format(idx), format='png')
     return d
     
