@@ -24,6 +24,7 @@ import statsmodels.api as sm
 from sklearn import cross_validation
 import csv
 import subprocess
+import os.path
 
 
 
@@ -449,6 +450,106 @@ def leaveOneOut_evaluation_onChicagoCrimeData(year=2010, features= ["all"]):
 
 
 
+def permutationTest_onChicagoCrimeData(year=2010, features= ["all"]):
+    """
+    Permutation test with regression model residuals
+    """
+    W = generate_transition_SocialLag(year-1)
+    Yhat = retrieve_crime_count(year-1, -1)
+    Y = retrieve_crime_count(year, -1)
+    C = generate_corina_features()
+    
+    W2 = generate_geographical_SpatialLag_ca()
+    
+    i = retrieve_income_features()
+    e = retrieve_education_features()
+    r = retrieve_race_features()
+    
+    LR_coeffs = []
+    if not os.path.exists('coefficients.txt'):
+        for i in range(1001):
+            if i == 0:
+                pidx = range(len(Y))
+            else:
+                pidx = np.random.permutation(len(Y))
+            f1 = np.dot(W, Yhat[pidx])
+            f2 = np.dot(W2, Yhat[pidx])
+            # add intercept
+            columnName = ['intercept']
+            f = np.ones(f1.shape)
+        
+            if "all" in features:
+                f = np.concatenate( (f, f1, i[1], e[1], r[1]), axis=1)
+                f = pd.DataFrame(f, columns=['social lag'] + i[0] + e[0] + r[0])
+            if "sociallag" in features: 
+                f = np.concatenate( (f, f1), axis=1)
+                columnName += ['social lag']
+            if  "income" in features:
+                f = np.concatenate( (f, i[1]), axis=1)
+                columnName += i[0]
+            if "race" in features:
+                f = np.concatenate( (f, r[1]), axis=1)
+                columnName += r[0]
+            if "education" in features :
+                f = np.concatenate( (f, e[1]), axis=1)
+                columnName += e[0]
+            if 'corina' in features :
+                f = np.concatenate( (f, C[1]), axis=1)
+                columnName += C[0]
+            if 'spatiallag' in features:
+                f = np.concatenate( (f, f2), axis=1)
+                columnName += ['spatial lag']
+            f = pd.DataFrame(f, columns = columnName)
+        
+                
+            # call the Rscript to get Negative Binomial Regression results
+            np.savetxt("Y.csv", Y[pidx], delimiter=",")
+            f.to_csv("f.csv", sep=",", index=False)
+            subprocess.call( ['Rscript', 'nbr_permutation_test.R'] )
+            
+            
+            # LR permutation test
+            lrmod = linearRegression(f, Y)
+            LR_coeffs.append(lrmod.params)
+    else:        
+        print 'file coefficients.txt exists!'
+        
+    NB_coeffs = np.loadtxt(fname='coefficients.txt', delimiter=',')
+    LR_coeffs = np.array(LR_coeffs)
+    
+    for idx in range(NB_coeffs.shape[1]):
+        column = NB_coeffs[:,idx]
+        targ = column[0]
+        cnt = 0.0
+        for e in column:
+            if e > targ:
+                cnt += 1
+                
+        lr_col = LR_coeffs[:,idx]
+        lr_trg = lr_col[0]
+        lr_cnt = 0.0
+        for e in lr_col:
+            if e > lr_trg:
+                lr_cnt += 1
+                
+        plt.figure()
+        # NB
+        plt.subplot(1,2,1)
+        plt.hist(column)
+        plt.axvline(x = targ, linewidth=4, color='r')
+        plt.title("NB {0} coeff pvalue {1}".format(columnName[idx], cnt / len(column)))
+        # LR
+        plt.subplot(1,2,2)
+        plt.hist(lr_col)
+        plt.axvline(x = lr_trg, linewidth=4, color='r')
+        plt.title("LR {0} coeff pvalue {1}".format(columnName[idx], lr_cnt / len(lr_col)))
+        plt.savefig('PT-{0}.png'.format(idx), format='png')
+    return d
+    
+    
+    
+    
+
 
 def crimeRegression_eachCategory(year=2010):
     header = ['ARSON', 'ASSAULT', 'BATTERY', 'BURGLARY', 'CRIM SEXUAL ASSAULT', 
@@ -496,5 +597,6 @@ if __name__ == '__main__':
     # f = unitTest_onChicagoCrimeData()
 #   print f.summary()
 
-    f, Y = leaveOneOut_evaluation_onChicagoCrimeData(2009, ['corina', 'spatiallag'])
+#    f, Y = leaveOneOut_evaluation_onChicagoCrimeData(2009, ['corina', 'spatiallag'])
     
+    permutationTest_onChicagoCrimeData(2010, ['corina', 'sociallag'])
