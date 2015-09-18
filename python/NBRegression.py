@@ -378,7 +378,7 @@ def unitTest_onChicagoCrimeData():
     
 
 
-def leaveOneOut_evaluation_onChicagoCrimeData(year=2010, features= ["all"], crime_idx=-1, flow_type=0):
+def leaveOneOut_evaluation_onChicagoCrimeData(year=2010, features= ["all"], crime_idx=-1, flow_type=0, verboseoutput=False):
     """
     Generate the social lag from previous year
     use income/race/education of current year
@@ -427,7 +427,10 @@ def leaveOneOut_evaluation_onChicagoCrimeData(year=2010, features= ["all"], crim
     # call the Rscript to get Negative Binomial Regression results
     np.savetxt("Y.csv", Y, delimiter=",")
     f.to_csv("f.csv", sep=",", index=False)
-    nbres = subprocess.check_output( ['Rscript', 'nbr_eval.R'] )
+    if verboseoutput:
+        subprocess.call( ['Rscript', 'nbr_eval.R', 'verbose'] )
+    else:
+        nbres = subprocess.check_output( ['Rscript', 'nbr_eval.R'] )
     
     Y = Y.reshape((77,))
     loo = cross_validation.LeaveOneOut(77)
@@ -447,6 +450,8 @@ def leaveOneOut_evaluation_onChicagoCrimeData(year=2010, features= ["all"], crim
         y2 = r2.predict(f_test)
         errors2.append( np.abs( Y_test - y2 ) )
 #        print test_idx, Y_test[0], ybar.values[0], y2[0]
+        if verboseoutput:
+            print test_idx, Y_test[0], y2[0]
         
 #    mae = np.mean(errors1)
     mae2 = np.mean(errors2)
@@ -455,10 +460,12 @@ def leaveOneOut_evaluation_onChicagoCrimeData(year=2010, features= ["all"], crim
 #    mre = mae / Y.mean()
     mre2 = mae2 / Y.mean()
 #    print "NegBio Regression MAE", mae, "std", var, "MRE", mre
-#    print "Linear Regression MAE", mae2, "std", var2, "MRE", mre2
-    print nbres
-    print mae2, var2, mre2
-    return np.array([[float(e) for e in nbres.split(" ")], [mae2, var2, mre2]])
+    if verboseoutput:
+        print "Linear Regression MAE", mae2, "std", var2, "MRE", mre2
+    else:
+        print nbres
+        print mae2, var2, mre2
+        return np.array([[float(e) for e in nbres.split(" ")], [mae2, var2, mre2]])
     
 
 
@@ -612,25 +619,28 @@ if __name__ == '__main__':
     # f = unitTest_onChicagoCrimeData()
 #   print f.summary()
 
-    header = ['ARSON', 'ASSAULT', 'BATTERY', 'BURGLARY', 'CRIM SEXUAL ASSAULT', 
-    'CRIMINAL DAMAGE', 'CRIMINAL TRESPASS', 'DECEPTIVE PRACTICE', 
-    'GAMBLING', 'HOMICIDE', 'INTERFERENCE WITH PUBLIC OFFICER', 
-    'INTIMIDATION', 'KIDNAPPING', 'LIQUOR LAW VIOLATION', 'MOTOR VEHICLE THEFT', 
-    'NARCOTICS', 'OBSCENITY', 'OFFENSE INVOLVING CHILDREN', 'OTHER NARCOTIC VIOLATION',
-    'OTHER OFFENSE', 'PROSTITUTION', 'PUBLIC INDECENCY', 'PUBLIC PEACE VIOLATION',
-    'ROBBERY', 'SEX OFFENSE', 'STALKING', 'THEFT', 'WEAPONS VIOLATION', 'total']
+#    header = ['ARSON', 'ASSAULT', 'BATTERY', 'BURGLARY', 'CRIM SEXUAL ASSAULT', 
+#    'CRIMINAL DAMAGE', 'CRIMINAL TRESPASS', 'DECEPTIVE PRACTICE', 
+#    'GAMBLING', 'HOMICIDE', 'INTERFERENCE WITH PUBLIC OFFICER', 
+#    'INTIMIDATION', 'KIDNAPPING', 'LIQUOR LAW VIOLATION', 'MOTOR VEHICLE THEFT', 
+#    'NARCOTICS', 'OBSCENITY', 'OFFENSE INVOLVING CHILDREN', 'OTHER NARCOTIC VIOLATION',
+#    'OTHER OFFENSE', 'PROSTITUTION', 'PUBLIC INDECENCY', 'PUBLIC PEACE VIOLATION',
+#    'ROBBERY', 'SEX OFFENSE', 'STALKING', 'THEFT', 'WEAPONS VIOLATION', 'total']
+#    
+#    errors = np.zeros((9, len(header)))
+#    mre1 = np.zeros((9, len(header)))
+#    mre2 = np.zeros((9, len(header)))
+#    for idx, val in enumerate(header):
+#        for j in range(9):
+#            r1 = leaveOneOut_evaluation_onChicagoCrimeData(2010, ['corina'], crime_idx=idx+1, flow_type=j)
+#            r2 = leaveOneOut_evaluation_onChicagoCrimeData(2010, ['corina', 'sociallag'], crime_idx=idx+1, flow_type=j)
+#            mre1[j][idx] = r1[0,2]
+#            mre2[j][idx] = r2[0,2]
+#            errors[j][idx] = r1[0,2] - r2[0,2]
+#    np.savetxt('errors.array', errors)
+#    np.savetxt('mre1.array', mre1)
+#    np.savetxt('mre2.array', mre2)
     
-    errors = np.zeros((9, len(header)))
-    mre1 = np.zeros((9, len(header)))
-    mre2 = np.zeros((9, len(header)))
-    for idx, val in enumerate(header):
-        for j in range(9):
-            r1 = leaveOneOut_evaluation_onChicagoCrimeData(2010, ['corina'], crime_idx=idx+1, flow_type=j)
-            r2 = leaveOneOut_evaluation_onChicagoCrimeData(2010, ['corina', 'sociallag'], crime_idx=idx+1, flow_type=j)
-            mre1[j][idx] = r1[0,2]
-            mre2[j][idx] = r2[0,2]
-            errors[j][idx] = r1[0,2] - r2[0,2]
-    np.savetxt('errors.array', errors)
-    np.savetxt('mre1.array', mre1)
-    np.savetxt('mre2.array', mre2)
+    
+    leaveOneOut_evaluation_onChicagoCrimeData(2010, ['corina'], verboseoutput=True)
 #    permutationTest_onChicagoCrimeData(2010, ['corina', 'sociallag'])

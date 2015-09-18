@@ -3,7 +3,12 @@
 library(MASS)
 options(warn=-1)
 
-# cat('Rscript for glm.nb\n')
+args <- commandArgs(TRUE)
+
+
+if (length(args) == 1 && args[1] == 'verbose') {
+    cat('Rscript for glm.nb\n')
+}
 
 y <- read.csv('Y.csv', header=FALSE)
 f <- read.csv('f.csv')
@@ -16,12 +21,17 @@ for (i in 1:77) {
 	mod <- glm.nb( data=dat )
 	ybar <- predict(mod, newdata=f[i,], type=c('response') )
 	
-	# cat(paste(y[i,], ybar, '\n'))
+    if (length(args) == 1 && args[1] == 'verbose') {
+        cat(paste(y[i,], ybar, '\n'))
+    }
 	errors = c(errors, abs(ybar - y[i,]) )
 }
 
-# cat(paste("MAE", mean(errors), "SD", sd(errors), "MRE", mean(errors) / mean(y$V1), '\n'))
-cat(paste(mean(errors), sd(errors), mean(errors) / mean(y$V1)))
 
+if (length(args) == 1 && args[1] == 'verbose') {
+    cat(paste("MAE", mean(errors), "SD", sd(errors), "MRE", mean(errors) / mean(y$V1), '\n'))
+} else {
+    cat(paste(mean(errors), sd(errors), mean(errors) / mean(y$V1)))
+}
 
 
