@@ -559,7 +559,7 @@ def permutationTest_onChicagoCrimeData(year=2010, features= ["all"], iters=1001)
         plt.axvline(x = lr_trg, linewidth=4, color='r')
         plt.title("LR {0} coeff pvalue {1:.4f}".format(columnName[idx], lr_cnt / len(lr_col)))
         plt.savefig('PT-{0}.png'.format(idx), format='png')
-    return d
+    
     
     
     
@@ -621,10 +621,16 @@ if __name__ == '__main__':
     'ROBBERY', 'SEX OFFENSE', 'STALKING', 'THEFT', 'WEAPONS VIOLATION', 'total']
     
     errors = np.zeros((9, len(header)))
+    mre1 = np.zeros((9, len(header)))
+    mre2 = np.zeros((9, len(header)))
     for idx, val in enumerate(header):
         for j in range(9):
             r1 = leaveOneOut_evaluation_onChicagoCrimeData(2010, ['corina'], crime_idx=idx+1, flow_type=j)
             r2 = leaveOneOut_evaluation_onChicagoCrimeData(2010, ['corina', 'sociallag'], crime_idx=idx+1, flow_type=j)
+            mre1[j][idx] = r1[0,2]
+            mre2[j][idx] = r2[0,2]
             errors[j][idx] = r1[0,2] - r2[0,2]
-    
+    np.savetxt('errors.array', errors)
+    np.savetxt('mre1.array', mre1)
+    np.savetxt('mre2.array', mre2)
 #    permutationTest_onChicagoCrimeData(2010, ['corina', 'sociallag'])
