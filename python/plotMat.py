@@ -7,11 +7,12 @@ Created on Thu Sep 17 17:32:41 2015
 
 import numpy as np
 import matplotlib.pyplot as plt
+from NBRegression import *
 
 
 
-if __name__ == '__main__':
-    
+
+def plot_flowType_CrimeCount():
     xlabels = ['ARSON', 'ASSAULT', 'BATTERY', 'BURGLARY', 'CRIM SEXUAL ASSAULT', 
         'CRIMINAL DAMAGE', 'CRIMINAL TRESPASS', 'DECEPTIVE PRACTICE', 
         'GAMBLING', 'HOMICIDE', 'INTERFERENCE WITH PUBLIC OFFICER', 
@@ -47,3 +48,52 @@ if __name__ == '__main__':
     plt.xticks(x, xlabels, rotation='vertical')
     plt.yticks(y, ylabels)
     plt.savefig('{0}.png'.format(type_tag), format='png')
+
+
+
+
+def plot_corina_features():
+    """
+    Anomalous community area has index 24 (starting 0)
+    """
+    feats = generate_corina_features()
+    header = feats[0]
+    f = feats[1]
+    
+    plt.figure(figsize=(10,18))
+    for idx in range(len(header)):
+        y = [e[idx] for e in f]
+        plt.subplot(4, 2, idx+1)
+        plt.plot(y)
+        plt.axvline(x=24, lw=3, color='r', ls=':')
+        plt.axvline(x=29, lw=3, color='r', ls=':')
+        plt.title(header[idx])
+        plt.show()
+        
+        
+def plot_lags():
+    W = generate_transition_SocialLag(2010)
+    X = generate_geographical_SpatialLag_ca()
+    Yhat = retrieve_crime_count(2010, -1)
+    f1 = np.dot(W, Yhat)
+    f2 = np.dot(X, Yhat)
+    
+    plt.figure(figsize=(12,4.5))
+    plt.subplot(1,2,1)
+    plt.plot(f1)
+    plt.axvline(x=24, lw=3, ls=":", color='r')
+    plt.axvline(x=29, lw=3, ls=':', color='r')
+    plt.title('Social lag')
+    
+    plt.subplot(1,2,2)
+    plt.plot(f2)
+    plt.axvline(x=24, lw=3, ls=":", color='r')
+    plt.axvline(x=29, lw=3, ls=':', color='r')
+    plt.title('Spatial lag')
+    plt.show()
+        
+
+if __name__ == '__main__':
+#    plot_corina_features()
+    plot_lags()
+
