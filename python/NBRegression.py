@@ -59,21 +59,18 @@ def generate_corina_features():
 
 
 
-def generate_geographical_SpatialLag(foutName):
+def generate_geographical_SpatialLag():
     """
     Generate the spatial lag from the geographically adjacent CAs.
     """
-    fout = open(foutName, 'w')
-    cnt = 0
     ts = Tract.createAllTractObjects()
-    idset = Set(ts.keys())
-    for i in ts.keys():
-        idset.remove(i)
-        for j in idset:
-            if type(ts[i].polygon.intersection(ts[j].polygon)) is MultiLineString:
-                fout.write('{0},{1}\n'.format(i,j))
-                cnt += 1
-    fout.close()
+    centers = [ e.polygon.centroid for e in ts.values() ]
+    
+    W = np.zeros( (len(centers), len(centers)) )
+    for i, src in enumerate(centers):
+        for j, dst in enumerate(centers):
+            if src != dst:
+                W[i][j] = src.distance(dst)
     return cnt
         
         

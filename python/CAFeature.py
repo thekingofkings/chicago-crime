@@ -156,6 +156,7 @@ def main():
 #    sf = generate_Tract_CA_reference()
     args = {}
     year = 2010
+    regionlevel = 'ca'
     
     if len(sys.argv) % 2 == 1:
         for i in range(1, len(sys.argv), 2):
@@ -164,12 +165,15 @@ def main():
         print """Usage: CAFeature.py [options] [value]
         Possible options:
             year         e.g. 2010 default '2010'
-            datatype     e.g. lehd default crime"""
-
+            datatype     e.g. lehd default crime
+            regionlevel  e.g. tract default ca"""
+    
     if 'year' in args:
         year = args['year']
+    if 'regionlevel' in args:
+        regionlevel = args['regionlevel']
     finName = '../data/state_all_tract_level_od_JT00_{0}.csv'.format(year)
-    foutName = '../data/chicago_ca_od_{0}.csv'.format(year)
+    foutName = '../data/chicago_od_{0}_{1}.csv'.format(regionlevel, year)
     
     
         
@@ -184,13 +188,11 @@ def main():
             r = tract_CA_nodalFeatureAggregate(finName, foutName)
         elif args['datatype'] == 'lehd':
             finName = '../data/state_all_tract_level_od_JT00_{0}.csv'.format(year)
-            foutName = '../data/chicago_ca_od_{0}.csv'.format(year)
+            foutName = '../data/chicago_od_{0}_{1}.csv'.format(regionlevel, year)
             if os.path.exists(foutName):
                 print 'The year {0} is already merged.\nQuit Program'.format(year)
                 sys.exit(0)
             tract_CA_flowAggregate(finName, foutName)
-    
-    
     
 if __name__ == '__main__':
     main()
