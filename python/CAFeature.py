@@ -76,7 +76,7 @@ def get_Tract_CA_ref():
 
 
 
-def tract_CA_flowAggregate(finName, foutName):
+def tract_CA_flowAggregate(finName, foutName, flowtype='ca'):
     """
     aggregate flow information from tract to CA
     flow format:
@@ -86,32 +86,44 @@ def tract_CA_flowAggregate(finName, foutName):
     
     CA_census = {}
     
-    with open(finName) as fin:
-        for line in fin:
-            ls = line.split(",")
-            src_tract = int(ls[0])
-            dst_tract = int(ls[1])
-            
-            
-            if src_tract in TC_ref and dst_tract in TC_ref:
-                d = []
-                src_ca = TC_ref[src_tract]
-                dst_ca = TC_ref[dst_tract]
-                for val in ls[2:]:
-                    d.append(int(val))
-                    
-                if src_ca in CA_census:
-                    if dst_ca in CA_census[src_ca]:
-                        CA_census[src_ca][dst_ca] = mergeCACensus(CA_census[src_ca][dst_ca], d)
+    if flowtype == 'ca': 
+        with open(finName) as fin:
+            for line in fin:
+                ls = line.split(",")
+                src_tract = int(ls[0])
+                dst_tract = int(ls[1])
+
+                if src_tract in TC_ref and dst_tract in TC_ref:
+                    d = []
+                    src_ca = TC_ref[src_tract]
+                    dst_ca = TC_ref[dst_tract]
+                    for val in ls[2:]:
+                        d.append(int(val))
+
+                    if src_ca in CA_census:
+                        if dst_ca in CA_census[src_ca]:
+                            CA_census[src_ca][dst_ca] = mergeCACensus(CA_census[src_ca][dst_ca], d)
+                        else:
+                            CA_census[src_ca][dst_ca] = d
                     else:
+                        CA_census[src_ca] = {}
                         CA_census[src_ca][dst_ca] = d
-                else:
-                    CA_census[src_ca] = {}
-                    CA_census[src_ca][dst_ca] = d
+        savePairWiseCAFeatures(foutName, CA_census)    
+        return CA_census
+    elif flowtype == 'tract':
+        with open(finName) as fin, open(foutName, 'w') as fout:
+            for line in fin:
+                ls = line.split(",", 2)
+                src_tract = int(ls[0])
+                dst_tract = int(ls[1])
+
+                if src_tract in TC_ref and dst_tract in TC_ref:
+                    fout.write(line)
+
+
+
                         
     
-    savePairWiseCAFeatures(foutName, CA_census)    
-    return CA_census
 
 
 
@@ -192,7 +204,7 @@ def main():
             if os.path.exists(foutName):
                 print 'The year {0} is already merged.\nQuit Program'.format(year)
                 sys.exit(0)
-            tract_CA_flowAggregate(finName, foutName)
+            tract_CA_flowAggregate(finName, foutName, flowtype=regionlevel)
     
 if __name__ == '__main__':
     main()
