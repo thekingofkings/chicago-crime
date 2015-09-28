@@ -64,14 +64,15 @@ def generate_geographical_SpatialLag():
     Generate the spatial lag from the geographically adjacent CAs.
     """
     ts = Tract.createAllTractObjects()
-    centers = [ e.polygon.centroid for e in ts.values() ]
+    ordkey = sorted(ts, key=lambda x: int(x))
+    centers = [ ts[k].polygon.centroid for k in ordkey ]
     
     W = np.zeros( (len(centers), len(centers)) )
     for i, src in enumerate(centers):
         for j, dst in enumerate(centers):
             if src != dst:
                 W[i][j] = src.distance(dst)
-    return cnt
+    return W
         
         
 
@@ -108,8 +109,13 @@ def generate_transition_SocialLag(year = 2010, lehd_type=0):
     7 - #jobs in trade transportation, 
     8 - #jobs in other services
     """
+    
+    ts = Tract.createAllTractObjects()
+    ordkey = sorted(ts, key=lambda x: int(x))
+    print len(ordkey)
+    
     listIdx = {}
-    fin = open('../data/chicago_ca_od_{0}.csv'.format(year))
+    fin = open('../data/chicago_od_tract_{0}.csv'.format(year))
     for line in fin:
         ls = line.split(",")
         srcid = int(ls[0])
@@ -122,15 +128,16 @@ def generate_transition_SocialLag(year = 2010, lehd_type=0):
             listIdx[srcid][dstid] = val                            
     fin.close()
 
-    W = np.zeros( (77,77) )
-    for srcid, sdict in listIdx.items():
+    W = np.zeros( (len(ts),len(ts)) )
+    for srcid in ordkey:
+        sdict = listIdx[srcid]
         total = (float) (sum( sdict.values() ))
         for dstid, val in sdict.items():
             if srcid != dstid:
                 if total == 0:
-                    W[srcid-1][dstid-1] = 0
+                    W[ordkey.index(srcid)][ordkey.index(dstid)] = 0
                 else:
-                    W[srcid-1][dstid-1] = val / total
+                    W[ordkey.index(srcid)][ordkey.index(dstid)] = val / total
 
     return W
 
@@ -348,10 +355,10 @@ def unitTest_onChicagoCrimeData():
     W = generate_transition_SocialLag(2010)
     Yhat = retrieve_crime_count(2009, -1)
     Y = retrieve_crime_count(2010, -1)
-    i = retrieve_income_features()
-    e = retrieve_education_features()
-    r = retrieve_race_features()
-    C = generate_corina_features()
+#    i = retrieve_income_features()
+#    e = retrieve_education_features()
+#    r = retrieve_race_features()
+#    C = generate_corina_features()
         
     f1 = np.dot(W, Yhat)
     # f = np.concatenate((f1, i[1], e[1], r[1], np.ones(f1.shape)), axis=1)
