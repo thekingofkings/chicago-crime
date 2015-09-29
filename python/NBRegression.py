@@ -95,7 +95,7 @@ def generate_geographical_SpatialLag_ca():
         
 
 
-def generate_transition_SocialLag(year = 2010, lehd_type=0):
+def generate_transition_SocialLag(year = 2010, lehd_type=0, region='ca'):
     """
     Generate the spatial lag from the transition flow connected CAs.
     
@@ -110,12 +110,18 @@ def generate_transition_SocialLag(year = 2010, lehd_type=0):
     8 - #jobs in other services
     """
     
-    ts = Tract.createAllTractObjects()
-    ordkey = sorted(ts, key=lambda x: int(x))
-    print len(ordkey)
+    if region == 'ca':
+        ts = Tract.createAllCAObjects()
+        fn = '../data/chicago_ca_od_{0}.csv'.format(year)
+    elif region == 'tract':
+        ts = Tract.createAllTractObjects()
+        fn = '../data/chicago_od_tract_{0}.csv'.format(year)
+    tsk = [int(e) for e in ts.keys()]
+    ordkey = sorted(tsk)
+    
     
     listIdx = {}
-    fin = open('../data/chicago_od_tract_{0}.csv'.format(year))
+    fin = open(fn)
     for line in fin:
         ls = line.split(",")
         srcid = int(ls[0])
@@ -127,18 +133,20 @@ def generate_transition_SocialLag(year = 2010, lehd_type=0):
             listIdx[srcid] = {}
             listIdx[srcid][dstid] = val                            
     fin.close()
-
+    
     W = np.zeros( (len(ts),len(ts)) )
     for srcid in ordkey:
-        sdict = listIdx[srcid]
-        total = (float) (sum( sdict.values() ))
-        for dstid, val in sdict.items():
-            if srcid != dstid:
-                if total == 0:
-                    W[ordkey.index(srcid)][ordkey.index(dstid)] = 0
-                else:
-                    W[ordkey.index(srcid)][ordkey.index(dstid)] = val / total
-
+        if srcid in listIdx:
+            sdict = listIdx[srcid]
+            total = (float) (sum( sdict.values() ))
+            for dstid, val in sdict.items():
+                if srcid != dstid:
+                    if total == 0:
+                        W[ordkey.index(srcid)][ordkey.index(dstid)] = 0
+                    else:
+                        W[ordkey.index(srcid)][ordkey.index(dstid)] = val / total
+        else:
+            W[ordkey.index(srcid)] = np.zeros( (1,len(ts)) )
     return W
 
 
@@ -387,10 +395,13 @@ def leaveOneOut_evaluation_onChicagoCrimeData(year=2010, features= ["all"], crim
     Generate the social lag from previous year
     use income/race/education of current year
     """
-    W = generate_transition_SocialLag(year-1, lehd_type=flow_type)
+    W = generate_transition_SocialLag(year, lehd_type=flow_type)
     Yhat = retrieve_crime_count(year-1, crime_idx)
     Y = retrieve_crime_count(year, crime_idx)
     C = generate_corina_features()
+    popul = C[1][:,0].reshape((77,1))
+    Y = np.divide(Y, popul) * 10000
+    Yhat = np.divide(Yhat, popul) * 10000
     
     W2 = generate_geographical_SpatialLag_ca()
     
@@ -398,8 +409,8 @@ def leaveOneOut_evaluation_onChicagoCrimeData(year=2010, features= ["all"], crim
     e = retrieve_education_features()
     r = retrieve_race_features()
     
-    f1 = np.dot(W, Yhat)
-    f2 = np.dot(W2, Yhat)
+    f1 = np.dot(W, Y)
+    f2 = np.dot(W2, Y)
     # add intercept
     columnName = ['intercept']
     f = np.ones(f1.shape)
@@ -455,7 +466,7 @@ def leaveOneOut_evaluation_onChicagoCrimeData(year=2010, features= ["all"], crim
         errors2.append( np.abs( Y_test - y2 ) )
 #        print test_idx, Y_test[0], ybar.values[0], y2[0]
         if verboseoutput:
-            print test_idx, Y_test[0], y2[0]
+            print Y_test[0], y2[0]
         
 #    mae = np.mean(errors1)
     mae2 = np.mean(errors2)
@@ -646,5 +657,5 @@ if __name__ == '__main__':
 #    np.savetxt('mre2.array', mre2)
     
     
-    leaveOneOut_evaluation_onChicagoCrimeData(2010, ['corina'], verboseoutput=True)
+    leaveOneOut_evaluation_onChicagoCrimeData(2010, ['corina'], verboseoutput=False)
 #    permutationTest_onChicagoCrimeData(2010, ['corina', 'sociallag'])
