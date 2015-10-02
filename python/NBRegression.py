@@ -400,6 +400,9 @@ def leaveOneOut_evaluation_onChicagoCrimeData(year=2010, features= ["all"], crim
     Y = retrieve_crime_count(year, crime_idx)
     C = generate_corina_features()
     popul = C[1][:,0].reshape((77,1))
+    
+    # crime count is normalized by the total population as crime rate
+    # here we use the crime count per 10 thousand residents
     Y = np.divide(Y, popul) * 10000
     Yhat = np.divide(Yhat, popul) * 10000
     
@@ -436,6 +439,9 @@ def leaveOneOut_evaluation_onChicagoCrimeData(year=2010, features= ["all"], crim
     if 'spatiallag' in features:
         f = np.concatenate( (f, f2), axis=1)
         columnName += ['spatial lag']
+    if 'temporallag' in features:
+        f = np.concatenate( (f, Yhat), axis=1)
+        columnName += ['temporal lag']
     f = pd.DataFrame(f, columns = columnName)
 
         
@@ -536,6 +542,9 @@ def permutationTest_onChicagoCrimeData(year=2010, features= ["all"], iters=1001)
             if 'spatiallag' in features:
                 f = np.concatenate( (f, f2), axis=1)
                 columnName += ['spatial lag']
+            if 'temporallag' in features:
+                f = np.concatenate( (f, Yhat), axis=1)
+                columnName += ['temporal lag']
             f = pd.DataFrame(f, columns = columnName)
         
                 
@@ -625,6 +634,40 @@ def crimeRegression_eachCategory(year=2010):
     
     
     
+
+def generate_flowType_crimeCount_matrix():
+    """
+    The result is used in ./plotMat.py/plot_flowType_crimeCount() function.
+    
+    Results shown on the wikispace:
+    https://wikispaces.psu.edu/display/LSP/Social+flow%2C+Crime
+    
+    9/18/2015 Under which scenarios does the social lag help the most?
+    """
+    
+    header = ['ARSON', 'ASSAULT', 'BATTERY', 'BURGLARY', 'CRIM SEXUAL ASSAULT', 
+    'CRIMINAL DAMAGE', 'CRIMINAL TRESPASS', 'DECEPTIVE PRACTICE', 
+    'GAMBLING', 'HOMICIDE', 'INTERFERENCE WITH PUBLIC OFFICER', 
+    'INTIMIDATION', 'KIDNAPPING', 'LIQUOR LAW VIOLATION', 'MOTOR VEHICLE THEFT', 
+    'NARCOTICS', 'OBSCENITY', 'OFFENSE INVOLVING CHILDREN', 'OTHER NARCOTIC VIOLATION',
+    'OTHER OFFENSE', 'PROSTITUTION', 'PUBLIC INDECENCY', 'PUBLIC PEACE VIOLATION',
+    'ROBBERY', 'SEX OFFENSE', 'STALKING', 'THEFT', 'WEAPONS VIOLATION', 'total']
+    
+    errors = np.zeros((9, len(header)))
+    mre1 = np.zeros((9, len(header)))
+    mre2 = np.zeros((9, len(header)))
+    for idx, val in enumerate(header):
+        for j in range(9):
+            r1 = leaveOneOut_evaluation_onChicagoCrimeData(2010, ['corina'], crime_idx=idx+1, flow_type=j)
+            r2 = leaveOneOut_evaluation_onChicagoCrimeData(2010, ['corina', 'sociallag'], crime_idx=idx+1, flow_type=j)
+            mre1[j][idx] = r1[0,2]
+            mre2[j][idx] = r2[0,2]
+            errors[j][idx] = r1[0,2] - r2[0,2]
+    np.savetxt('errors.array', errors)
+    np.savetxt('mre1.array', mre1)
+    np.savetxt('mre2.array', mre2)
+    
+    
     
     
 if __name__ == '__main__':
@@ -634,28 +677,6 @@ if __name__ == '__main__':
     # f = unitTest_onChicagoCrimeData()
 #   print f.summary()
 
-#    header = ['ARSON', 'ASSAULT', 'BATTERY', 'BURGLARY', 'CRIM SEXUAL ASSAULT', 
-#    'CRIMINAL DAMAGE', 'CRIMINAL TRESPASS', 'DECEPTIVE PRACTICE', 
-#    'GAMBLING', 'HOMICIDE', 'INTERFERENCE WITH PUBLIC OFFICER', 
-#    'INTIMIDATION', 'KIDNAPPING', 'LIQUOR LAW VIOLATION', 'MOTOR VEHICLE THEFT', 
-#    'NARCOTICS', 'OBSCENITY', 'OFFENSE INVOLVING CHILDREN', 'OTHER NARCOTIC VIOLATION',
-#    'OTHER OFFENSE', 'PROSTITUTION', 'PUBLIC INDECENCY', 'PUBLIC PEACE VIOLATION',
-#    'ROBBERY', 'SEX OFFENSE', 'STALKING', 'THEFT', 'WEAPONS VIOLATION', 'total']
-#    
-#    errors = np.zeros((9, len(header)))
-#    mre1 = np.zeros((9, len(header)))
-#    mre2 = np.zeros((9, len(header)))
-#    for idx, val in enumerate(header):
-#        for j in range(9):
-#            r1 = leaveOneOut_evaluation_onChicagoCrimeData(2010, ['corina'], crime_idx=idx+1, flow_type=j)
-#            r2 = leaveOneOut_evaluation_onChicagoCrimeData(2010, ['corina', 'sociallag'], crime_idx=idx+1, flow_type=j)
-#            mre1[j][idx] = r1[0,2]
-#            mre2[j][idx] = r2[0,2]
-#            errors[j][idx] = r1[0,2] - r2[0,2]
-#    np.savetxt('errors.array', errors)
-#    np.savetxt('mre1.array', mre1)
-#    np.savetxt('mre2.array', mre2)
     
-    
-    leaveOneOut_evaluation_onChicagoCrimeData(2010, ['corina'], verboseoutput=False)
-#    permutationTest_onChicagoCrimeData(2010, ['corina', 'sociallag'])
+#    leaveOneOut_evaluation_onChicagoCrimeData(2010, ['temporallag'], verboseoutput=False)
+    permutationTest_onChicagoCrimeData(2010, ['corina', 'sociallag', 'sociallag', 'spatiallag'])

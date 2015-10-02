@@ -67,8 +67,10 @@ def plot_corina_features():
         plt.plot(y)
         plt.axvline(x=24, lw=3, color='r', ls=':')
         plt.axvline(x=29, lw=3, color='r', ls=':')
+        plt.axvline(x=31, lw=3, ls=':', color='r')
         plt.title(header[idx])
-        plt.show()
+    
+    plt.show()
         
         
 def plot_lags():
@@ -83,17 +85,19 @@ def plot_lags():
     plt.plot(f1)
     plt.axvline(x=24, lw=3, ls=":", color='r')
     plt.axvline(x=29, lw=3, ls=':', color='r')
+    plt.axvline(x=31, lw=3, ls=':', color='r')
     plt.title('Social lag')
     
     plt.subplot(1,2,2)
     plt.plot(f2)
     plt.axvline(x=24, lw=3, ls=":", color='r')
     plt.axvline(x=29, lw=3, ls=':', color='r')
+    plt.axvline(x=31, lw=3, ls=':', color='r')
     plt.title('Spatial lag')
     plt.show()
         
 
 if __name__ == '__main__':
-#    plot_corina_features()
-    plot_lags()
+    plot_corina_features()
+#    plot_lags()
 
