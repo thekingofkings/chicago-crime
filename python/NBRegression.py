@@ -47,6 +47,7 @@ import matplotlib.pyplot as plt
 import subprocess
 import os.path
 import os
+import random
 
 
     
@@ -280,6 +281,87 @@ def leaveOneOut_evaluation_onChicagoCrimeData(year=2010, features= ["all"], crim
 
 
 
+def tenFoldCV_onChicagoCrimeData(features=['corina']):
+    """
+    Use different years data to train the NB model
+    """
+    YEARS = range(2003, 2014)
+    
+    Y = []
+    C = []
+    FL = []
+    GL = []
+    T = []
+    for year in YEARS:
+        W = generate_transition_SocialLag(year, lehd_type=0)
+        Yhat = retrieve_crime_count(year-1, -1)
+        y = retrieve_crime_count(year, -1)
+        c = generate_corina_features()
+        popul = c[1][:,0].reshape((77,1))
+        
+        # crime count is normalized by the total population as crime rate
+        # here we use the crime count per 10 thousand residents
+        y = np.divide(y, popul) * 10000
+        Yhat = np.divide(Yhat, popul) * 10000
+        
+        W2 = generate_geographical_SpatialLag_ca()
+        
+        f1 = np.dot(W, Yhat)
+        f2 = np.dot(W2, Yhat)
+        
+        FL.append(f1)
+        GL.append(f2)
+        Y.append(y)
+        T.append(Yhat)
+        C.append(c[1])
+    
+    
+    Y = np.concatenate(Y, axis=0)
+    columnName = ['intercept']
+    f = np.ones(Y.shape)
+    if 'corina' in features:
+        C = np.concatenate(C, axis=0)
+        f = np.concatenate( (f, C), axis=1 )
+        columnName += c[0]
+    if 'sociallag' in features:
+        FL = np.concatenate(FL, axis=0)
+        f = np.concatenate( (f, FL), axis = 1)
+        columnName += ['sociallag']
+    if 'spatiallag' in features:
+        GL = np.concatenate(GL, axis=0)
+        f = np.concatenate((f, GL), axis=1)
+        columnName += ['spatiallag']
+    if 'temporallag' in features:
+        T = np.concatenate(T, axis=0)
+        f = np.concatenate((f, T), axis=1)
+        columnName += ['temporallag']
+    
+    f = pd.DataFrame(f, columns = columnName)
+    np.savetxt("Y.csv", Y, delimiter=",")
+    f.to_csv("f.csv", sep=",", index=False)
+    
+    nbres = subprocess.check_output( ['Rscript', 'nbr_eval_2.R'] )
+    print nbres,
+
+
+    errors2 = []
+    for i in range(20):
+        test_idx = [random.randint(0, 77 * 11 -1)]
+        train_idx = np.setdiff1d( range(11*77), test_idx )
+        
+        f_train, f_test = f.loc[train_idx], f.loc[test_idx]
+        Y_train, Y_test = Y[train_idx], Y[test_idx]
+        
+        r2 = linearRegression(f_train, Y_train)
+        y2 = r2.predict(f_test)
+        errors2.append( np.abs( Y_test - y2 ) )
+        
+    mae2 = np.mean(errors2)
+    var2 = np.sqrt( np.var(errors2) )
+    mre2 = mae2 / Y.mean()    
+    print mae2, var2, mre2
+
+
 
 
 def permutationTest_onChicagoCrimeData(year=2010, features= ["all"], iters=1001):
@@ -496,4 +578,6 @@ if __name__ == '__main__':
 
     
 #    leaveOneOut_evaluation_onChicagoCrimeData(2010, ['corina', 'sociallag'], verboseoutput=False)
-    permutationTest_onChicagoCrimeData(2010, ['corina', 'sociallag', 'sociallag', 'temporallag'])
+#    permutationTest_onChicagoCrimeData(2010, ['corina', 'sociallag', 'sociallag', 'temporallag'])
+    
+    r = tenFoldCV_onChicagoCrimeData(['corina'])#, 'sociallag', 'spatiallag', 'temporallag'])
