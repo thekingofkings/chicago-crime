@@ -46,6 +46,7 @@ from sklearn import cross_validation
 import matplotlib.pyplot as plt
 import subprocess
 import os.path
+import os
 
 
     
@@ -286,8 +287,17 @@ def permutationTest_onChicagoCrimeData(year=2010, features= ["all"], iters=1001)
     Permutation test with regression model residuals
     
     How to do the permutation?
+    
+    Initial try - before 2015/10/4
+    
     For each sample point (CA), we permute the dependent variable (crime count),
     while keeps the dependent variables the same.
+    
+    This appoach is hard to explain.
+    
+    
+    Second try:
+    permute the feature of interest
     """
     W = generate_transition_SocialLag(year)
     Yhat = retrieve_crime_count(year-1, -1)
@@ -337,33 +347,40 @@ def permutationTest_onChicagoCrimeData(year=2010, features= ["all"], iters=1001)
         f = np.concatenate( (f, Yhat), axis=1)
         columnName += ['temporal lag']
     f = pd.DataFrame(f, columns = columnName)
-    f.to_csv("f.csv", sep=",", index=False)
+        
+    
+    # permute each column
+    for idx, columnKey in enumerate(columnName):
+        print 'Process independent variable {0}'.format(columnKey)
+        # initialization
+        LR_coeffs = []
+        if os.path.exists('coefficients.txt'):
+            os.remove('coefficients.txt')
             
-            
-    LR_coeffs = []
-    # permute the dependent varible Y
-    if not os.path.exists('coefficients.txt'):
         for i in range(iters):
             if i == 0:
                 pidx = range(len(Y))
             else:
                 pidx = np.random.permutation(len(Y))
-             
-            # call the Rscript to get Negative Binomial Regression results
-            np.savetxt("Y.csv", Y[pidx], delimiter=",")
+            
+            # permute the column
+            f[columnKey] = f[columnKey].values[pidx]
+            # call the Rscript to get Negative Binomial Regression results         
+            f.to_csv("f.csv", sep=",", index=False)
+            np.savetxt("Y.csv", Y, delimiter=",")
             subprocess.call( ['Rscript', 'nbr_permutation_test.R'] )
             
             
             # LR permutation test
-            lrmod = linearRegression(f, Y[pidx])
+            lrmod = linearRegression(f, Y)
             LR_coeffs.append(lrmod.params)
-    else:        
-        print 'file coefficients.txt exists!'
+            
+        NB_coeffs = np.loadtxt(fname='coefficients.txt', delimiter=',')
+        LR_coeffs = np.array(LR_coeffs)
         
-    NB_coeffs = np.loadtxt(fname='coefficients.txt', delimiter=',')
-    LR_coeffs = np.array(LR_coeffs)
-    
-    for idx in range(NB_coeffs.shape[1]):
+        
+        # process columns: distribution of permutations
+        
         column = NB_coeffs[:,idx]
         targ = column[0]
         cnt = 0.0
@@ -389,7 +406,7 @@ def permutationTest_onChicagoCrimeData(year=2010, features= ["all"], iters=1001)
         plt.hist(lr_col)
         plt.axvline(x = lr_trg, linewidth=4, color='r')
         plt.title("LR {0} coeff pvalue {1:.4f}".format(columnName[idx], lr_cnt / len(lr_col)))
-        plt.savefig('PT-{0}.png'.format(idx), format='png')
+        plt.savefig('PT-{0}.png'.format(columnKey), format='png')
     
     
     
