@@ -77,8 +77,50 @@ def plot_lags():
     W = generate_transition_SocialLag(2010)
     X = generate_geographical_SpatialLag_ca()
     Yhat = retrieve_crime_count(2010, -1)
+    
+    C = generate_corina_features()
+    popul = C[1][:,0].reshape((77,1))
+    Yhat = np.divide(Yhat, popul) * 10000
+    
     f1 = np.dot(W, Yhat)
     f2 = np.dot(X, Yhat)
+    
+    l1 = W * Yhat
+    l2 = X * Yhat
+    
+    for i in range(l1.shape[0]):
+        for j in range(l1.shape[1]):
+            if l1[i][j] > 200:
+                l1[i][j] = 200
+    
+    idx = [0, 9, 19, 26, 29, 35, 37, 39, 44, 49, 59, 69]
+    
+    plt.figure(num=1, figsize=(12,12))
+    img = plt.matshow(l1, fignum=1)
+    plt.colorbar(img)
+    plt.xticks(idx, [str(i+1) for i in idx])
+    plt.yticks(idx, [str(i+1) for i in idx])
+    
+    
+    plt.figure(num=2, figsize=(12,12))
+    img = plt.matshow(l2, fignum=2)
+    plt.colorbar(img)
+    plt.xticks(idx, [str(i+1) for i in idx])
+    plt.yticks(idx, [str(i+1) for i in idx])
+    
+    
+    plt.figure(num=3, figsize=(18, 5))
+    plt.subplot(1,3,1)
+    plt.plot(Yhat)
+    plt.title('Total crime per 10,000 population')
+    
+    plt.subplot(1,3,2)
+    plt.plot(f1)
+    plt.title('Social lag')
+    
+    plt.subplot(1,3,3)
+    plt.plot(f2)
+    plt.title('Spatial lag')
     
     plt.figure(figsize=(12,4.5))
     plt.subplot(1,2,1)
@@ -98,6 +140,6 @@ def plot_lags():
         
 
 if __name__ == '__main__':
-    plot_corina_features()
-#    plot_lags()
+#    plot_corina_features()
+    plot_lags()
 

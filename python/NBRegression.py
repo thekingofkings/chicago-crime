@@ -497,10 +497,16 @@ def permutationTest_onChicagoCrimeData(year=2010, features= ["all"], iters=1001)
     """
     Permutation test with regression model residuals
     """
-    W = generate_transition_SocialLag(year-1)
+    W = generate_transition_SocialLag(year)
     Yhat = retrieve_crime_count(year-1, -1)
     Y = retrieve_crime_count(year, -1)
     C = generate_corina_features()
+    popul = C[1][:,0].reshape((77,1))
+    
+    # crime count is normalized by the total population as crime rate
+    # here we use the crime count per 10 thousand residents
+    Y = np.divide(Y, popul) * 10000
+    Yhat = np.divide(Yhat, popul) * 10000
     
     W2 = generate_geographical_SpatialLag_ca()
     
@@ -678,5 +684,5 @@ if __name__ == '__main__':
 #   print f.summary()
 
     
-#    leaveOneOut_evaluation_onChicagoCrimeData(2010, ['temporallag'], verboseoutput=False)
-    permutationTest_onChicagoCrimeData(2010, ['corina', 'sociallag', 'sociallag', 'spatiallag'])
+    leaveOneOut_evaluation_onChicagoCrimeData(2010, ['corina', 'sociallag'], verboseoutput=True)
+#    permutationTest_onChicagoCrimeData(2010, ['corina', 'sociallag', 'sociallag', 'temporallag'])
