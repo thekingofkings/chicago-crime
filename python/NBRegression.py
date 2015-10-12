@@ -48,6 +48,7 @@ import subprocess
 import os.path
 import os
 import random
+from itertools import combinations
 
 
     
@@ -340,7 +341,7 @@ def tenFoldCV_onChicagoCrimeData(features=['corina']):
     
     kf = cross_validation.KFold(n=f.shape[0], n_folds=10, shuffle=True)
     
-    
+    errors1 = []
     errors2 = []
     for train_idx, test_idx in kf:
         f_train, f_test = f[train_idx, :], f[test_idx, :]
@@ -353,13 +354,18 @@ def tenFoldCV_onChicagoCrimeData(features=['corina']):
         pd.DataFrame(f_test, columns = columnName).to_csv("f_test.csv", sep=",", index=False)
         
         # NB regression 
-        nbres = subprocess.check_output( ['Rscript', 'nbr_eval_2.R'] )
+        nbres = subprocess.check_output( ['Rscript', 'nbr_eval_kfold.R'] )
+        errors1.append(float(nbres))
         
         # Linear regression
         r2 = linearRegression(f_train, Y_train)
         y2 = r2.predict(f_test)
-        errors2.append( np.abs( Y_test - y2 ) )
-        
+        errors2.append( np.mean(np.abs( Y_test - y2 )) )
+    
+    mae1 = np.mean(errors1)
+    var1 = np.sqrt( np.var(errors1) )
+    mre1 = mae1 / Y.mean()
+    print mae1, var1, mre1, 
     mae2 = np.mean(errors2)
     var2 = np.sqrt( np.var(errors2) )
     mre2 = mae2 / Y.mean()    
@@ -584,4 +590,10 @@ if __name__ == '__main__':
 #    leaveOneOut_evaluation_onChicagoCrimeData(2010, ['corina', 'sociallag'], verboseoutput=False)
 #    permutationTest_onChicagoCrimeData(2010, ['corina', 'sociallag', 'sociallag', 'temporallag'])
     
-    r = tenFoldCV_onChicagoCrimeData(['corina', 'spatiallag', 'temporallag'])
+    
+    feat_candi = ['corina', 'spatiallag', 'temporallag', 'sociallag']
+    for i in range(1,5):
+        f_lists = combinations(feat_candi, i)
+        for f in f_lists:
+            print f,  
+            r = tenFoldCV_onChicagoCrimeData(f)
