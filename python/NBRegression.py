@@ -580,4 +580,4 @@ if __name__ == '__main__':
 #    leaveOneOut_evaluation_onChicagoCrimeData(2010, ['corina', 'sociallag'], verboseoutput=False)
 #    permutationTest_onChicagoCrimeData(2010, ['corina', 'sociallag', 'sociallag', 'temporallag'])
     
-    r = tenFoldCV_onChicagoCrimeData(['corina'])#, 'sociallag', 'spatiallag', 'temporallag'])
+    r = tenFoldCV_onChicagoCrimeData(['corina', 'spatiallag', 'temporallag'])
