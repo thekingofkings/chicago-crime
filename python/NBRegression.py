@@ -336,22 +336,26 @@ def tenFoldCV_onChicagoCrimeData(features=['corina']):
         f = np.concatenate((f, T), axis=1)
         columnName += ['temporallag']
     
-    f = pd.DataFrame(f, columns = columnName)
-    np.savetxt("Y.csv", Y, delimiter=",")
-    f.to_csv("f.csv", sep=",", index=False)
     
-    nbres = subprocess.check_output( ['Rscript', 'nbr_eval_2.R'] )
-    print nbres,
-
-
+    
+    kf = cross_validation.KFold(n=f.shape[0], n_folds=10, shuffle=True)
+    
+    
     errors2 = []
-    for i in range(20):
-        test_idx = [random.randint(0, 77 * 11 -1)]
-        train_idx = np.setdiff1d( range(11*77), test_idx )
+    for train_idx, test_idx in kf:
+        f_train, f_test = f[train_idx, :], f[test_idx, :]
+        Y_train, Y_test = Y[train_idx, :], Y[test_idx, :]
+
+        # write file for invoking NB regression in R        
+        np.savetxt("Y_train.csv", Y_train, delimiter=",")
+        np.savetxt("Y_test.csv", Y_test, delimiter=",")        
+        pd.DataFrame(f_train, columns = columnName).to_csv("f_train.csv", sep=",", index=False)
+        pd.DataFrame(f_test, columns = columnName).to_csv("f_test.csv", sep=",", index=False)
         
-        f_train, f_test = f.loc[train_idx], f.loc[test_idx]
-        Y_train, Y_test = Y[train_idx], Y[test_idx]
+        # NB regression 
+        nbres = subprocess.check_output( ['Rscript', 'nbr_eval_2.R'] )
         
+        # Linear regression
         r2 = linearRegression(f_train, Y_train)
         y2 = r2.predict(f_test)
         errors2.append( np.abs( Y_test - y2 ) )
