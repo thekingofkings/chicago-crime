@@ -49,6 +49,7 @@ import os.path
 import os
 import random
 from itertools import combinations
+from sklearn.utils import shuffle
 
 
     
@@ -282,7 +283,7 @@ def leaveOneOut_evaluation_onChicagoCrimeData(year=2010, features= ["all"], crim
 
 
 
-def tenFoldCV_onChicagoCrimeData(features=['corina'], CVmethod='10Fold', P = 10):
+def tenFoldCV_onChicagoCrimeData(features=['corina'], CVmethod='10Fold', P = 10, NUM_ITER=20):
     """
     Use different years data to train the NB model
     """
@@ -339,19 +340,29 @@ def tenFoldCV_onChicagoCrimeData(features=['corina'], CVmethod='10Fold', P = 10)
     
     
     
+    f, Y = shuffle(f, Y)
+    
     if CVmethod == '10Fold':
         splt = cross_validation.KFold(n=f.shape[0], n_folds=10, shuffle=True)
-    elif CVmethod == 'leaveOneOut':
-        splt = cross_validation.LeaveOneOut(n=f.shape[0])
     elif CVmethod == 'leavePOut':
         splt = cross_validation.LeavePOut(n=f.shape[0], p = P)
     
-    errors1 = []
-    errors2 = []
+    mae1 = []
+    mae2 = []
+    mre1 = []
+    mre2 = []
+    sd_mae1 = []
+    sd_mae2 = []
+    sd_mre1 = []
+    sd_mre2 = []
+    med_mae1 = []
+    med_mae2 = []
+    med_mre1 = []
+    med_mre2 = []
     cnt = 0
     for train_idx, test_idx in splt:
         cnt += 1
-        if cnt > 20:
+        if cnt > NUM_ITER:
             break
         f_train, f_test = f[train_idx, :], f[test_idx, :]
         Y_train, Y_test = Y[train_idx, :], Y[test_idx, :]
@@ -363,25 +374,29 @@ def tenFoldCV_onChicagoCrimeData(features=['corina'], CVmethod='10Fold', P = 10)
         pd.DataFrame(f_test, columns = columnName).to_csv("f_test.csv", sep=",", index=False)
         
         # NB regression 
-        nbres = subprocess.check_output( ['Rscript', 'nbr_eval_kfold.R'] )
-        errors1.append(float(nbres))
+        nbres = subprocess.check_output( ['Rscript', 'nbr_eval_kfold.R'] ).split(" ")
+        
+        mae1.append(float(nbres[0]))
+        sd_mae1.append(float(nbres[1]))
+        med_mae1.append(float(nbres[2]))
+        mre1.append(float(nbres[3]))
+        sd_mre1.append(float(nbres[4]))
+        med_mre1.append(float(nbres[5]))
         
         # Linear regression
         r2 = linearRegression(f_train, Y_train)
         y2 = r2.predict(f_test)
-        plt.figure()
-        plt.plot(Y_test)
-        plt.plot(y2)
-        errors2.append( np.mean(np.abs( Y_test - y2 )) )
+        ae = np.abs(Y_test - y2)        
+        mae2.append( np.mean(ae) )
+        sd_mae2.append( np.std(ae) )
+        med_mae2.append( np.median(ae) )
+        re = ae / Y_test
+        mre2.append( np.mean(re))
+        sd_mre2.append( np.std(re) )
+        med_mre2.append( np.median(re) )
     
-    mae1 = np.mean(errors1)
-    var1 = np.sqrt( np.var(errors1) )
-    mre1 = mae1 / Y_test.mean()
-    print mae1, var1, mre1, 
-    mae2 = np.mean(errors2)
-    var2 = np.sqrt( np.var(errors2) )
-    mre2 = mae2 / Y_test.mean()
-    print mae2, var2, mre2
+    print np.mean(mae1), np.mean(sd_mae1), np.mean(med_mae1), np.mean(mre1), np.mean(sd_mre1), np.mean(med_mre1),
+    print np.mean(mae2), np.mean(sd_mae2), np.mean(med_mae2), np.mean(mre2), np.mean(sd_mre2), np.mean(med_mre2)
 
 
 
@@ -603,17 +618,17 @@ if __name__ == '__main__':
 #    permutationTest_onChicagoCrimeData(2010, ['corina', 'sociallag', 'sociallag', 'temporallag'])
     
     
-#    feat_candi = ['corina', 'spatiallag', 'temporallag', 'sociallag']
-#    for i in range(1,5):
-#        f_lists = combinations(feat_candi, i)
-#        for f in f_lists:
-#            print '+'.join(f),
-#            r = tenFoldCV_onChicagoCrimeData(f)
+    feat_candi = ['corina', 'spatiallag', 'temporallag', 'sociallag']
+    for i in range(1,5):
+        f_lists = combinations(feat_candi, i)
+        for f in f_lists:
+            print '+'.join(f),
+            r = tenFoldCV_onChicagoCrimeData(f)
     
     
 #    Ps = range(1,20) + range(20, 80, 5)
 #    for p in Ps:
 #        print p, '\t',
-#        tenFoldCV_onChicagoCrimeData(['temporallag'], CVmethod='leavePOut', p=p)
+#        tenFoldCV_onChicagoCrimeData(['temporallag'], CVmethod='leavePOut', P=p, NUM_ITER=800/p)
     
-    tenFoldCV_onChicagoCrimeData(['temporallag'], CVmethod='10Fold')
+#    tenFoldCV_onChicagoCrimeData(['temporallag'], CVmethod='leavePOut', P=1)
