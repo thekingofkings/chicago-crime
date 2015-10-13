@@ -282,7 +282,7 @@ def leaveOneOut_evaluation_onChicagoCrimeData(year=2010, features= ["all"], crim
 
 
 
-def tenFoldCV_onChicagoCrimeData(features=['corina']):
+def tenFoldCV_onChicagoCrimeData(features=['corina'], CVmethod='10Fold', P = 10):
     """
     Use different years data to train the NB model
     """
@@ -339,11 +339,20 @@ def tenFoldCV_onChicagoCrimeData(features=['corina']):
     
     
     
-    kf = cross_validation.KFold(n=f.shape[0], n_folds=10, shuffle=True)
+    if CVmethod == '10Fold':
+        splt = cross_validation.KFold(n=f.shape[0], n_folds=10, shuffle=True)
+    elif CVmethod == 'leaveOneOut':
+        splt = cross_validation.LeaveOneOut(n=f.shape[0])
+    elif CVmethod == 'leavePOut':
+        splt = cross_validation.LeavePOut(n=f.shape[0], p = P)
     
     errors1 = []
     errors2 = []
-    for train_idx, test_idx in kf:
+    cnt = 0
+    for train_idx, test_idx in splt:
+        cnt += 1
+        if cnt > 20:
+            break
         f_train, f_test = f[train_idx, :], f[test_idx, :]
         Y_train, Y_test = Y[train_idx, :], Y[test_idx, :]
 
@@ -360,15 +369,18 @@ def tenFoldCV_onChicagoCrimeData(features=['corina']):
         # Linear regression
         r2 = linearRegression(f_train, Y_train)
         y2 = r2.predict(f_test)
+        plt.figure()
+        plt.plot(Y_test)
+        plt.plot(y2)
         errors2.append( np.mean(np.abs( Y_test - y2 )) )
     
     mae1 = np.mean(errors1)
     var1 = np.sqrt( np.var(errors1) )
-    mre1 = mae1 / Y.mean()
+    mre1 = mae1 / Y_test.mean()
     print mae1, var1, mre1, 
     mae2 = np.mean(errors2)
     var2 = np.sqrt( np.var(errors2) )
-    mre2 = mae2 / Y.mean()    
+    mre2 = mae2 / Y_test.mean()
     print mae2, var2, mre2
 
 
@@ -591,9 +603,17 @@ if __name__ == '__main__':
 #    permutationTest_onChicagoCrimeData(2010, ['corina', 'sociallag', 'sociallag', 'temporallag'])
     
     
-    feat_candi = ['corina', 'spatiallag', 'temporallag', 'sociallag']
-    for i in range(1,5):
-        f_lists = combinations(feat_candi, i)
-        for f in f_lists:
-            print f,  
-            r = tenFoldCV_onChicagoCrimeData(f)
+#    feat_candi = ['corina', 'spatiallag', 'temporallag', 'sociallag']
+#    for i in range(1,5):
+#        f_lists = combinations(feat_candi, i)
+#        for f in f_lists:
+#            print '+'.join(f),
+#            r = tenFoldCV_onChicagoCrimeData(f)
+    
+    
+#    Ps = range(1,20) + range(20, 80, 5)
+#    for p in Ps:
+#        print p, '\t',
+#        tenFoldCV_onChicagoCrimeData(['temporallag'], CVmethod='leavePOut', p=p)
+    
+    tenFoldCV_onChicagoCrimeData(['temporallag'], CVmethod='10Fold')
