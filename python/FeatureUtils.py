@@ -42,7 +42,7 @@ def generate_corina_features():
     SELECTOR = [0, 2, 4, 5]
     fields_descp = [fields_dsp[i] for i in SELECTOR]
     C = C[:, SELECTOR]
-    return  fields_dsp, C
+    return  fields_descp, C
 
 
 

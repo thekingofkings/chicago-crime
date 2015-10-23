@@ -2,8 +2,8 @@
 
 library(MASS)
 
-
-cat('Rscript for glm.nb\n')
+options(warn=-1)
+# cat('Rscript for glm.nb\n')
 
 y <- read.csv('Y.csv', header=FALSE)
 f <- read.csv('f.csv')

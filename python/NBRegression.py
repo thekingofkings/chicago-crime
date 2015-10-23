@@ -439,7 +439,7 @@ def permutationTest_onChicagoCrimeData(year=2010, features= ["all"], iters=1001)
     For each sample point (CA), we permute the dependent variable (crime count),
     while keeps the dependent variables the same.
     
-    This appoach is hard to explain.
+    This approach is hard to explain.
     
     
     Second try:
@@ -462,8 +462,8 @@ def permutationTest_onChicagoCrimeData(year=2010, features= ["all"], iters=1001)
     e = retrieve_education_features()
     r = retrieve_race_features()
     
-    f1 = np.dot(W, Yhat)
-    f2 = np.dot(W2, Yhat)
+    f1 = np.dot(W, Y)
+    f2 = np.dot(W2, Y)
     # add intercept
     columnName = ['intercept']
     f = np.ones(f1.shape)
@@ -484,6 +484,7 @@ def permutationTest_onChicagoCrimeData(year=2010, features= ["all"], iters=1001)
         f = np.concatenate( (f, e[1]), axis=1)
         columnName += e[0]
     if 'corina' in features :
+        C[1][:,0] = np.log(C[1][:,0])
         f = np.concatenate( (f, C[1]), axis=1)
         columnName += C[0]
     if 'spatiallag' in features:
@@ -498,6 +499,9 @@ def permutationTest_onChicagoCrimeData(year=2010, features= ["all"], iters=1001)
     # permute each column
     for idx, columnKey in enumerate(columnName):
         print 'Process independent variable {0}'.format(columnKey)
+        if columnKey == 'intercept':
+            continue
+            
         # initialization
         LR_coeffs = []
         if os.path.exists('coefficients.txt'):
@@ -546,12 +550,12 @@ def permutationTest_onChicagoCrimeData(year=2010, features= ["all"], iters=1001)
         plt.subplot(1,2,1)
         plt.hist(column)
         plt.axvline(x = targ, linewidth=4, color='r')
-        plt.title("NB {0} coeff pvalue {1:.4f}".format(columnName[idx], cnt / len(column)))
+        plt.title("NB {0} p {1:.4f}".format(columnName[idx], cnt / len(column)))
         # LR
         plt.subplot(1,2,2)
         plt.hist(lr_col)
         plt.axvline(x = lr_trg, linewidth=4, color='r')
-        plt.title("LR {0} coeff pvalue {1:.4f}".format(columnName[idx], lr_cnt / len(lr_col)))
+        plt.title("LR {0} p {1:.4f}".format(columnName[idx], lr_cnt / len(lr_col)))
         plt.savefig('PT-{0}.png'.format(columnKey), format='png')
     
     
@@ -641,8 +645,8 @@ if __name__ == '__main__':
 #   print f.summary()
 
     
-#    leaveOneOut_evaluation_onChicagoCrimeData(2010, ['corina', 'sociallag'], verboseoutput=False)
-#    permutationTest_onChicagoCrimeData(2010, ['corina', 'sociallag', 'sociallag', 'temporallag'])
+   # leaveOneOut_evaluation_onChicagoCrimeData(2010, ['corina', 'sociallag'], verboseoutput=False)
+   permutationTest_onChicagoCrimeData(2010, ['corina', 'sociallag', 'spatiallag', 'temporallag'])
     
 #    CV = '10Fold'
 #    feat_candi = ['corina', 'spatiallag', 'temporallag', 'sociallag']
@@ -656,10 +660,10 @@ if __name__ == '__main__':
 #                r = tenFoldCV_onChicagoCrimeData(f, CVmethod='leaveOneOut')
     
     
-    Ps = range(1, 5) + range(10, 81, 20)
-    for p in Ps:
-        print p,
-        s1, s2 = tenFoldCV_onChicagoCrimeData(['temporallag'], CVmethod='leavePOut', P=p, NUM_ITER=20)
+    # Ps = range(1, 5) + range(10, 81, 20)
+    # for p in Ps:
+        # print p,
+        # s1, s2 = tenFoldCV_onChicagoCrimeData(['temporallag'], CVmethod='leavePOut', P=p, NUM_ITER=20)
     
 #    for num_iter in range(10, 41, 5):
 #        print num_iter,
