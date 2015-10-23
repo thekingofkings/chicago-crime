@@ -15,6 +15,7 @@ from Crime import Tract
 import numpy as np
 import csv
 from openpyxl import *
+import heapq
 
 
 
@@ -38,6 +39,9 @@ def generate_corina_features():
         for j, k in enumerate( hidx ):
             C[i][j] = float(row[k])
 
+    SELECTOR = [0, 2, 4, 5]
+    fields_descp = [fields_dsp[i] for i in SELECTOR]
+    C = C[:, SELECTOR]
     return  fields_dsp, C
 
 
@@ -72,6 +76,10 @@ def generate_geographical_SpatialLag_ca():
         for j, dst in enumerate(centers):
             if src != dst:
                 W[i][j] = src.distance(dst)
+        # find n-largest (n=6)
+        threshold = heapq.nlargest(6, W[i,:])[-1]
+        for j in range(len(W[i,:])):
+            W[i][j] = 0 if W[i][j] < threshold else W[i][j]
     return W
     
         
