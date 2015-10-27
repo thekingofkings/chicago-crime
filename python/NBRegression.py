@@ -484,16 +484,21 @@ def permutationTest_onChicagoCrimeData(year=2010, features= ["all"], iters=1001)
         f = np.concatenate( (f, e[1]), axis=1)
         columnName += e[0]
     if 'corina' in features :
+        flr = np.array(f, copy=True)
+        flr = np.concatenate( (flr, C[1]), axis=1)
         C[1][:,0] = np.log(C[1][:,0])
         f = np.concatenate( (f, C[1]), axis=1)
         columnName += C[0]
     if 'spatiallag' in features:
         f = np.concatenate( (f, f2), axis=1)
+        flr = np.concatenate( (flr, f2), axis=1 )
         columnName += ['spatial lag']
     if 'temporallag' in features:
         f = np.concatenate( (f, Yhat), axis=1)
+        flr = np.concatenate( (flr, Yhat), axis=1 )
         columnName += ['temporal lag']
     f = pd.DataFrame(f, columns = columnName)
+    flr = pd.DataFrame(flr, columns = columnName)
         
     
     # permute each column
@@ -522,7 +527,8 @@ def permutationTest_onChicagoCrimeData(year=2010, features= ["all"], iters=1001)
             
             
             # LR permutation test
-            lrmod = linearRegression(f, Y)
+            flr[columnKey] = flr[columnKey].values[pidx]
+            lrmod = linearRegression(flr, Y)
             LR_coeffs.append(lrmod.params)
             
         NB_coeffs = np.loadtxt(fname='coefficients.txt', delimiter=',')
@@ -537,6 +543,7 @@ def permutationTest_onChicagoCrimeData(year=2010, features= ["all"], iters=1001)
         for e in column:
             if e > targ:
                 cnt += 1
+        nb_p = cnt / len(column)
                 
         lr_col = LR_coeffs[:,idx]
         lr_trg = lr_col[0]
@@ -544,18 +551,21 @@ def permutationTest_onChicagoCrimeData(year=2010, features= ["all"], iters=1001)
         for e in lr_col:
             if e > lr_trg:
                 lr_cnt += 1
+        lr_p = lr_cnt / len(column)       
                 
+        print columnKey, targ, nb_p, lr_trg, lr_p
+        
         plt.figure(figsize=(8,3))
         # NB
         plt.subplot(1,2,1)
         plt.hist(column)
         plt.axvline(x = targ, linewidth=4, color='r')
-        plt.title("NB {0} p {1:.4f}".format(columnName[idx], cnt / len(column)))
+        plt.title("NB {0} p {1:.4f}".format(columnName[idx], nb_p))
         # LR
         plt.subplot(1,2,2)
         plt.hist(lr_col)
         plt.axvline(x = lr_trg, linewidth=4, color='r')
-        plt.title("LR {0} p {1:.4f}".format(columnName[idx], lr_cnt / len(lr_col)))
+        plt.title("LR {0} p {1:.4f}".format(columnName[idx], lr_p))
         plt.savefig('PT-{0}.png'.format(columnKey), format='png')
     
     
