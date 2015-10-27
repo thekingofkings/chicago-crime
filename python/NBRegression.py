@@ -453,8 +453,8 @@ def permutationTest_onChicagoCrimeData(year=2010, features= ["all"], iters=1001)
     
     # crime count is normalized by the total population as crime rate
     # here we use the crime count per 10 thousand residents
-    Y = np.divide(Y, popul) * 10000
-    Yhat = np.divide(Yhat, popul) * 10000
+#    Y = np.divide(Y, popul) * 10000
+#    Yhat = np.divide(Yhat, popul) * 10000
     
     W2 = generate_geographical_SpatialLag_ca()
     
