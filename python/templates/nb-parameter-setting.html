@@ -1,0 +1,74 @@
+<html>
+<head>
+	<title>Negative Binomial Parameter Setting</title>
+</head>
+<body>
+	<h1>Negative Binomial Parameter Setting</h1>
+	<form action="set-parameter" method="get">
+	<h3>Select features for the Negative Binomial model</h3>
+	<table border=3>
+	<tr>
+		<th>Features</th>
+		<th>Original form</th>
+		<th>Take log form</th>
+	</tr>
+	<tr>
+		<td>Population</td>
+		<td><input type='radio' name='total population' value='asis'/></td>
+		<td><input type=radio name='total population' value=log /></td>
+	</tr>
+	<tr>
+		<td>Population density</td>
+		<td><input type=radio name='population density' value=asis /></td>
+		<td><input type=radio name='population density' value=log /></td>
+	</tr>
+	<tr>
+		<td>Poverty index</td>
+		<td><input type=radio name='poverty index' value=asis /></td>
+		<td><input type=radio name='poverty index' value=log /></td>
+	</tr>
+	<tr>
+		<td>Disadvantage index</td>
+		<td><input type=radio name='disadvantage index' value=asis /></td>
+		<td><input type=radio name='disadvantage index' value=log /></td>
+	</tr>
+	<tr>
+		<td>Residential stability</td>
+		<td><input type=radio name='residential stability' value=asis /></td>
+		<td><input type=radio name='residential stability' value=log /></td>
+	</tr>
+	<tr>
+		<td>Ethnic diversity</td>
+		<td><input type=radio name='ethnic diversity' value=asis /></td>
+		<td><input type=radio name='ethnic diversity' value=log /></td>
+	</tr>
+	<tr>
+		<td>Percentage Black</td>
+		<td><input type=radio name='pct black' value=asis /></td>
+		<td><input type=radio name='pct black' value=log /></td>
+	</tr>
+	<tr>
+		<td>Percentage Hispanic</td>
+		<td><input type=radio name='pct hispanic' value=asis /></td>
+		<td><input type=radio name='pct hispanic' value=log /></td>
+	</tr>
+	<tr>
+		<td>Temporal lag</td>
+		<td><input type=radio name=temporallag value=asis /></td>
+		<td><input type=radio name=temporallag value=log /></td>
+	</tr>
+	<tr>
+		<td>Social lag</td>
+		<td><input type=radio name=sociallag value=asis /></td>
+		<td><input type=radio name=sociallag value=log /></td>
+	</tr>
+	<tr>
+		<td>Spatial lag</td>
+		<td><input type=radio name=spatiallag value=asis /></td>
+		<td><input type=radio name=spatiallag value=log /></td>
+	</tr>
+	</table><br>
+	<button type=submit>Submit</button>
+	</form>
+</body>
+</html>

@@ -428,7 +428,7 @@ def tenFoldCV_onChicagoCrimeData(features=['corina'], CVmethod='10Fold', P = 10,
 
 
 
-def permutationTest_onChicagoCrimeData(year=2010, features= ["all"], iters=1001):
+def permutationTest_onChicagoCrimeData(year=2010, features= ["all"], logFeatures = [], iters=1001):
     """
     Permutation test with regression model residuals
     
@@ -467,36 +467,64 @@ def permutationTest_onChicagoCrimeData(year=2010, features= ["all"], iters=1001)
     # add intercept
     columnName = ['intercept']
     f = np.ones(f1.shape)
+    flr = np.ones(f1.shape)
 
     if "all" in features:
         f = np.concatenate( (f, f1, i[1], e[1], r[1]), axis=1)
+        flr = np.concatenate( (flr, f1, i[1], e[1], r[1]), axis=1)
         f = pd.DataFrame(f, columns=['social lag'] + i[0] + e[0] + r[0])
+        flr = pd.DataFrame(flr, columns=['social lag'] + i[0] + e[0] + r[0])
+        features.remove('all')
     if "sociallag" in features: 
         f = np.concatenate( (f, f1), axis=1)
+        flr = np.concatenate( (flr, f1), axis=1)
         columnName += ['social lag']
+        features.remove('sociallag')
     if  "income" in features:
         f = np.concatenate( (f, i[1]), axis=1)
+        flr = np.concatenate((flr, i[1]), axis=1)
         columnName += i[0]
+        features.remove('income')
     if "race" in features:
         f = np.concatenate( (f, r[1]), axis=1)
+        flr = np.concatenate( (flr, r[1]), axis=1)
         columnName += r[0]
+        features.remove('race')
     if "education" in features :
         f = np.concatenate( (f, e[1]), axis=1)
+        flr = np.concatenate((flr, e[1]), axis=1)
         columnName += e[0]
-    if 'corina' in features :
-        flr = np.array(f, copy=True)
+        features.remove('education')
+    if 'corina' in features:
         flr = np.concatenate( (flr, C[1]), axis=1)
         C[1][:,0] = np.log(C[1][:,0])
         f = np.concatenate( (f, C[1]), axis=1)
         columnName += C[0]
+        features.remove('corina')
     if 'spatiallag' in features:
         f = np.concatenate( (f, f2), axis=1)
         flr = np.concatenate( (flr, f2), axis=1 )
         columnName += ['spatial lag']
+        features.remove('spatiallag')
     if 'temporallag' in features:
         f = np.concatenate( (f, Yhat), axis=1)
         flr = np.concatenate( (flr, Yhat), axis=1 )
         columnName += ['temporal lag']
+        features.remove('temporallag')
+    
+    # features contains more specific categories of demographics feature
+    for demo in features:
+        i = C[0].index(demo)
+        tmp = C[1][:,i]
+        tmp = tmp.reshape((len(tmp), 1))
+        if demo in logFeatures:
+            f = np.concatenate( (f, np.log(tmp)), axis=1 )
+        else:
+            f = np.concatenate( (f, tmp), axis=1 )
+        flr = np.concatenate( (flr, tmp), axis=1 )
+        columnName += [demo]
+        
+    
     f = pd.DataFrame(f, columns = columnName)
     flr = pd.DataFrame(flr, columns = columnName)
         

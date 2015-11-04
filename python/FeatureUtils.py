@@ -29,7 +29,7 @@ def generate_corina_features():
     fields = ['totpop00_sum', 'popden00', 'pprpovW00', 'Dis46pf0', 'Stb26pf0', 'Divers5f00', 
             'pnhblWc0', 'phispWc0']
     fields_dsp = ['total population', 'population density', 'poverty index', 'disadvantage index', 'residential stability',
-            'ethnic diversity', 'pct black', 'hispanic']
+            'ethnic diversity', 'pct black', 'pct hispanic']
     hidx = []
     for fd in fields:
         hidx.append( header.index(fd) )
@@ -39,10 +39,7 @@ def generate_corina_features():
         for j, k in enumerate( hidx ):
             C[i][j] = float(row[k])
 
-    SELECTOR = [0, 2, 4, 5]
-    fields_descp = [fields_dsp[i] for i in SELECTOR]
-    C = C[:, SELECTOR]
-    return  fields_descp, C
+    return  fields_dsp, C
 
 
 
