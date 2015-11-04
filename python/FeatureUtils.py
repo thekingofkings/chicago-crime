@@ -19,7 +19,7 @@ import heapq
 
 
 import os
-here = os.path.dirname(__file__)
+here = os.path.dirname(os.path.abspath(__file__))
 
 
 

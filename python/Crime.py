@@ -6,7 +6,7 @@ import shapefile
 from shapely.geometry import Polygon, Point, box
 import sys
 import os
-here = os.path.dirname(__file__)
+here = os.path.dirname(os.path.abspath(__file__))
 
 
 class CrimeRecord:

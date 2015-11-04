@@ -17,6 +17,8 @@ factor into separate file FeatureUtils
 """
 
 from FeatureUtils import *
+import warnings
+warnings.filterwarnings('ignore')
 
 
 """
@@ -51,8 +53,10 @@ import random
 from itertools import combinations
 from sklearn.utils import shuffle
 
+here = os.path.dirname(os.path.abspath(__file__))
 
-    
+
+
 """
 Part Two
 Regression models
@@ -537,8 +541,8 @@ def permutationTest_onChicagoCrimeData(year=2010, features= ["all"], logFeatures
             
         # initialization
         LR_coeffs = []
-        if os.path.exists('coefficients.txt'):
-            os.remove('coefficients.txt')
+        if os.path.exists(here + '/coefficients.txt'):
+            os.remove(here + '/coefficients.txt')
             
         for i in range(iters):
             if i == 0:
@@ -549,17 +553,16 @@ def permutationTest_onChicagoCrimeData(year=2010, features= ["all"], logFeatures
             # permute the column
             f[columnKey] = f[columnKey].values[pidx]
             # call the Rscript to get Negative Binomial Regression results         
-            f.to_csv("f.csv", sep=",", index=False)
-            np.savetxt("Y.csv", Y, delimiter=",")
-            subprocess.call( ['Rscript', 'nbr_permutation_test.R'] )
-            
+            f.to_csv(here + "/f.csv", sep=",", index=False)
+            np.savetxt(here + "/Y.csv", Y, delimiter=",")
+            subprocess.call( ['Rscript', 'nbr_permutation_test.R'], cwd=here )
             
             # LR permutation test
             flr[columnKey] = flr[columnKey].values[pidx]
             lrmod = linearRegression(flr, Y)
             LR_coeffs.append(lrmod.params)
             
-        NB_coeffs = np.loadtxt(fname='coefficients.txt', delimiter=',')
+        NB_coeffs = np.loadtxt(fname=here + '/coefficients.txt', delimiter=',')
         LR_coeffs = np.array(LR_coeffs)
         
         
@@ -581,7 +584,7 @@ def permutationTest_onChicagoCrimeData(year=2010, features= ["all"], logFeatures
                 lr_cnt += 1
         lr_p = lr_cnt / len(column)       
                 
-        print columnKey, targ, nb_p, lr_trg, lr_p
+        print targ, nb_p, lr_trg, lr_p
         
         plt.figure(figsize=(8,3))
         # NB
@@ -594,7 +597,7 @@ def permutationTest_onChicagoCrimeData(year=2010, features= ["all"], logFeatures
         plt.hist(lr_col)
         plt.axvline(x = lr_trg, linewidth=4, color='r')
         plt.title("LR {0} p {1:.4f}".format(columnName[idx], lr_p))
-        plt.savefig('PT-{0}.png'.format(columnKey), format='png')
+        plt.savefig(here + '/PT-{0}.png'.format(columnKey), format='png')
     
     
     
@@ -684,7 +687,7 @@ if __name__ == '__main__':
 
     
    # leaveOneOut_evaluation_onChicagoCrimeData(2010, ['corina', 'sociallag'], verboseoutput=False)
-   permutationTest_onChicagoCrimeData(2010, ['corina', 'sociallag', 'spatiallag', 'temporallag'])
+   permutationTest_onChicagoCrimeData(2010, ['corina', 'sociallag', 'spatiallag', 'temporallag'], iters=3)
     
 #    CV = '10Fold'
 #    feat_candi = ['corina', 'spatiallag', 'temporallag', 'sociallag']

@@ -3,12 +3,12 @@ from flask import render_template
 from NBRegression import *
 
 import os
-here = os.path.dirname(__file__)
+here = os.path.dirname(os.path.abspath(__file__))
 
 
 app = Flask(__name__)
+app.debug = True
 
-app.debug=True
 
 features = ['density', 'disadvantage', 'ethnic', 'pctblack', 'pctship',
     'population', 'poverty', 'residential', 'sociallag', 'spatiallag',
@@ -47,4 +47,4 @@ def set_parameter():
 
     
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(debug=True, host='0.0.0.0')
