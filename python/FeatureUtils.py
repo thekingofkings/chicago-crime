@@ -18,12 +18,16 @@ from openpyxl import *
 import heapq
 
 
+import os
+here = os.path.dirname(__file__)
+
+
 
 def generate_corina_features():
     """
     Generate the features recommended by Corina
     """
-    f = open('../data/Chicago_demographics.csv', 'r')
+    f = open(here + '/../data/Chicago_demographics.csv', 'r')
     c = csv.reader(f)
     header = c.next()
     fields = ['totpop00_sum', 'popden00', 'pprpovW00', 'Dis46pf0', 'Stb26pf0', 'Divers5f00', 
@@ -100,10 +104,10 @@ def generate_transition_SocialLag(year = 2010, lehd_type=0, region='ca'):
     
     if region == 'ca':
         ts = Tract.createAllCAObjects()
-        fn = '../data/chicago_ca_od_{0}.csv'.format(year)
+        fn = here + '/../data/chicago_ca_od_{0}.csv'.format(year)
     elif region == 'tract':
         ts = Tract.createAllTractObjects()
-        fn = '../data/chicago_od_tract_{0}.csv'.format(year)
+        fn = here + '/../data/chicago_od_tract_{0}.csv'.format(year)
     tsk = [int(e) for e in ts.keys()]
     ordkey = sorted(tsk)
     
@@ -148,7 +152,7 @@ def retrieve_crime_count(year, col=-1):
         col  - the type of crime
     """
     Y =np.zeros( (77,1) )
-    with open('../data/chicago-crime-ca-level-{0}.csv'.format(year)) as fin:
+    with open(here + '/../data/chicago-crime-ca-level-{0}.csv'.format(year)) as fin:
         for line in fin:
             ls = line.split(",")
             idx = int(ls[0])
@@ -169,7 +173,7 @@ def retrieve_income_features():
     2. probability distribution over all categories (normalize by population)
     3. Grouped mean, variance    
     """
-    wb = load_workbook("../data/chicago-ca-income.xlsx")
+    wb = load_workbook(here + "/../data/chicago-ca-income.xlsx")
     ws = wb.active
     header = ws['l3':'aa3']
     header = [c.value for c in tuple(header)[0]]
@@ -202,7 +206,7 @@ def retrieve_education_features():
     """
     read the xlsx file: ../data/chicago-ca-education.xlsx
     """
-    wb = load_workbook("../data/chicago-ca-education.xlsx")
+    wb = load_workbook(here + "/../data/chicago-ca-education.xlsx")
     ws = wb.active
     header = ws['k3':'n3']
     header = [c.value for c in tuple(header)[0]]
@@ -232,7 +236,7 @@ def retrieve_race_features():
     """
     read the xlsx file: ../data/chicago-ca-race.xlsx
     """
-    wb = load_workbook("../data/chicago-ca-race.xlsx")
+    wb = load_workbook(here + "/../data/chicago-ca-race.xlsx")
     ws = wb.active
     header = ws['j2':'p2']
     header = [c.value for c in tuple(header)[0]]
