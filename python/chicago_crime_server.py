@@ -2,10 +2,14 @@ from flask import Flask, request, jsonify
 from flask import render_template
 from NBRegression import *
 
+import os
+here = os.path.dirname(__file__)
+
 
 
 app = Flask(__name__)
 
+app.debug=True
 
 features = ['density', 'disadvantage', 'ethnic', 'pctblack', 'pctship',
     'population', 'poverty', 'residential', 'sociallag', 'spatiallag',
@@ -27,8 +31,9 @@ def set_parameter():
             logF.append(k)
     import sys
     import time
+    import os
     fname = 'file-{0}'.format(time.strftime('%m-%d-%y-%H-%M-%S'))
-    sys.stdout = open('templates/' + fname, 'w')
+    sys.stdout = open(os.path.join(here + '/templates/' + fname), 'w')
     # every print is redirected to the file
     print 'Selected features', a.keys()
     print 'Features take log', logF, '\n'
@@ -36,7 +41,7 @@ def set_parameter():
     # print redirection ends
     sys.stdout.close()
     s = None
-    with open('templates/{0}'.format(fname)) as fin:
+    with open(os.path.join(here, '/templates/{0}'.format(fname))) as fin:
         s = fin.read().replace('\n', '<br>')
     return s
 
