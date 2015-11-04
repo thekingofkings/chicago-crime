@@ -6,8 +6,7 @@ import shapefile
 from shapely.geometry import Polygon, Point, box
 import sys
 import os
-
-
+here = os.path.dirname(__file__)
 
 
 class CrimeRecord:
@@ -80,7 +79,7 @@ class CrimeDataset:
             cr = CrimeRecord(line)
             year = cr.date[6:10]
             if year not in years:
-                years[year] = open('../data/chicago-crime-{0}.csv'.format(year), 'w')
+                years[year] = open(here + '/../data/chicago-crime-{0}.csv'.format(year), 'w')
             years[year].write(line)
             
         for F in years.values():
@@ -115,7 +114,7 @@ class Tract:
         
     @classmethod
     def createAllTractObjects( cls ):
-        cls.sf = shapefile.Reader('../data/chicago-shp-2010-gps/chicago_tract_wgs84')
+        cls.sf = shapefile.Reader(here + '/../data/chicago-shp-2010-gps/chicago_tract_wgs84')
         cls.tracts = {}
         
         shps = cls.sf.shapes()
@@ -131,7 +130,7 @@ class Tract:
             
     @classmethod
     def createAllCAObjects( cls ):
-        cls.casf = shapefile.Reader('../data/ChiCA_gps/CommAreas')
+        cls.casf = shapefile.Reader(here + '/../data/ChiCA_gps/CommAreas')
         cls.cas = {}
         
         shps = cls.casf.shapes()
@@ -158,20 +157,20 @@ if __name__ == '__main__':
 
     if 'splitfile' in arguments:
         if arguments['splitfile'] == 'true':
-            CrimeDataset.splitFileIntoYear('../data/Crimes_-_2001_to_present.csv')
+            CrimeDataset.splitFileIntoYear(here + '/../data/Crimes_-_2001_to_present.csv')
             sys.exit(0)
             
     if 'year' in arguments:
         year = arguments['year']
         
-    foutName = '../data/chicago-crime-tract-level-{0}.csv'.format(year)
+    foutName = here + '/../data/chicago-crime-tract-level-{0}.csv'.format(year)
     
     if os.path.exists(foutName):
         print 'The year {0} is already merged.\nQuit Program'.format(year)
         sys.exit(0)
             
     
-    c = CrimeDataset('../data/chicago-crime-{0}.csv'.format(year))
+    c = CrimeDataset(here + '/../data/chicago-crime-{0}.csv'.format(year))
     T = Tract.createAllTractObjects()
     c.crimeCount_PerTract(T)    
     CrimeRecord.CrimeType.sort()
