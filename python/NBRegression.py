@@ -518,6 +518,7 @@ def permutationTest_onChicagoCrimeData(year=2010, features= ["all"], logFeatures
     
     # features contains more specific categories of demographics feature
     for demo in features:
+        print demo
         i = C[0].index(demo)
         tmp = C[1][:,i]
         tmp = tmp.reshape((len(tmp), 1))
@@ -535,9 +536,9 @@ def permutationTest_onChicagoCrimeData(year=2010, features= ["all"], logFeatures
     
     # permute each column
     for idx, columnKey in enumerate(columnName):
-        print 'Process independent variable {0}'.format(columnKey)
         if columnKey == 'intercept':
             continue
+        print 'Process independent variable {0}'.format(columnKey)
             
         # initialization
         LR_coeffs = []

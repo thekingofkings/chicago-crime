@@ -23,20 +23,28 @@ def input_parameter():
 @app.route('/set-parameter', methods=['GET'])    
 def set_parameter():
     a =  request.args
-   
+
+    features = list(a.keys())
+    iters = int(a.get('iters'))
+    year = int(a.get('year'))
+  
+    features.remove('iters')
+    features.remove('year')
+
     logF = []
     for k in a.keys():
         if a.get(k) == 'log':
             logF.append(k)
+
     import sys
     import time
     import os
     fname = 'file-{0}'.format(time.strftime('%m-%d-%y-%H-%M-%S'))
     sys.stdout = open(os.path.join(here, 'templates', fname), 'w')
     # every print is redirected to the file
-    print 'Selected features', a.keys()
+    print 'Selected features', features 
     print 'Features take log', logF, '\n'
-    permutationTest_onChicagoCrimeData(year=2010, features=a.keys(), logFeatures=logF, iters=3)
+    permutationTest_onChicagoCrimeData(year=year, features=features, logFeatures=logF, iters=iters)
     # print redirection ends
     sys.stdout.close()
     s = None

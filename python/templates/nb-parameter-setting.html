@@ -5,6 +5,9 @@
 <body>
 	<h1>Negative Binomial Parameter Setting</h1>
 	<form action="set-parameter" method="get">
+	<h3>Select year for the crime count</h3>
+	<p>Select one single year from 2003 to 2013.</p>
+	Year of Chicago crime: <input type=text name=year><br>
 	<h3>Select features for the Negative Binomial model</h3>
 	<table border=3>
 	<tr>
@@ -68,6 +71,9 @@
 		<td><input type=radio name=spatiallag value=log /></td>
 	</tr>
 	</table><br>
+	<h3>Set number of permutation to calculate coefficient significance</h3>
+	<p>We use random permutation test to calculate the significance of coefficients. Namely, we permute the features n times, and for each permutation, we train a new Negative Binomial model and get the coefficients. With the n permutations, we get the distribution of coefficients, from which the significance of true coefficient can be calculated.</p>
+	Number of permutation:<input type=text name=iters><br>
 	<button type=submit>Submit</button>
 	</form>
 </body>
