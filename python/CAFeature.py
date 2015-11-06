@@ -27,11 +27,12 @@ savePairWiseCAFeatures = savePairWiseTractsFeatures
 
 
 
-def saveNodalCAFeatures(foutName, CA_features):
+def saveNodalCAFeatures(foutName, CA_features, header):
     """
     The CA_features is a dicationary
     """
     with open(foutName, 'w') as fout:
+        fout.write(','.join( ['caID'] + header ) + '\n')
         for caID, features in CA_features.items():
             fstr = [str(x) for x in features]
             fout.write( ",".join( [str(caID)] + fstr) )
@@ -140,6 +141,8 @@ def tract_CA_nodalFeatureAggregate(finName, foutName):
     CA_features = {}
     
     with open(finName) as fin:
+        header = fin.readline()
+        f_desc = header.split(",")[1:]
         for line in fin:
             ls = line.split(",")
             tracID = int(ls[0])
@@ -156,8 +159,8 @@ def tract_CA_nodalFeatureAggregate(finName, foutName):
                     CA_features[caID] = d
                     
                     
-    saveNodalCAFeatures(foutName, CA_features)
-    return CA_features
+    saveNodalCAFeatures(foutName, CA_features, f_desc)
+    return CA_features, f_desc
 
 
     

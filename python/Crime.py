@@ -1,5 +1,8 @@
 """
 Parse chicago crime file
+
+Split Chicago crime by years.
+Extract crime count by tracts.
 """
 
 import shapefile
@@ -175,10 +178,11 @@ if __name__ == '__main__':
     c.crimeCount_PerTract(T)    
     CrimeRecord.CrimeType.sort()
     cntKey = CrimeRecord.CrimeType
-    print year
+    print 'Write tract level crime file for year {0}'.format(year)
     print len(cntKey), cntKey
         
     with open(foutName, 'w') as fout:
+        fout.write(','.join( ['tractID'] + cntKey) + '\n' )
         for k, v in T.items():
             cntstr = []
             for tp in cntKey:
