@@ -71,6 +71,13 @@ def set_parameter():
     return s
 
 
+
+@app.route('/history')
+def list_previous_results():
+    s = os.listdir(here + '/templates/file*')    
+    return jsonify(s) 
+
+
     
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0')

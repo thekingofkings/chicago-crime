@@ -481,7 +481,10 @@ def permutationTest_onChicagoCrimeData(year=2010, features= ["all"], logFeatures
         flr = pd.DataFrame(flr, columns=['social lag'] + i[0] + e[0] + r[0])
         features.remove('all')
     if "sociallag" in features: 
-        f = np.concatenate( (f, f1), axis=1)
+        if 'sociallag' in logFeatures:
+            f = np.concatenate( (f, np.log(f1)), axis=1 )
+        else:
+            f = np.concatenate( (f, f1), axis=1)
         flr = np.concatenate( (flr, f1), axis=1)
         columnName += ['social lag']
         features.remove('sociallag')
@@ -507,12 +510,18 @@ def permutationTest_onChicagoCrimeData(year=2010, features= ["all"], logFeatures
         columnName += C[0]
         features.remove('corina')
     if 'spatiallag' in features:
-        f = np.concatenate( (f, f2), axis=1)
+        if 'spatiallag' in logFeatures:
+            f = np.concatenate( (f, np.log(f2)), axis=1 )
+        else:
+            f = np.concatenate( (f, f2), axis=1)
         flr = np.concatenate( (flr, f2), axis=1 )
         columnName += ['spatial lag']
         features.remove('spatiallag')
     if 'temporallag' in features:
-        f = np.concatenate( (f, Yhat), axis=1)
+        if 'temporallag' in logFeatures:
+            f = np.concatenate( (f, np.log(Yhat)), axis=1 )
+        else:
+            f = np.concatenate( (f, Yhat), axis=1)
         flr = np.concatenate( (flr, Yhat), axis=1 )
         columnName += ['temporal lag']
         features.remove('temporallag')
