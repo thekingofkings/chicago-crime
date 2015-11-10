@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, redirect
 from flask import render_template
 from NBRegression import *
 
@@ -69,9 +69,7 @@ def set_parameter():
     # print redirection ends
     sys.stdout.close()
     s = None
-    with open(os.path.join(here, 'templates', '{0}'.format(fname))) as fin:
-        s = fin.read().replace('\n', '<br>')
-    return s
+    return redirect('result/' + fname)
 
 
 
@@ -85,9 +83,27 @@ def list_previous_results():
         fn = os.path.basename(f)
         item = {'head': head, 'name': fn}
         items.append(item)
-        print len(items)
     return render_template('history.html', items=items) 
 
+
+
+@app.route('/result/<fname>')
+def format_result(fname):
+    fn = here + '/templates/' + fname
+    with open(fn, 'r') as fin:
+        head = [fin.readline() for x in range(6)]
+        fin.readline() 
+        key = fin.readline().strip()
+        rows = [] 
+        while (key != ''):
+            values = fin.readline().split(" ")
+            row = {'key': key, 'values': values}
+            rows.append(row)
+            key = fin.readline().strip()
+    return render_template('result.html', head=head, rows = rows)
+
+        
+        
 
     
 if __name__ == '__main__':

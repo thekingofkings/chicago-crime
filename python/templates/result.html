@@ -1,0 +1,27 @@
+<html>
+<head>
+	<title>Result of one evaluation</title>
+<head>
+<body>
+<h3>Settigns</h3>
+{% for h in head %}
+	<p>{{h}}</p>
+{% endfor %}
+<br>
+
+
+<h3>Results</h3>
+<table border=3>
+	<tr><th>Feature</th><th>NB coefficient</th><th>NB p-value</th><th>LR coefficient</th><th>LR p-value</th></tr>
+	{% for row in rows %}
+	<tr>
+		<td> {{ row['key'] }} </td>
+		{% for v in row['values'] %}
+			<td> {{ v }} </td>
+		{% endfor %}
+	</tr>
+	{% endfor %}
+</table>
+
+</body>
+</html>
