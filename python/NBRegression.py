@@ -147,8 +147,8 @@ def unitTest_withOnlineSource():
 def unitTest_onChicagoCrimeData():
 
     W = generate_transition_SocialLag(2010)
-    Yhat = retrieve_crime_count(2009, -1)
-    Y = retrieve_crime_count(2010, -1)
+    Yhat = retrieve_crime_count(2009, ['total'])
+    Y = retrieve_crime_count(2010, ['total'])
 #    i = retrieve_income_features()
 #    e = retrieve_education_features()
 #    r = retrieve_race_features()
@@ -300,8 +300,8 @@ def tenFoldCV_onChicagoCrimeData(features=['corina'], CVmethod='10Fold', P = 10,
     T = []
     for year in YEARS:
         W = generate_transition_SocialLag(year, lehd_type=0)
-        Yhat = retrieve_crime_count(year-1, -1)
-        y = retrieve_crime_count(year, -1)
+        Yhat = retrieve_crime_count(year-1, ['total'])
+        y = retrieve_crime_count(year, ['total'])
         c = generate_corina_features()
         popul = c[1][:,0].reshape((77,1))
         
@@ -432,7 +432,8 @@ def tenFoldCV_onChicagoCrimeData(features=['corina'], CVmethod='10Fold', P = 10,
 
 
 
-def permutationTest_onChicagoCrimeData(year=2010, features= ["all"], logFeatures = [], iters=1001):
+def permutationTest_onChicagoCrimeData(year=2010, features= ["all"], logFeatures = [], flowType=0, 
+                                       crimeType = ['total'], iters=1001):
     """
     Permutation test with regression model residuals
     
@@ -449,9 +450,9 @@ def permutationTest_onChicagoCrimeData(year=2010, features= ["all"], logFeatures
     Second try:
     permute the feature of interest
     """
-    W = generate_transition_SocialLag(year)
-    Yhat = retrieve_crime_count(year-1, -1)
-    Y = retrieve_crime_count(year, -1)
+    W = generate_transition_SocialLag(year, lehd_type=flowType)
+    Yhat = retrieve_crime_count(year-1, crimeType)
+    Y = retrieve_crime_count(year, crimeType)
     C = generate_corina_features()
     popul = C[1][:,0].reshape((77,1))
     
@@ -621,7 +622,7 @@ def crimeRegression_eachCategory(year=2010):
     predCrimes = {}
     unpredCrimes = {}
     for idx, val in enumerate(header):
-        Y = retrieve_crime_count(year, idx+1)
+        Y = retrieve_crime_count(year, [val])
         
         f1 = np.dot(W, Y)
         f = np.concatenate( (f1, np.ones(f1.shape)), axis=1 )

@@ -24,7 +24,6 @@ def input_parameter():
 def set_parameter():
     a =  request.args
 
-    features = list(a.keys())
     iters = int(a.get('iters'))
     year = int(a.get('year'))
   
@@ -32,9 +31,13 @@ def set_parameter():
     features.remove('year')
 
     logF = []
+    features = []
     for k in a.keys():
         if a.get(k) == 'log':
             logF.append(k)
+            features.append(k)
+        elif a.get(k) == 'asis':
+            features.append(k)
 
     import sys
     import time

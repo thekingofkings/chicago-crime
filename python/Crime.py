@@ -133,7 +133,7 @@ class Tract:
             
     @classmethod
     def createAllCAObjects( cls ):
-        cls.casf = shapefile.Reader(here + '/../data/ChiCA_gps/CommAreas')
+        cls.casf = shapefile.Reader(here + '/../data/ChiCA_gps/ChiCaGPS')
         cls.cas = {}
         
         shps = cls.casf.shapes()

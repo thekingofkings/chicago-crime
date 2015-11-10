@@ -91,15 +91,16 @@ def generate_transition_SocialLag(year = 2010, lehd_type=0, region='ca'):
     """
     Generate the spatial lag from the transition flow connected CAs.
     
-    0 - #jobs age under 29, 
-    1 - #jobs age from 30 to 54, 
-    2 - #jobs above 55, 
-    3 - #jobs earning under $1250/month, 
-    4 - #jobs earnings from $1251 to $3333/month, 
-    5 - #jobs above $3333/month,
-    6 - #jobs in goods producing, 
-    7 - #jobs in trade transportation, 
-    8 - #jobs in other services
+    0 - #total jobs
+    1 - #jobs age under 29, 
+    2 - #jobs age from 30 to 54, 
+    3 - #jobs above 55, 
+    4 - #jobs earning under $1250/month, 
+    5 - #jobs earnings from $1251 to $3333/month, 
+    6 - #jobs above $3333/month,
+    7 - #jobs in goods producing, 
+    8 - #jobs in trade transportation, 
+    9 - #jobs in other services
     """
     
     if region == 'ca':
@@ -144,7 +145,7 @@ def generate_transition_SocialLag(year = 2010, lehd_type=0, region='ca'):
 
 
 
-def retrieve_crime_count(year, col=-1):
+def retrieve_crime_count(year, col=['total']):
     """
     Retrieve the crime count in a vector
     Input:
@@ -153,10 +154,18 @@ def retrieve_crime_count(year, col=-1):
     """
     Y =np.zeros( (77,1) )
     with open(here + '/../data/chicago-crime-ca-level-{0}.csv'.format(year)) as fin:
+        header = fin.readline().strip().split(",")
+        crime_idx = []
+        for c in col:
+            if c in header:
+                i = header.index(c)
+                crime_idx.append(i)
         for line in fin:
             ls = line.split(",")
             idx = int(ls[0])
-            val = int(ls[col])
+            val = 0
+            for i in crime_idx:
+                val += int(ls[i])
             Y[idx-1] = val
 
     return Y
