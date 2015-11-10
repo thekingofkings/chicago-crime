@@ -1,0 +1,22 @@
+<html>
+<head>
+	<title>Evaluation history</title>
+</head>
+<body>
+	<table border=2>
+		<tr><th>Settings</th><th>File Name</th></tr>
+		{% for item in items %}
+		<tr>
+			<td>
+				{% for h in item['head'] %}
+					{{ h }}<br>
+				{% endfor %}
+			</td>
+			<td>
+				<a href='/result/{{ item['name'] }}'> {{ item['name'] }}</a>
+			</td>
+		</tr>
+		{% endfor %}
+	</table>
+</body>
+</html>

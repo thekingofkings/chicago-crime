@@ -5,6 +5,8 @@ from NBRegression import *
 import os
 here = os.path.dirname(os.path.abspath(__file__))
 
+import glob
+
 
 app = Flask(__name__)
 app.debug = True
@@ -59,7 +61,8 @@ def set_parameter():
     print 'Features take log', logF
     print 'Year', year
     print 'Flow type:', flowT, '(0 - total, 4 - low income)'
-    print 'crime type', crimeT, '\n'
+    print 'crime type', crimeT
+    print 'number of iterations', iters, '\n'
 
     permutationTest_onChicagoCrimeData(year=year, features=features, 
             logFeatures=logF, crimeType=crimeT, flowType=flowT, iters=iters)
@@ -74,8 +77,16 @@ def set_parameter():
 
 @app.route('/history')
 def list_previous_results():
-    s = os.listdir(here + '/templates/file*')    
-    return jsonify(s) 
+    s = glob.glob(here + '/templates/file*')    
+    items = []
+    for f in s:
+        with open(f, 'r') as fin:
+            head = [next(fin) for x in range(6)]
+        fn = os.path.basename(f)
+        item = {'head': head, 'name': fn}
+        items.append(item)
+        print len(items)
+    return render_template('history.html', items=items) 
 
 
     
