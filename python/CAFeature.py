@@ -32,7 +32,7 @@ def saveNodalCAFeatures(foutName, CA_features, header):
     The CA_features is a dicationary
     """
     with open(foutName, 'w') as fout:
-        fout.write(','.join( ['caID'] + header ) + '\n')
+        fout.write(','.join( ['caID'] + header ))
         for caID, features in CA_features.items():
             fstr = [str(x) for x in features]
             fout.write( ",".join( [str(caID)] + fstr) )
