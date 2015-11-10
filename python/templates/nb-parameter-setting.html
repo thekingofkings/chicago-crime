@@ -5,6 +5,33 @@
 <body>
 	<h1>Negative Binomial Parameter Setting</h1>
 	<form action="set-parameter" method="get">
+	
+	<h3>Select crime type</h3>
+	<p>List of crime types: ['ARSON', 'ASSAULT', 'BATTERY', 'BURGLARY', 'CRIM SEXUAL ASSAULT', 
+    'CRIMINAL DAMAGE', 'CRIMINAL TRESPASS', 'DECEPTIVE PRACTICE', 
+    'GAMBLING', 'HOMICIDE', 'INTERFERENCE WITH PUBLIC OFFICER', 
+    'INTIMIDATION', 'KIDNAPPING', 'LIQUOR LAW VIOLATION', 'MOTOR VEHICLE THEFT', 
+    'NARCOTICS', 'OBSCENITY', 'OFFENSE INVOLVING CHILDREN', 'OTHER NARCOTIC VIOLATION',
+    'OTHER OFFENSE', 'PROSTITUTION', 'PUBLIC INDECENCY', 'PUBLIC PEACE VIOLATION',
+    'ROBBERY', 'SEX OFFENSE', 'STALKING', 'THEFT', 'WEAPONS VIOLATION', 'total']</p>
+	<p>Use violent crime count: <input type=radio name='crimeT' value=violent>
+	Includes homicide, assault, battery, sexual assault, domestic violence, robbery</p>
+	<p>Use all crimes count: <input type=radio name='crimeT' value=total></p>
+	
+	<h3>Select flow type</h3>
+	<select name=flowT>
+		<option value=0>total jobs</option>
+		<option value=1>jobs age under 29</option>
+		<option value=2>jobs age from 30 to 54</option>
+		<option value=3>jobs above 55</option>
+		<option value=4>jobs earning under $1250/month</option>
+		<option value=5>jobs earnings from $1251 to $3333/month</option>
+		<option value=6>jobs above $3333/month</option>
+		<option value=7>jobs in goods producing</option>
+		<option value=8>jobs in trade transportation</option>
+		<option value=9>jobs in other services</option>
+	</select>
+	
 	<h3>Select year for the crime count</h3>
 	<p>Select one single year from 2003 to 2013.</p>
 	Year of Chicago crime: <input type=text name=year><br>

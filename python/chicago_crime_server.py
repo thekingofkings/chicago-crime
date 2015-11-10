@@ -24,20 +24,30 @@ def input_parameter():
 def set_parameter():
     a =  request.args
 
+    
+    features = list(a.keys())
+    crimeT = a.get('crimeT')
+    if crimeT == 'total':
+        crimeT = ['total']
+    elif crimeT == 'violent':
+        crimeT = ['HOMICIDE', 'CRIM SEXUAL ASSAULT', 'BATTERY', 'ROBBERY', 
+                'ARSON', 'DOMESTIC VIOLENCE', 'ASSAULT']
+
+    flowT = int(a.get('flowT'))
     iters = int(a.get('iters'))
     year = int(a.get('year'))
   
+    features.remove('crimeT')
+    features.remove('flowT')
     features.remove('iters')
     features.remove('year')
 
     logF = []
-    features = []
     for k in a.keys():
         if a.get(k) == 'log':
             logF.append(k)
-            features.append(k)
-        elif a.get(k) == 'asis':
-            features.append(k)
+        elif a.get(k) == 'none':
+            features.remove(k)
 
     import sys
     import time
@@ -47,7 +57,8 @@ def set_parameter():
     # every print is redirected to the file
     print 'Selected features', features 
     print 'Features take log', logF, '\n'
-    permutationTest_onChicagoCrimeData(year=year, features=features, logFeatures=logF, iters=iters)
+    permutationTest_onChicagoCrimeData(year=year, features=features, 
+            logFeatures=logF, crimeType=crimeT, flowType=flowT, iters=iters)
     # print redirection ends
     sys.stdout.close()
     s = None
