@@ -56,7 +56,11 @@ def set_parameter():
     sys.stdout = open(os.path.join(here, 'templates', fname), 'w')
     # every print is redirected to the file
     print 'Selected features', features 
-    print 'Features take log', logF, '\n'
+    print 'Features take log', logF
+    print 'Year', year
+    print 'Flow type:', flowT, '(0 - total, 4 - low income)'
+    print 'crime type', crimeT, '\n'
+
     permutationTest_onChicagoCrimeData(year=year, features=features, 
             logFeatures=logF, crimeType=crimeT, flowType=flowT, iters=iters)
     # print redirection ends
