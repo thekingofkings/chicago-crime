@@ -186,23 +186,57 @@ Evaluation and fitting real models on Chicago data.
 
 
 
-def leaveOneOut_evaluation_onChicagoCrimeData(year=2010, features= ["all"], crime_idx=-1, flow_type=0, verboseoutput=False):
+def leaveOneOut_evaluation_onChicagoCrimeData(year=2010, features= ["all"], 
+                                              crime_t=['total'], flow_type=0, 
+                                              verboseoutput=False, region='ca'):
     """
     Generate the social lag from previous year
     use income/race/education of current year
     """
-    W = generate_transition_SocialLag(year, lehd_type=flow_type)
-    Yhat = retrieve_crime_count(year-1, crime_idx)
-    Y = retrieve_crime_count(year, crime_idx)
-    C = generate_corina_features()
-    popul = C[1][:,0].reshape((77,1))
+    W = generate_transition_SocialLag(year, lehd_type=flow_type, region=region)
     
-    # crime count is normalized by the total population as crime rate
-    # here we use the crime count per 10 thousand residents
-    Y = np.divide(Y, popul) * 10000
-    Yhat = np.divide(Yhat, popul) * 10000
+    if region == 'ca':
+        W2 = generate_geographical_SpatialLag_ca()
+        
+        Yhat = retrieve_crime_count(year-1, col = crime_t)
+        Y = retrieve_crime_count(year, col = crime_t)
+        C = generate_corina_features()
+        popul = C[1][:,0].reshape(C[1].shape[0],1)
+        
+        # crime count is normalized by the total population as crime rate
+        # here we use the crime count per 10 thousand residents
+        Y = np.divide(Y, popul) * 10000
+        Yhat = np.divide(Yhat, popul) * 10000
+    elif region == 'tract':
+        W2, tractkey = generate_geographical_SpatialLag()
     
-    W2 = generate_geographical_SpatialLag_ca()
+        Yhat_map = retrieve_crime_count(year-1, col = crime_t, region='tract')
+        Yhat = np.array( [Yhat_map[k] for k in tractkey] ).reshape( len(Yhat_map), 1)
+        
+        Y_map = retrieve_crime_count(year, col = crime_t, region='tract')
+        Y = np.array( [Y_map[k] for k in tractkey] ).reshape( len(Y_map), 1 )
+        
+        C = generate_corina_features(region='tract')
+        C_mtx = []
+        cnt = 0
+        print 'Corina features:', len(C[1]), 
+        for k in tractkey:
+            if k in C[1]:
+                C_mtx.append(C[1][k])
+            else:
+                cnt += 1
+                C_mtx.append( [0 for i in range(7)] )
+        print cnt, len(C_mtx)
+        C = ( C[0], np.array( C_mtx ) )
+        popul = C[1][:,0].reshape(len(C[1]),1)
+        
+        
+        # crime count is normalized by the total population as crime rate
+        # here we use the crime count per 10 thousand residents
+#        Y = np.divide(Y, popul) * 10000
+#        Yhat = np.divide(Yhat, popul) * 10000
+    
+    
     
     i = retrieve_income_features()
     e = retrieve_education_features()
@@ -210,9 +244,12 @@ def leaveOneOut_evaluation_onChicagoCrimeData(year=2010, features= ["all"], crim
     
     f1 = np.dot(W, Y)
     f2 = np.dot(W2, Y)
+    
+    
     # add intercept
     columnName = ['intercept']
     f = np.ones(f1.shape)
+    print f.shape
 
     if "all" in features:
         f = np.concatenate( (f, f1, i[1], e[1], r[1]), axis=1)
@@ -238,19 +275,21 @@ def leaveOneOut_evaluation_onChicagoCrimeData(year=2010, features= ["all"], crim
     if 'temporallag' in features:
         f = np.concatenate( (f, Yhat), axis=1)
         columnName += ['temporal lag']
+    print f.shape
     f = pd.DataFrame(f, columns = columnName)
+    
 
         
     # call the Rscript to get Negative Binomial Regression results
     np.savetxt("Y.csv", Y, delimiter=",")
     f.to_csv("f.csv", sep=",", index=False)
     if verboseoutput:
-        subprocess.call( ['Rscript', 'nbr_eval.R', 'verbose'] )
+        subprocess.call( ['Rscript', 'nbr_eval.R', region, 'verbose'] )
     else:
-        nbres = subprocess.check_output( ['Rscript', 'nbr_eval.R'] )
+        nbres = subprocess.check_output( ['Rscript', 'nbr_eval.R', region] )
     
-    Y = Y.reshape((77,))
-    loo = cross_validation.LeaveOneOut(77)
+    Y = Y.reshape((len(Y),))
+    loo = cross_validation.LeaveOneOut(len(Y))
     mae = 0
     mae2 = 0
     errors1 = []
@@ -689,15 +728,16 @@ def generate_flowType_crimeCount_matrix():
     
     
 if __name__ == '__main__':
-    # generate_geographical_SocialLag('../data/chicago-CA-geo-neighbor')
-   
+    t = sys.argv[1]
+    print sys.argv
 #   crimeRegression_eachCategory()
     # f = unitTest_onChicagoCrimeData()
 #   print f.summary()
-
-    
-   # leaveOneOut_evaluation_onChicagoCrimeData(2010, ['corina', 'sociallag'], verboseoutput=False)
-   permutationTest_onChicagoCrimeData(2010, ['corina', 'sociallag', 'spatiallag', 'temporallag'], iters=3)
+    if t == 'leaveOneOut':
+        r = leaveOneOut_evaluation_onChicagoCrimeData(2010, ['corina', 'sociallag'], 
+                                                  verboseoutput=False, region='tract')
+    elif t == 'permutation':
+        permutationTest_onChicagoCrimeData(2010, ['corina', 'sociallag', 'spatiallag', 'temporallag'], iters=3)
     
 #    CV = '10Fold'
 #    feat_candi = ['corina', 'spatiallag', 'temporallag', 'sociallag']

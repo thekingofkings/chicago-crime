@@ -23,33 +23,58 @@ here = os.path.dirname(os.path.abspath(__file__))
 
 
 
-def generate_corina_features():
+def generate_corina_features(region='ca'):
     """
     Generate the features recommended by Corina
-    """
-    f = open(here + '/../data/Chicago_demographics.csv', 'r')
-    c = csv.reader(f)
-    header = c.next()
-    fields = ['totpop00_sum', 'popden00', 'pprpovW00', 'Dis46pf0', 'Stb26pf0', 'Divers5f00', 
-            'pnhblWc0', 'phispWc0']
-    fields_dsp = ['total population', 'population density', 'poverty index', 'disadvantage index', 'residential stability',
-            'ethnic diversity', 'pct black', 'pct hispanic']
-    hidx = []
-    for fd in fields:
-        hidx.append( header.index(fd) )
     
-    C = np.zeros( (77,len(hidx)) )
-    for i, row in enumerate(c):
-        for j, k in enumerate( hidx ):
-            C[i][j] = float(row[k])
-
-    return  fields_dsp, C
+    parameter region taks 'ca' or 'tract'
+    """
+    if region == 'ca':
+        f = open(here + '/../data/Chicago_demographics.csv', 'r')
+        c = csv.reader(f)
+        header = c.next()
+        fields = ['totpop00_sum', 'popden00', 'pprpovW00', 'Dis46pf0', 'Stb26pf0', 'Divers5f00', 
+                'pnhblWc0', 'phispWc0']
+        fields_dsp = ['total population', 'population density', 'poverty index', 'disadvantage index', 'residential stability',
+                'ethnic diversity', 'pct black', 'pct hispanic']
+        hidx = []
+        for fd in fields:
+            hidx.append( header.index(fd) )
+        
+        C = np.zeros( (77,len(hidx)) )
+        for i, row in enumerate(c):
+            for j, k in enumerate( hidx ):
+                C[i][j] = float(row[k])
+    
+        return  fields_dsp, C
+    elif region == 'tract':
+        
+        from pandas import read_stata
+    
+        r = read_stata('../data/SE2000_AG20140401_MSAcmsaID.dta')
+        cnt = 0
+        header = ['pop00', 'ppov00', 'disadv00', 'pdensmi00', 'hetero00', 'phisp00', 'pnhblk00']
+        
+        fields_dsp = ['total population', 'poverty index', 'disadvantage index', 'population density',
+                'ethnic diversity', 'pct hispanic', 'pct black']
+                
+        ST = {}
+        for row in r.iterrows():
+            tract = row[1]
+            if tract['statetrim'] == '17' and tract['countrim'] == '031':
+                cnt += 1
+                tl = []
+                tid = long('17031' + tract['tracttrim'])
+                for h in header:
+                    tl.append(tract[h])
+                ST[tid] = tl
+        return fields_dsp, ST
 
 
 
 def generate_geographical_SpatialLag():
     """
-    Generate the spatial lag from the geographically adjacent CAs.
+    Generate the spatial lag from the geographically adjacent regions.
     """
     ts = Tract.createAllTractObjects()
     ordkey = sorted(ts, key=lambda x: int(x))
@@ -60,7 +85,7 @@ def generate_geographical_SpatialLag():
         for j, dst in enumerate(centers):
             if src != dst:
                 W[i][j] = src.distance(dst)
-    return W
+    return W, [int(k) for k in ordkey]
         
         
 
@@ -145,30 +170,49 @@ def generate_transition_SocialLag(year = 2010, lehd_type=0, region='ca'):
 
 
 
-def retrieve_crime_count(year, col=['total']):
+def retrieve_crime_count(year, col=['total'], region='ca'):
     """
     Retrieve the crime count in a vector
     Input:
         year - the year to retrieve
         col  - the type of crime
+        region - ca or tract
     """
-    Y =np.zeros( (77,1) )
-    with open(here + '/../data/chicago-crime-ca-level-{0}.csv'.format(year)) as fin:
-        header = fin.readline().strip().split(",")
-        crime_idx = []
-        for c in col:
-            if c in header:
+    if region == 'ca':
+        Y =np.zeros( (77,1) )
+        with open(here + '/../data/chicago-crime-ca-level-{0}.csv'.format(year)) as fin:
+            header = fin.readline().strip().split(",")
+            crime_idx = []
+            for c in col:
+                if c in header:
+                    i = header.index(c)
+                    crime_idx.append(i)
+            for line in fin:
+                ls = line.split(",")
+                idx = int(ls[0])
+                val = 0
+                for i in crime_idx:
+                    val += int(ls[i])
+                Y[idx-1] = val
+    
+        return Y
+        
+    elif region == 'tract':
+        Y = {}
+        with open(here + '/../data/chicago-crime-tract-level-{0}.csv'.format(year)) as fin:
+            header = fin.readline().strip().split(",")
+            crime_idx = []
+            for c in col:
                 i = header.index(c)
                 crime_idx.append(i)
-        for line in fin:
-            ls = line.split(",")
-            idx = int(ls[0])
-            val = 0
-            for i in crime_idx:
-                val += int(ls[i])
-            Y[idx-1] = val
-
-    return Y
+            for line in fin:
+                ls = line.split(",")
+                tid = int(ls[0])
+                val = 0
+                for i in crime_idx:
+                    val += int(ls[i])
+                Y[tid] = val
+        return Y
 
 
 
@@ -267,5 +311,6 @@ def retrieve_race_features():
         stats[i][1] = np.sqrt( np.dot(R[i][:], (bins - stats[i][0])**2) / total)
 #    return stats_header, stats
     return header, R
+    
     
     
