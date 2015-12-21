@@ -219,14 +219,14 @@ def leaveOneOut_evaluation_onChicagoCrimeData(year=2010, features= ["all"],
         C = generate_corina_features(region='tract')
         C_mtx = []
         cnt = 0
-        print 'Corina features:', len(C[1]), 
+        
         for k in tractkey:
             if k in C[1]:
                 C_mtx.append(C[1][k])
             else:
                 cnt += 1
                 C_mtx.append( [0 for i in range(7)] )
-        print cnt, len(C_mtx)
+        
         C = ( C[0], np.array( C_mtx ) )
         popul = C[1][:,0].reshape(len(C[1]),1)
         
@@ -249,7 +249,6 @@ def leaveOneOut_evaluation_onChicagoCrimeData(year=2010, features= ["all"],
     # add intercept
     columnName = ['intercept']
     f = np.ones(f1.shape)
-    print f.shape
 
     if "all" in features:
         f = np.concatenate( (f, f1, i[1], e[1], r[1]), axis=1)
@@ -273,9 +272,10 @@ def leaveOneOut_evaluation_onChicagoCrimeData(year=2010, features= ["all"],
         f = np.concatenate( (f, f2), axis=1)
         columnName += ['spatial lag']
     if 'temporallag' in features:
-        f = np.concatenate( (f, Yhat), axis=1)
+        lrf = np.copy(f)
+        f = np.concatenate( (f, np.log(Yhat)), axis=1)
+        lrf = np.concatenate( (f, Yhat), axis=1)
         columnName += ['temporal lag']
-    print f.shape
     f = pd.DataFrame(f, columns = columnName)
     
 
@@ -295,7 +295,7 @@ def leaveOneOut_evaluation_onChicagoCrimeData(year=2010, features= ["all"],
     errors1 = []
     errors2 = []
     for train_idx, test_idx in loo:
-        f_train, f_test = f.loc[train_idx], f.loc[test_idx]
+        f_train, f_test = lrf[train_idx], lrf[test_idx]
         Y_train, Y_test = Y[train_idx], Y[test_idx]
 #        res, mod = negativeBinomialRegression(f_train, Y_train)
 #        ybar = mod.predict(res.params, exog=f_test)
@@ -734,7 +734,8 @@ if __name__ == '__main__':
     # f = unitTest_onChicagoCrimeData()
 #   print f.summary()
     if t == 'leaveOneOut':
-        r = leaveOneOut_evaluation_onChicagoCrimeData(2010, ['corina', 'sociallag'], 
+        r = leaveOneOut_evaluation_onChicagoCrimeData(2010, 
+                 ['corina', 'spatiallag', 'temporallag', 'sociallag'], 
                                                   verboseoutput=False, region='tract')
     elif t == 'permutation':
         permutationTest_onChicagoCrimeData(2010, ['corina', 'sociallag', 'spatiallag', 'temporallag'], iters=3)
