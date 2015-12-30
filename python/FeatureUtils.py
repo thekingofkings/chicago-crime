@@ -25,9 +25,11 @@ here = os.path.dirname(os.path.abspath(__file__))
 
 def generate_corina_features(region='ca'):
     """
-    Generate the features recommended by Corina
+    Generate the features recommended by Corina.
     
     parameter region taks 'ca' or 'tract'
+    
+    Return values are field description, value array
     """
     if region == 'ca':
         f = open(here + '/../data/Chicago_demographics.csv', 'r')
@@ -89,7 +91,13 @@ def generate_geographical_SpatialLag():
         
         
 
-def generate_geographical_SpatialLag_ca():
+def generate_geographical_SpatialLag_ca(knearest=True):
+    """
+    Generate the distance matrix for CA pairs.
+    
+    If knearest is true, then select the 6-nearest neighboring CAs.
+    Else, return the distance to all other CAs.
+    """
     
     
     cas = Tract.createAllCAObjects()
@@ -102,10 +110,12 @@ def generate_geographical_SpatialLag_ca():
         for j, dst in enumerate(centers):
             if src != dst:
                 W[i][j] = src.distance(dst)
+                
         # find n-largest (n=6)
-        threshold = heapq.nlargest(6, W[i,:])[-1]
-        for j in range(len(W[i,:])):
-            W[i][j] = 0 if W[i][j] < threshold else W[i][j]
+        if knearest == True:
+            threshold = heapq.nlargest(6, W[i,:])[-1]
+            for j in range(len(W[i,:])):
+                W[i][j] = 0 if W[i][j] < threshold else W[i][j]
     return W
     
         
