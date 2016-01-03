@@ -48,19 +48,18 @@ while (true)
     % update z
     z = x;
 
-    theta_prev = theta;
+    
     % update theta
     theta = theta + z - X * alpha + y;
     
     cnt = cnt + 1;
-    if sum(abs(z-X * alpha + y)) <= 0.01
+    if sum(abs(z - X * alpha + y)) <= 0.1
         break
     end
 end
 
 display(sprintf('Finished in %d iterations', cnt));
 alpha
-
 
 
 
