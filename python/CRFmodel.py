@@ -193,13 +193,72 @@ def OneNormErrorSolver(X, Y):
 
 
 
+def inference_Yi( alpha, w, X, Y, F, leaveOut ):
+    """
+    Make the inference on the value of y_i, 
+        
+        P(y_i| x_i, F, Y, alpha, w)
+    """
+    xi = X[leaveOut-1]
+    seq = [ np.dot(np.transpose(alpha), xi)[0] ]
+
+    n = Y.size
+    i = leaveOut - 1
+    for j in range(n):
+        if i != j:
+            seq.append( (Y[j] + np.dot( np.transpose(w), F[i] ))[0] )
+
+
+    minidx = multAbsTermSolver( seq )
+    return seq[minidx]
+
+    
+
+
+def multAbsTermSolver( seq ):
+    """
+    Solve the following problem.
+        
+        min_y \sum_i^n |y - a_i|,
+    where seq = {a_1, a_2, ..., a_n}
+    """
+    seq.sort()
+    import sys
+    minval = sys.maxint
+
+    n = len(seq)
+    vals = []
+    # minimum value of the first segment
+    vals.append( sum ( [ a-min(seq) for a in seq ] ) )
+    # mimimum value of the last segment
+    vals.append( sum ( [ max(seq)-a for a in seq ] ) )
+    for i in range(1, n):
+        k = i - (n-i)
+        b = 0
+        for a in seq:
+            if a > seq[i]:
+                b += a
+            else:
+                b -= a
+        if k > 0:
+            vals.append( k * seq[i] + b )
+        else:
+            vals.append( k * seq[i+1] + b )
+
+    return vals.index( min(vals) )
+    
 
 
 if __name__ == '__main__':
 
     cX, cY, cF, cYp = generateInput()
-    X, Y, F, Yp = leaveOneOut_Input( 1 )
-    CRFv1(X, Y, F, Yp)
 
+
+    leaveOut = 1
+    X, Y, F, Yp = leaveOneOut_Input( leaveOut )
+    alpha, w = CRFv1(X, Y, F, Yp)
+
+    res = inference_Yi( alpha, w, cX, cY, cF, leaveOut ) 
+    print res, cY[leaveOut][0]
 
 
