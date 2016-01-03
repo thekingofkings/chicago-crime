@@ -91,7 +91,7 @@ def generate_geographical_SpatialLag():
         
         
 
-def generate_geographical_SpatialLag_ca(knearest=True):
+def generate_geographical_SpatialLag_ca(knearest=True, leaveOut=-1):
     """
     Generate the distance matrix for CA pairs.
     
@@ -102,10 +102,13 @@ def generate_geographical_SpatialLag_ca(knearest=True):
     
     cas = Tract.createAllCAObjects()
     centers = []
-    for i in range(1,78):
+    iset = range(1, 78)
+    if leaveOut > 0:
+        iset.remove(leaveOut)
+    for i in iset:
         centers.append(cas[i].polygon.centroid)
     
-    W = np.zeros( (77,77) )
+    W = np.zeros( (len(iset),len(iset)) )
     for i, src in enumerate(centers):
         for j, dst in enumerate(centers):
             if src != dst:
@@ -122,7 +125,7 @@ def generate_geographical_SpatialLag_ca(knearest=True):
         
 
 
-def generate_transition_SocialLag(year = 2010, lehd_type=0, region='ca'):
+def generate_transition_SocialLag(year = 2010, lehd_type=0, region='ca', rawCount=False):
     """
     Generate the spatial lag from the transition flow connected CAs.
     
@@ -161,6 +164,9 @@ def generate_transition_SocialLag(year = 2010, lehd_type=0, region='ca'):
             listIdx[srcid] = {}
             listIdx[srcid][dstid] = val                            
     fin.close()
+
+    if rawCount:
+        return listIdx, ordkey
     
     W = np.zeros( (len(ts),len(ts)) )
     for srcid in ordkey:
