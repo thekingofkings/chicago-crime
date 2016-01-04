@@ -127,7 +127,7 @@ def generate_geographical_SpatialLag_ca(knearest=True, leaveOut=-1):
         
 
 
-def generate_transition_SocialLag(year = 2010, lehd_type=0, region='ca', rawCount=False):
+def generate_transition_SocialLag(year = 2010, lehd_type=0, region='ca', leaveOut=-1):
     """
     Generate the spatial lag from the transition flow connected CAs.
     
@@ -167,13 +167,15 @@ def generate_transition_SocialLag(year = 2010, lehd_type=0, region='ca', rawCoun
             listIdx[srcid][dstid] = val                            
     fin.close()
 
-    if rawCount:
-        return listIdx, ordkey
+    if leaveOut > 0:
+        ordkey.remove(leaveOut)
     
     W = np.zeros( (len(ts),len(ts)) )
     for srcid in ordkey:
         if srcid in listIdx:
             sdict = listIdx[srcid]
+            if leaveOut in sdict:
+                del sdict[leaveOut]
             total = (float) (sum( sdict.values() ))
             for dstid, val in sdict.items():
                 if srcid != dstid:

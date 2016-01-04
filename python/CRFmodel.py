@@ -27,7 +27,16 @@ from FeatureUtils import *
 import numpy as np
 
 
-def generateInput(fout=False):
+
+
+""" ==========================================================================
+CRF model version 1
+    min_{alpha, w} ||X alpha - y||_1 + ||F w - y_p||_1
+========================================================================== """
+
+
+
+def generateInput_v1(fout=False):
     """
     Generate complete observation matrix
     """
@@ -60,7 +69,7 @@ def generateInput(fout=False):
 
 
 
-def leaveOneOut_Input( leaveOut ):
+def leaveOneOut_Input_v1( leaveOut ):
     """
     Generate observation matrix and vectors
     X
@@ -79,26 +88,8 @@ def leaveOneOut_Input( leaveOut ):
     # get complete spatial lag, and leave-one-out
     F_dist = generate_geographical_SpatialLag_ca( leaveOut=leaveOut )
 
-    # get complete social lag
-    countDict, ordkey = generate_transition_SocialLag(year=2010, lehd_type=0, region='ca', rawCount=True) 
-    # leave one out in the social lag
-    ordkey.remove(leaveOut)
-    F_flow = np.zeros( (len(ordkey), len(ordkey)) )
-    for srcid in ordkey:
-        if srcid in countDict:
-            sdict = countDict[srcid]
-            if leaveOut in sdict:
-                del sdict[leaveOut]
-            total = (float) (sum( sdict.values() ))
-            for dstid, val in sdict.items():
-                if srcid != dstid:
-                    if total == 0:
-                        F_flow[ordkey.index(srcid)][ordkey.index(dstid)] = 0
-                    else:
-                        F_flow[ordkey.index(srcid)][ordkey.index(dstid)] = val/total
-        else:
-            F_flow[ordkey.index(srcid)] = np.zeros( (1, len(ordkey)) )
-
+    # get complete social lag, and leave one out
+    F_flow = generate_transition_SocialLag(year=2010, lehd_type=0, region='ca', leaveOut=leaveOut) 
 
     # get complete Y (crime rate), and leave-one-out
     Y = retrieve_crime_count(year=2010, col=['total'], region='ca')
@@ -139,6 +130,142 @@ def CRFv1(X, Y, F, Yp):
     # print w
 
     return alpha, w
+
+
+
+
+
+
+def inference_Yi_crfv1( alpha, w, X, Y, F, leaveOut ):
+    """
+    Make the inference on the value of y_i, 
+        
+        P(y_i| x_i, F, Y, alpha, w)
+    """
+    xi = X[leaveOut-1]
+    seq = [ np.dot(np.transpose(alpha), xi)[0] ]
+
+    n = Y.size
+    i = leaveOut - 1
+    for j in range(n):
+        if i != j:
+            seq.append( (Y[j] + np.dot( np.transpose(w), F[i] ))[0] )
+
+
+    minidx = multAbsTermSolver( seq )
+    return seq[minidx], np.mean(seq)
+
+    
+
+
+def CRFv1_leaveOneOut_evaluation():
+    """
+    Evaluate the CRF v1 with leave-one-out at CA level
+    """
+    print 'CRF v1 -- potential function is defined on both  1 clique and 2 clique'
+
+    cX, cY, cF, cYp = generateInput_v1()
+
+    error1 = []
+    error2 = []
+    for leaveOut in range(1, 78):
+        X, Y, F, Yp = leaveOneOut_Input_v1( leaveOut )
+        alpha, w = CRFv1(X, Y, F, Yp)
+
+        res = inference_Yi_crfv1( alpha, w, cX, cY, cF, leaveOut ) 
+        error1.append( abs(res[0] - cY[leaveOut-1][0]) )        
+        error2.append( abs(res[1] - cY[leaveOut-1][0]) )        
+
+    mae1 = np.mean(error1)
+    var1 = np.sqrt( np.var(error1) )
+    mre1 = mae1 / Y.mean()
+
+    mae2 = np.mean(error2)
+    var2 = np.sqrt( np.var(error2) )
+    mre2 = mae2 / Y.mean()
+
+    print 'Use 1-norm inference mae {0}, var {1}, mre {2}'.format( mae1, var1, mre1 )
+    print 'Use 2-norm inference mae {0}, var {1}, mre {2}'.format( mae2, var2, mre2 )
+
+
+
+
+
+""" ==========================================================================
+CRF model version 2
+    min_{alpha, w} \sum_i^n \sum_j^n 
+        | y_i - alpha * x_i - beta * y_j - gamma * f_ij |
+========================================================================== """
+
+
+
+
+def generateInput_v2(fout=False):
+    """
+    Generate complete observation matrix
+    """
+    des, X = generate_corina_features('ca')
+    F_dist = generate_geographical_SpatialLag_ca()
+    F_flow = generate_transition_SocialLag(year=2010, lehd_type=0, region='ca')
+
+    Y = retrieve_crime_count(year=2010, col=['total'], region='ca')
+
+    F = []
+    n = Y.size
+    for i in range(n):
+        for j in range(n):
+            if i != j:
+                fij = np.concatenate( (X[i], np.array( [Y[i][0], F_dist[i,j], F_flow[i,j]]) ), 1)
+                F.append(fij)
+    F = np.array(F)
+
+    if fout:
+        np.savetxt('../matlab/F.csv', F, delimiter=',')
+
+    return Y, F
+
+
+
+""" ==========================================================================
+Helper function
+
+This section defines commonly used function for basic problem solver.
+========================================================================== """
+
+    
+
+
+def multAbsTermSolver( seq ):
+    """
+    Solve the following problem.
+        
+        min_y \sum_i^n |y - a_i|,
+    where seq = {a_1, a_2, ..., a_n}
+    """
+    seq.sort()
+    import sys
+    minval = sys.maxint
+
+    n = len(seq)
+    vals = []
+    # minimum value of the first segment
+    vals.append( sum ( [ a-min(seq) for a in seq ] ) )
+    # mimimum value of the last segment
+    vals.append( sum ( [ max(seq)-a for a in seq ] ) )
+    for i in range(1, n):
+        k = i - (n-i)
+        b = 0
+        for a in seq:
+            if a > seq[i]:
+                b += a
+            else:
+                b -= a
+        if k > 0:
+            vals.append( k * seq[i] + b )
+        else:
+            vals.append( k * seq[i+1] + b )
+
+    return vals.index( min(vals) )
 
 
 
@@ -193,86 +320,9 @@ def OneNormErrorSolver(X, Y):
 
 
 
-def inference_Yi( alpha, w, X, Y, F, leaveOut ):
-    """
-    Make the inference on the value of y_i, 
-        
-        P(y_i| x_i, F, Y, alpha, w)
-    """
-    xi = X[leaveOut-1]
-    seq = [ np.dot(np.transpose(alpha), xi)[0] ]
-
-    n = Y.size
-    i = leaveOut - 1
-    for j in range(n):
-        if i != j:
-            seq.append( (Y[j] + np.dot( np.transpose(w), F[i] ))[0] )
-
-
-    minidx = multAbsTermSolver( seq )
-    return seq[minidx], np.mean(seq)
-
-    
-
-
-def multAbsTermSolver( seq ):
-    """
-    Solve the following problem.
-        
-        min_y \sum_i^n |y - a_i|,
-    where seq = {a_1, a_2, ..., a_n}
-    """
-    seq.sort()
-    import sys
-    minval = sys.maxint
-
-    n = len(seq)
-    vals = []
-    # minimum value of the first segment
-    vals.append( sum ( [ a-min(seq) for a in seq ] ) )
-    # mimimum value of the last segment
-    vals.append( sum ( [ max(seq)-a for a in seq ] ) )
-    for i in range(1, n):
-        k = i - (n-i)
-        b = 0
-        for a in seq:
-            if a > seq[i]:
-                b += a
-            else:
-                b -= a
-        if k > 0:
-            vals.append( k * seq[i] + b )
-        else:
-            vals.append( k * seq[i+1] + b )
-
-    return vals.index( min(vals) )
-    
-
 
 if __name__ == '__main__':
 
-    cX, cY, cF, cYp = generateInput()
-
-
-    error1 = []
-    error2 = []
-    for leaveOut in range(1, 78):
-        X, Y, F, Yp = leaveOneOut_Input( leaveOut )
-        alpha, w = CRFv1(X, Y, F, Yp)
-
-        res = inference_Yi( alpha, w, cX, cY, cF, leaveOut ) 
-        error1.append( abs(res[0] - cY[leaveOut-1][0]) )        
-        error2.append( abs(res[1] - cY[leaveOut-1][0]) )        
-
-    mae1 = np.mean(error1)
-    var1 = np.sqrt( np.var(error1) )
-    mre1 = mae1 / Y.mean()
-
-    mae2 = np.mean(error2)
-    var2 = np.sqrt( np.var(error2) )
-    mre2 = mae2 / Y.mean()
-
-    print 'Use 1-norm inference mae {0}, var {1}, mre {2}'.format( mae1, var1, mre1 )
-    print 'Use 2-norm inference mae {0}, var {1}, mre {2}'.format( mae2, var2, mre2 )
-
+    CRFv1_leaveOneOut_evaluation()
+#    Y, F = generateInput_v2()
 
