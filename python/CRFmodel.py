@@ -69,12 +69,12 @@ def leaveOneOut_Input( leaveOut ):
     Yp
 
     Those observations are trimed for the leave-one-out evaluation. Therefore, the leaveOut 
-    indicates the CA id to be left out, ranging from 0-76
+    indicates the CA id to be left out, ranging from 1-77
     """
     
     # get complete X (demographics), and leave one out
     des, X = generate_corina_features('ca')
-    X = np.delete(X, leaveOut, 0)   
+    X = np.delete(X, leaveOut-1, 0)   
     
     # get complete spatial lag, and leave-one-out
     F_dist = generate_geographical_SpatialLag_ca( leaveOut=leaveOut )
@@ -102,7 +102,7 @@ def leaveOneOut_Input( leaveOut ):
 
     # get complete Y (crime rate), and leave-one-out
     Y = retrieve_crime_count(year=2010, col=['total'], region='ca')
-    Y = np.delete(Y, leaveOut, 0)
+    Y = np.delete(Y, leaveOut-1, 0)
 
     
     n = Y.size
@@ -133,10 +133,10 @@ def CRFv1(X, Y, F, Yp):
     """
     
     alpha = OneNormErrorSolver(X, Y)
-    print alpha
+    # print alpha
 
     w = OneNormErrorSolver(F, Yp)
-    print w
+    # print w
 
     return alpha, w
 
@@ -186,7 +186,7 @@ def OneNormErrorSolver(X, Y):
         if sum(abs(z - np.dot(X, alpha) + Y)) <= 0.1:
             break
 
-    print 'Finished in {0} iterations.'.format( cnt )
+    # print 'Finished in {0} iterations.'.format( cnt )
     return alpha
 
 
@@ -210,7 +210,7 @@ def inference_Yi( alpha, w, X, Y, F, leaveOut ):
 
 
     minidx = multAbsTermSolver( seq )
-    return seq[minidx]
+    return seq[minidx], np.mean(seq)
 
     
 
@@ -254,11 +254,25 @@ if __name__ == '__main__':
     cX, cY, cF, cYp = generateInput()
 
 
-    leaveOut = 1
-    X, Y, F, Yp = leaveOneOut_Input( leaveOut )
-    alpha, w = CRFv1(X, Y, F, Yp)
+    error1 = []
+    error2 = []
+    for leaveOut in range(1, 78):
+        X, Y, F, Yp = leaveOneOut_Input( leaveOut )
+        alpha, w = CRFv1(X, Y, F, Yp)
 
-    res = inference_Yi( alpha, w, cX, cY, cF, leaveOut ) 
-    print res, cY[leaveOut][0]
+        res = inference_Yi( alpha, w, cX, cY, cF, leaveOut ) 
+        error1.append( abs(res[0] - cY[leaveOut-1][0]) )        
+        error2.append( abs(res[1] - cY[leaveOut-1][0]) )        
+
+    mae1 = np.mean(error1)
+    var1 = np.sqrt( np.var(error1) )
+    mre1 = mae1 / Y.mean()
+
+    mae2 = np.mean(error2)
+    var2 = np.sqrt( np.var(error2) )
+    mre2 = mae2 / Y.mean()
+
+    print 'Use 1-norm inference mae {0}, var {1}, mre {2}'.format( mae1, var1, mre1 )
+    print 'Use 2-norm inference mae {0}, var {1}, mre {2}'.format( mae2, var2, mre2 )
 
 

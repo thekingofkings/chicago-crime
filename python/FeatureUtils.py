@@ -97,6 +97,8 @@ def generate_geographical_SpatialLag_ca(knearest=True, leaveOut=-1):
     
     If knearest is true, then select the 6-nearest neighboring CAs.
     Else, return the distance to all other CAs.
+
+    leaveOut will select the CA and remove it. take value from 1 to 77
     """
     
     
