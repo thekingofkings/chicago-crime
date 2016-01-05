@@ -25,7 +25,7 @@ Created on Tue Dec 29 16:05:19 2015
 
 from FeatureUtils import *
 import numpy as np
-
+from sklearn.preprocessing import scale
 
 
 
@@ -41,8 +41,14 @@ def generateInput_v1(fout=False):
     Generate complete observation matrix
     """
     des, X = generate_corina_features('ca')
+    
     F_dist = generate_geographical_SpatialLag_ca()
     F_flow = generate_transition_SocialLag(year=2010, lehd_type=0, region='ca')
+    
+    
+#    X = scale(X)
+#    F_dist = scale( F_dist )
+#    F_flow = scale( F_flow )
 
     Y = retrieve_crime_count(year=2010, col=['total'], region='ca')
 
@@ -83,13 +89,18 @@ def leaveOneOut_Input_v1( leaveOut ):
     
     # get complete X (demographics), and leave one out
     des, X = generate_corina_features('ca')
-    X = np.delete(X, leaveOut-1, 0)   
+    X = np.delete(X, leaveOut-1, 0)
     
     # get complete spatial lag, and leave-one-out
     F_dist = generate_geographical_SpatialLag_ca( leaveOut=leaveOut )
 
     # get complete social lag, and leave one out
     F_flow = generate_transition_SocialLag(year=2010, lehd_type=0, region='ca', leaveOut=leaveOut) 
+    
+    
+#    X = scale(X)
+#    F_dist = scale(F_dist)
+#    F_flow = scale(F_flow)
 
     # get complete Y (crime rate), and leave-one-out
     Y = retrieve_crime_count(year=2010, col=['total'], region='ca')
@@ -151,9 +162,8 @@ def inference_Yi_crfv1( alpha, w, X, Y, F, leaveOut ):
         if i != j:
             seq.append( (Y[j] + np.dot( np.transpose(w), F[i] ))[0] )
 
-
-    minidx = multAbsTermSolver( seq )
-    return seq[minidx], np.mean(seq)
+    minv = multAbsTermSolver( seq )
+    return minv, np.mean(seq)
 
     
 
@@ -206,8 +216,11 @@ def generateInput_v2(fout=False):
     Generate complete observation matrix
     """
     des, X = generate_corina_features('ca')
+    X = scale(X)
     F_dist = generate_geographical_SpatialLag_ca()
+    F_dist = scale(F_dist)
     F_flow = generate_transition_SocialLag(year=2010, lehd_type=0, region='ca')
+    F_flow = scale(F_flow)
 
     Y = retrieve_crime_count(year=2010, col=['total'], region='ca')
 
@@ -238,9 +251,12 @@ def leaveOneOut_Input_v2( leaveOut ):
     """
     des, X = generate_corina_features('ca')
     X = np.delete(X, leaveOut-1, 0)
+    X = scale(X)
     
     F_dist = generate_geographical_SpatialLag_ca( leaveOut=leaveOut )
+    F_dist = scale(F_dist)
     F_flow = generate_transition_SocialLag(year=2010, lehd_type=0, region='ca', leaveOut=leaveOut)
+    F_flow = scale(F_flow)
     
     Y = retrieve_crime_count(year=2010, col=['total'], region='ca')
     Y = np.delete(Y, leaveOut-1, 0)
@@ -297,8 +313,8 @@ def inference_Yi_crfv2( w, F, Y, leaveOut ):
         print s
     
     
-    minidx = multAbsTermSolver( seq )
-    return seq[minidx]
+    minv = multAbsTermSolver( seq )
+    return minv
     
     
     
@@ -343,30 +359,44 @@ def multAbsTermSolver( seq ):
         min_y \sum_i^n |y - a_i|,
     where seq = {a_1, a_2, ..., a_n}
     """
+    
+    demo = seq[0]
     seq.sort()
+    
     import sys
     minval = sys.maxint
 
     n = len(seq)
+    rho = np.ones((n,)) 
+    
+    # add weight to some terms    
+    demoidx = seq.index(demo)
+    rho = rho * 7.0 / (n-1)
+    rho[demoidx] = 1
+    
     vals = []
     # minimum value of the first segment
-    vals.append( sum ( [ a-min(seq) for a in seq ] ) )
-    # mimimum value of the last segment
-    vals.append( sum ( [ max(seq)-a for a in seq ] ) )
-    for i in range(1, n):
-        k = i - (n-i)
+    vals.append( sum ( [ rho[i] * (a - min(seq)) for i, a in enumerate(seq) ] ) )
+    for i in range(1, n-1):
+        # piece-wise line kx+b
+        k = 0
         b = 0
-        for a in seq:
+        for j, a in enumerate(seq):
             if a > seq[i]:
-                b += a
+                b += a * rho[j]
+                k -= rho[j]
             else:
-                b -= a
+                b -= a * rho[j]
+                k += rho[j]
         if k > 0:
             vals.append( k * seq[i] + b )
         else:
             vals.append( k * seq[i+1] + b )
+    
+    # mimimum value of the last segment
+    vals.append( sum ( [ rho[i] * (max(seq) - a) for i, a in enumerate(seq) ] ) )
 
-    return vals.index( min(vals) )
+    return seq[vals.index( min(vals) )]
 
 
 
@@ -414,10 +444,10 @@ def OneNormErrorSolver(X, Y):
         obj = sum(abs(np.dot(X, alpha) - Y))
 
         cnt += 1
-        if sum(abs(z - np.dot(X, alpha) + Y)) <= 0.01 and abs(obj_prev - obj) / obj < 0.001:
+        if sum(abs(z - np.dot(X, alpha) + Y)) <= 0.01 and abs(obj_prev - obj) / obj_prev < 0.001:
             break
 
-    # print 'Finished in {0} iterations.'.format( cnt )
+#    print 'Finished in {0} iterations.'.format( cnt )
     return alpha
 
 
@@ -427,6 +457,6 @@ def OneNormErrorSolver(X, Y):
 
 if __name__ == '__main__':
 
-#    CRFv1_leaveOneOut_evaluation()
-    CRFv2_leaveOneOut_evaluation()
+    CRFv1_leaveOneOut_evaluation()
+#    CRFv2_leaveOneOut_evaluation()
 

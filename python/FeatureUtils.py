@@ -86,7 +86,7 @@ def generate_geographical_SpatialLag():
     for i, src in enumerate(centers):
         for j, dst in enumerate(centers):
             if src != dst:
-                W[i][j] = src.distance(dst)
+                W[i][j] = 1 / src.distance(dst)
     return W, [int(k) for k in ordkey]
         
         
@@ -120,7 +120,7 @@ def generate_geographical_SpatialLag_ca(knearest=True, leaveOut=-1):
         if knearest == True:
             threshold = heapq.nlargest(6, W[i,:])[-1]
             for j in range(len(W[i,:])):
-                W[i][j] = 0 if W[i][j] < threshold else W[i][j]
+                W[i][j] = 0 if W[i][j] < threshold else 1 / W[i][j]
     return W
     
         
