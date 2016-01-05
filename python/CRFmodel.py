@@ -175,6 +175,7 @@ def CRFv1_leaveOneOut_evaluation():
         res = inference_Yi_crfv1( alpha, w, cX, cY, cF, leaveOut ) 
         error1.append( abs(res[0] - cY[leaveOut-1][0]) )        
         error2.append( abs(res[1] - cY[leaveOut-1][0]) )        
+        print res[0], cY[leaveOut-1][0]
 
     mae1 = np.mean(error1)
     var1 = np.sqrt( np.var(error1) )
@@ -226,6 +227,106 @@ def generateInput_v2(fout=False):
 
 
 
+
+def leaveOneOut_Input_v2( leaveOut ):
+    """
+    Generate observation matrix and vectors
+    Y, F
+
+    Those observations are trimed for the leave-one-out evaluation. Therefore, the leaveOut 
+    indicates the CA id to be left out, ranging from 1-77
+    """
+    des, X = generate_corina_features('ca')
+    X = np.delete(X, leaveOut-1, 0)
+    
+    F_dist = generate_geographical_SpatialLag_ca( leaveOut=leaveOut )
+    F_flow = generate_transition_SocialLag(year=2010, lehd_type=0, region='ca', leaveOut=leaveOut)
+    
+    Y = retrieve_crime_count(year=2010, col=['total'], region='ca')
+    Y = np.delete(Y, leaveOut-1, 0)
+    
+    F = []
+    n = Y.size
+    Yd = []
+    for i in range(n):
+        for j in range(n):
+            if i != j:
+                fij = np.concatenate( (X[i], np.array( [Y[i,0], F_dist[i,j], F_flow[i,j]] )), 1)
+                F.append(fij)
+                Yd.append(Y[i])
+    F = np.array(F)
+    Yd = np.array(Yd)
+    Yd.resize( (Yd.size, 1) )
+    
+    
+    return Yd, F
+
+
+
+
+
+def CRFv2(Yd, F):
+    """
+    Version 2 of the CRF-based crime predict model
+        
+        min_{w} || F w - Yd ||_1
+    """
+
+    w = OneNormErrorSolver(F, Yd)
+    # print w
+    
+    return w
+    
+    
+    
+def inference_Yi_crfv2( w, F, Y, leaveOut ):
+    """
+    Make the inference on y_i
+        
+        P(y_i|F_i, Y, F, w)
+    """
+    
+    n = Y.size
+    startidx = (leaveOut-1) * (n-1)
+    seq = []
+    for i in range(n-1):
+        for j in range(w.size):
+            print (w[j] * F[startidx+i][j])[0], 
+        s = np.dot(np.transpose(w), F[startidx + i])[0]
+        seq.append( s )
+        print s
+    
+    
+    minidx = multAbsTermSolver( seq )
+    return seq[minidx]
+    
+    
+    
+    
+    
+def CRFv2_leaveOneOut_evaluation():
+    """
+    Evaluate the CRF v2
+    """
+    print 'CRF v2 -- potential function is defined on 2 clique only'
+    
+    Yc, Fc = generateInput_v2()
+    
+    error = []
+    for leaveOut in range(1, 78):
+        Yd, F = leaveOneOut_Input_v2(leaveOut)
+        w = CRFv2(Yd, F)
+        print w
+        
+        res = inference_Yi_crfv2(w, Fc, Yc, 1)
+        print res, Yc[leaveOut-1, 0]
+    
+    
+
+
+
+
+    
 """ ==========================================================================
 Helper function
 
@@ -288,6 +389,7 @@ def OneNormErrorSolver(X, Y):
 
     cnt = 0
     while True:
+        obj_prev = sum(abs(np.dot(X, alpha) - Y))
         # update alpha
         alpha = np.dot (s, (z + Y + theta))
 
@@ -308,9 +410,11 @@ def OneNormErrorSolver(X, Y):
 
         # update theta
         theta += z - np.dot(X, alpha) + Y
+        
+        obj = sum(abs(np.dot(X, alpha) - Y))
 
         cnt += 1
-        if sum(abs(z - np.dot(X, alpha) + Y)) <= 0.1:
+        if sum(abs(z - np.dot(X, alpha) + Y)) <= 0.01 and abs(obj_prev - obj) / obj < 0.001:
             break
 
     # print 'Finished in {0} iterations.'.format( cnt )
@@ -323,6 +427,6 @@ def OneNormErrorSolver(X, Y):
 
 if __name__ == '__main__':
 
-    CRFv1_leaveOneOut_evaluation()
-#    Y, F = generateInput_v2()
+#    CRFv1_leaveOneOut_evaluation()
+    CRFv2_leaveOneOut_evaluation()
 
