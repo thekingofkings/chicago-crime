@@ -371,7 +371,7 @@ def multAbsTermSolver( seq ):
     
     # add weight to some terms    
     demoidx = seq.index(demo)
-    rho = rho * 7.0 / (n-1)
+    rho = rho * 1.0 / (n-1)
     rho[demoidx] = 1
     
     vals = []
