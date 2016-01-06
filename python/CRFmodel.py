@@ -193,7 +193,7 @@ def CRFv1_leaveOneOut_evaluation():
 
     mae2 = np.mean(error2)
     var2 = np.sqrt( np.var(error2) )
-    mre2 = mae2 / Y.mean()
+    mre2 = mae2 / cY.mean()
 
     print 'Use 1-norm inference mae {0}, var {1}, mre {2}'.format( mae1, var1, mre1 )
     print 'Use 2-norm inference mae {0}, var {1}, mre {2}'.format( mae2, var2, mre2 )
@@ -216,11 +216,8 @@ def generateInput_v2(fout=False):
     Generate complete observation matrix
     """
     des, X = generate_corina_features('ca')
-    X = scale(X)
     F_dist = generate_geographical_SpatialLag_ca()
-    F_dist = scale(F_dist)
     F_flow = generate_transition_SocialLag(year=2010, lehd_type=0, region='ca')
-    F_flow = scale(F_flow)
 
     Y = retrieve_crime_count(year=2010, col=['total'], region='ca')
 
@@ -232,6 +229,7 @@ def generateInput_v2(fout=False):
                 fij = np.concatenate( (X[i], np.array( [Y[i][0], F_dist[i,j], F_flow[i,j]]) ), 1)
                 F.append(fij)
     F = np.array(F)
+    F = scale(F)
 
     if fout:
         np.savetxt('../matlab/F.csv', F, delimiter=',')
@@ -251,12 +249,9 @@ def leaveOneOut_Input_v2( leaveOut ):
     """
     des, X = generate_corina_features('ca')
     X = np.delete(X, leaveOut-1, 0)
-    X = scale(X)
     
     F_dist = generate_geographical_SpatialLag_ca( leaveOut=leaveOut )
-    F_dist = scale(F_dist)
     F_flow = generate_transition_SocialLag(year=2010, lehd_type=0, region='ca', leaveOut=leaveOut)
-    F_flow = scale(F_flow)
     
     Y = retrieve_crime_count(year=2010, col=['total'], region='ca')
     Y = np.delete(Y, leaveOut-1, 0)
@@ -271,6 +266,7 @@ def leaveOneOut_Input_v2( leaveOut ):
                 F.append(fij)
                 Yd.append(Y[i])
     F = np.array(F)
+    F = scale(F)
     Yd = np.array(Yd)
     Yd.resize( (Yd.size, 1) )
     
@@ -305,12 +301,13 @@ def inference_Yi_crfv2( w, F, Y, leaveOut ):
     n = Y.size
     startidx = (leaveOut-1) * (n-1)
     seq = []
+
     for i in range(n-1):
-        for j in range(w.size):
-            print (w[j] * F[startidx+i][j])[0], 
         s = np.dot(np.transpose(w), F[startidx + i])[0]
         seq.append( s )
-        print s
+#        for j in range(w.size):
+#            print (w[j] * F[startidx+i][j])[0],
+#        print s
     
     
     minv = multAbsTermSolver( seq )
@@ -332,11 +329,19 @@ def CRFv2_leaveOneOut_evaluation():
     for leaveOut in range(1, 78):
         Yd, F = leaveOneOut_Input_v2(leaveOut)
         w = CRFv2(Yd, F)
-        print w
+#        print w
         
         res = inference_Yi_crfv2(w, Fc, Yc, 1)
         print res, Yc[leaveOut-1, 0]
-    
+        
+        error.append( abs(res - Yc[leaveOut-1][0]) )
+
+    mae = np.mean(error)
+    var = np.sqrt( np.var(error) )
+    mre = mae / Yc.mean()
+
+    print 'Use 1-norm inference mae {0}, var {1}, mre {2}'.format( mae, var, mre )
+
     
 
 
@@ -370,9 +375,9 @@ def multAbsTermSolver( seq ):
     rho = np.ones((n,)) 
     
     # add weight to some terms    
-    demoidx = seq.index(demo)
-    rho = rho * 1.0 / (n-1)
-    rho[demoidx] = 1
+#    demoidx = seq.index(demo)
+#    rho = rho * 1.0 / (n-1)
+#    rho[demoidx] = 1
     
     vals = []
     # minimum value of the first segment
@@ -444,7 +449,9 @@ def OneNormErrorSolver(X, Y):
         obj = sum(abs(np.dot(X, alpha) - Y))
 
         cnt += 1
-        if sum(abs(z - np.dot(X, alpha) + Y)) <= 0.01 and abs(obj_prev - obj) / obj_prev < 0.001:
+#        print alpha
+#        print 'ojb', obj_prev, obj, sum(abs(z - np.dot(X, alpha) + Y))
+        if sum(abs(z - np.dot(X, alpha) + Y)) <= 0.01 and abs(obj_prev - obj) / obj_prev < 0.0001:
             break
 
 #    print 'Finished in {0} iterations.'.format( cnt )
@@ -458,5 +465,5 @@ def OneNormErrorSolver(X, Y):
 if __name__ == '__main__':
 
     CRFv1_leaveOneOut_evaluation()
-#    CRFv2_leaveOneOut_evaluation()
+    CRFv2_leaveOneOut_evaluation()
 
