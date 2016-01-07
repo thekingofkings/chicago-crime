@@ -226,7 +226,7 @@ def generateInput_v2(fout=False):
     for i in range(n):
         for j in range(n):
             if i != j:
-                fij = np.concatenate( (X[i], np.array( [Y[i][0], F_dist[i,j], F_flow[i,j]]) ), 1)
+                fij = np.concatenate( (X[i], np.array( [Y[j][0], F_dist[i,j], F_flow[i,j]]) ), 1)
                 F.append(fij)
     F = np.array(F)
     F = scale(F)
@@ -262,7 +262,7 @@ def leaveOneOut_Input_v2( leaveOut ):
     for i in range(n):
         for j in range(n):
             if i != j:
-                fij = np.concatenate( (X[i], np.array( [Y[i,0], F_dist[i,j], F_flow[i,j]] )), 1)
+                fij = np.concatenate( (X[i], np.array( [Y[j,0], F_dist[i,j], F_flow[i,j]] )), 1)
                 F.append(fij)
                 Yd.append(Y[i])
     F = np.array(F)
@@ -343,6 +343,155 @@ def CRFv2_leaveOneOut_evaluation():
     print 'Use 1-norm inference mae {0}, var {1}, mre {2}'.format( mae, var, mre )
 
     
+
+
+
+
+
+""" ==========================================================================
+CRF model version 3
+    min_{alpha, w} \sum_i^n \sum_j^n 
+        | y_i - alpha * x_i - gamma * f_ij * y_j |
+========================================================================== """
+
+
+
+
+def generateInput_v3(fout=False):
+    """
+    Generate complete observation matrix
+    """
+    des, X = generate_corina_features('ca')
+    F_dist = generate_geographical_SpatialLag_ca()
+    F_flow = generate_transition_SocialLag(year=2010, lehd_type=0, region='ca')
+
+    Y = retrieve_crime_count(year=2010, col=['total'], region='ca')
+
+    F = []
+    n = Y.size
+    for i in range(n):
+        for j in range(n):
+            if i != j:
+                wij = np.array( [F_dist[i,j], F_flow[i,j]] )
+                fij = np.concatenate( (X[i], wij * Y[j][0]) , 1)
+                F.append(fij)
+    F = np.array(F)
+    F = scale(F)
+
+    if fout:
+        np.savetxt('../matlab/F.csv', F, delimiter=',')
+
+    return Y, F
+
+
+
+
+def leaveOneOut_Input_v3( leaveOut ):
+    """
+    Generate observation matrix and vectors
+    Y, F
+
+    Those observations are trimed for the leave-one-out evaluation. Therefore, the leaveOut 
+    indicates the CA id to be left out, ranging from 1-77
+    """
+    des, X = generate_corina_features('ca')
+    X = np.delete(X, leaveOut-1, 0)
+    
+    F_dist = generate_geographical_SpatialLag_ca( leaveOut=leaveOut )
+    F_flow = generate_transition_SocialLag(year=2010, lehd_type=0, region='ca', leaveOut=leaveOut)
+    
+    Y = retrieve_crime_count(year=2010, col=['total'], region='ca')
+    Y = np.delete(Y, leaveOut-1, 0)
+    
+    F = []
+    n = Y.size
+    Yd = []
+    for i in range(n):
+        for j in range(n):
+            if i != j:
+                wij = np.array([F_dist[i,j], F_flow[i,j]])
+                fij = np.concatenate( (X[i], wij * Y[j][0]), 1)
+                F.append(fij)
+                Yd.append(Y[i])
+    F = np.array(F)
+    F = scale(F)
+    Yd = np.array(Yd)
+    Yd.resize( (Yd.size, 1) )
+    
+    
+    return Yd, F
+
+
+
+
+
+def CRFv3(Yd, F):
+    """
+    Version 3 of the CRF-based crime predict model
+        
+        min_{w} || F w - Y ||_1
+    """
+
+    w = OneNormErrorSolver(F, Yd)
+    # print w
+    
+    return w
+    
+    
+    
+def inference_Yi_crfv3( w, F, Y, leaveOut ):
+    """
+    Make the inference on y_i
+        
+        P(y_i|F_i, Y, F, w)
+    """
+    
+    n = Y.size
+    startidx = (leaveOut-1) * (n-1)
+    seq = []
+
+    for i in range(n-1):
+        s = np.dot(np.transpose(w), F[startidx + i])[0]
+        seq.append( s )
+#        for j in range(w.size):
+#            print (w[j] * F[startidx+i][j])[0],
+#        print s
+    
+    
+    minv = multAbsTermSolver( seq )
+    return minv
+    
+    
+    
+    
+    
+def CRFv3_leaveOneOut_evaluation():
+    """
+    Evaluate the CRF v3
+    """
+    print 'CRF v3 -- potential function is defined on 2 clique only'
+    
+    Yc, Fc = generateInput_v3()
+    
+    error = []
+    for leaveOut in range(1, 78):
+        Yd, F = leaveOneOut_Input_v3(leaveOut)
+        w = CRFv2(Yd, F)
+#        print w
+        
+        res = inference_Yi_crfv3(w, Fc, Yc, 1)
+        print res, Yc[leaveOut-1, 0]
+        
+        error.append( abs(res - Yc[leaveOut-1][0]) )
+
+    mae = np.mean(error)
+    var = np.sqrt( np.var(error) )
+    mre = mae / Yc.mean()
+
+    print 'Use 1-norm inference mae {0}, var {1}, mre {2}'.format( mae, var, mre )
+
+
+
 
 
 
@@ -464,6 +613,7 @@ def OneNormErrorSolver(X, Y):
 
 if __name__ == '__main__':
 
-    CRFv1_leaveOneOut_evaluation()
-    CRFv2_leaveOneOut_evaluation()
+#    CRFv1_leaveOneOut_evaluation()
+#    CRFv2_leaveOneOut_evaluation()
+    CRFv3_leaveOneOut_evaluation()
 
