@@ -580,13 +580,22 @@ def permutationTest_onChicagoCrimeData(year=2010, features= ["all"], logFeatures
     
     f = pd.DataFrame(f, columns = columnName)
     flr = pd.DataFrame(flr, columns = columnName)
-        
+    
+    
+    f.to_csv(here + "/f.csv", sep=",", index=False)
+    np.savetxt(here + "/Y.csv", Y, delimiter=",")
+    subprocess.call( ['Rscript', 'nbr_permutation_test.R'], cwd=here )
+    
+    """
+    The following permutation design is obsolete, due to the inefficiency.
+    
+    The permuation now is finished in the Rscript. In this way, we save time
+    for repeating I/O on the similar Y.csv and f.csv
+    
+    
+    =================  old code starts here =============
     
     # permute each column
-    for idx, columnKey in enumerate(columnName):
-        if columnKey == 'intercept':
-            continue
-        print columnKey
             
         # initialization
         LR_coeffs = []
@@ -634,6 +643,8 @@ def permutationTest_onChicagoCrimeData(year=2010, features= ["all"], logFeatures
         lr_p = lr_cnt / len(column)       
                 
         print targ, nb_p, lr_trg, lr_p
+
+        
         
         plt.figure(figsize=(8,3))
         # NB
@@ -647,8 +658,9 @@ def permutationTest_onChicagoCrimeData(year=2010, features= ["all"], logFeatures
         plt.axvline(x = lr_trg, linewidth=4, color='r')
         plt.title("LR {0} p {1:.4f}".format(columnName[idx], lr_p))
         plt.savefig(here + '/PT-{0}.png'.format(columnKey), format='png')
-    
-    
+        
+    =================  old code finishes here =============  
+    """ 
     
     
     
@@ -728,6 +740,7 @@ def generate_flowType_crimeCount_matrix():
     
     
 if __name__ == '__main__':
+    import sys
     t = sys.argv[1]
     print sys.argv
 #   crimeRegression_eachCategory()
