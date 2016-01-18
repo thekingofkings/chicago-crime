@@ -490,6 +490,8 @@ def permutationTest_onChicagoCrimeData(year=2010, features= ["all"], logFeatures
     permute the feature of interest
     """
     W = generate_transition_SocialLag(year, lehd_type=flowType)
+    np.savetxt(here + "/W.csv", W, delimiter="," )
+
     Yhat = retrieve_crime_count(year-1, crimeType)
     Y = retrieve_crime_count(year, crimeType)
     C = generate_corina_features()
@@ -501,6 +503,7 @@ def permutationTest_onChicagoCrimeData(year=2010, features= ["all"], logFeatures
 #    Yhat = np.divide(Yhat, popul) * 10000
     
     W2 = generate_geographical_SpatialLag_ca()
+    np.savetxt(here + "/W2.csv", W2, delimiter=",")
     
     i = retrieve_income_features()
     e = retrieve_education_features()
@@ -581,10 +584,10 @@ def permutationTest_onChicagoCrimeData(year=2010, features= ["all"], logFeatures
     f = pd.DataFrame(f, columns = columnName)
     flr = pd.DataFrame(flr, columns = columnName)
     
-    
+    flr.to_csv(here + "/flr.csv", sep=",", index=False)
     f.to_csv(here + "/f.csv", sep=",", index=False)
     np.savetxt(here + "/Y.csv", Y, delimiter=",")
-    subprocess.call( ['Rscript', 'nbr_permutation_test.R'], cwd=here )
+    subprocess.call( ['Rscript', 'permutation_test.R'], cwd=here )
     
     """
     The following permutation design is obsolete, due to the inefficiency.
