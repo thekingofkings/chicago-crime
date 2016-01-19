@@ -28,9 +28,7 @@ Regression models
 
 
 import numpy as np
-from scipy import stats
 from scipy.stats import nbinom
-from scipy.special import gammaln
 from statsmodels.base.model import GenericLikelihoodModel
 
 
@@ -40,7 +38,6 @@ build model and compare
 """
 
 import pandas as pd
-from sklearn.preprocessing import scale
 import statsmodels.api as sm
 from sklearn import cross_validation
 
@@ -49,8 +46,6 @@ import matplotlib.pyplot as plt
 import subprocess
 import os.path
 import os
-import random
-from itertools import combinations
 from sklearn.utils import shuffle
 
 here = os.path.dirname(os.path.abspath(__file__))
@@ -141,7 +136,7 @@ def unitTest_withOnlineSource():
     medpar = pd.read_csv(url)
     y, X = patsy.dmatrices('los~type2+type3+hmo+white', medpar)
     res = negativeBinomialRegression(X, y)
-    return y, X, medpar
+    return y, X, medpar, res
     
     
 def unitTest_onChicagoCrimeData():
@@ -321,7 +316,7 @@ def leaveOneOut_evaluation_onChicagoCrimeData(year=2010, features= ["all"],
     else:
         print nbres
         print mae2, var2, mre2
-        return np.array([[float(e) for e in nbres.split(" ")], [mae2, var2, mre2]])
+        return np.array([[float(ele) for ele in nbres.split(" ")], [mae2, var2, mre2]])
     
 
 
@@ -409,7 +404,6 @@ def tenFoldCV_onChicagoCrimeData(features=['corina'], CVmethod='10Fold', P = 10,
     
     if CVmethod == 'leaveOneOut':
         y_gnd = []
-        y_nb = []
         y_lr = []
 
 
@@ -678,9 +672,9 @@ def crimeRegression_eachCategory(year=2010):
     'OTHER OFFENSE', 'PROSTITUTION', 'PUBLIC INDECENCY', 'PUBLIC PEACE VIOLATION',
     'ROBBERY', 'SEX OFFENSE', 'STALKING', 'THEFT', 'WEAPONS VIOLATION', 'total']
     W = generate_transition_SocialLag(year)
-    i = retrieve_income_features()
-    e = retrieve_education_features()
-    r = retrieve_race_features()
+#    i = retrieve_income_features()
+#    e = retrieve_education_features()
+#    r = retrieve_race_features()
     predCrimes = {}
     unpredCrimes = {}
     for idx, val in enumerate(header):

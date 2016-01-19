@@ -14,7 +14,7 @@ various functions for generating feature matrices/vectors
 from Crime import Tract
 import numpy as np
 import csv
-from openpyxl import *
+from openpyxl import load_workbook
 import heapq
 
 
@@ -260,7 +260,6 @@ def retrieve_income_features():
     stats = np.zeros((77,2))    # mean, variance
     total = np.zeros( (77,1) )
     for idx, row in enumerate(ws.iter_rows('k4:aa80')):
-        bin_vals = []
         for j, c in enumerate(row):
             if j == 0:
                 total[idx] =  float(c.value)
@@ -329,8 +328,8 @@ def retrieve_race_features():
         
         stats[i][0] = np.dot(R[i][:], bins) / total
         stats[i][1] = np.sqrt( np.dot(R[i][:], (bins - stats[i][0])**2) / total)
-#    return stats_header, stats
-    return header, R
+    return stats_header, stats
+#    return header, R
     
     
     
