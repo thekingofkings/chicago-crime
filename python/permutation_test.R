@@ -59,7 +59,7 @@ for (i in 2:nf ) {
 	# permutate focal column
 	coeff <- matrix(0, nrow=iters, ncol=10, dimnames=list(NULL, names(coeff0)) )
 	for (j in 1:iters) {
-		dat[,i] = sample( dat[,i] )
+		datlr[,i] = sample( datlr[,i] )
 		lrm <- sacsarlm(V1 ~ total.population + population.density + poverty.index + disadvantage.index
 						+ residential.stability + ethnic.diversity + pct.black + pct.hispanic+ temporal.lag, 
 						data = datlr, listw = w)
