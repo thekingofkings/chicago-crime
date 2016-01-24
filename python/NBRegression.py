@@ -198,6 +198,12 @@ def leaveOneOut_evaluation_onChicagoCrimeData(year=2010, features= ["all"],
         C = generate_corina_features()
         popul = C[1][:,0].reshape(C[1].shape[0],1)
         
+        # use poverty demographics to weight social lag
+        poverty = C[1][:,2]        
+        for i in range(W.shape[0]):
+            for j in range (W.shape[1]):
+                W[i][j] *= np.exp( - np.abs(poverty[i] - poverty[j]))
+        
         # crime count is normalized by the total population as crime rate
         # here we use the crime count per 10 thousand residents
         Y = np.divide(Y, popul) * 10000
@@ -746,7 +752,7 @@ if __name__ == '__main__':
     if t == 'leaveOneOut':
         r = leaveOneOut_evaluation_onChicagoCrimeData(2010, 
                  ['corina', 'spatiallag', 'temporallag', 'sociallag'], 
-                                                  verboseoutput=False, region='tract')
+                                                  verboseoutput=False, region='ca')
     elif t == 'permutation':
         permutationTest_onChicagoCrimeData(2010, ['corina', 'sociallag', 'spatiallag', 'temporallag'], iters=3)
     
