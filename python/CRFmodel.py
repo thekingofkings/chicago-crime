@@ -373,7 +373,7 @@ def generateInput_v3(fout=False):
         for j in range(n):
             if i != j:
                 wij = np.array( [F_dist[i,j], F_flow[i,j]] )
-                fij = np.concatenate( (X[i], wij * Y[j][0]) , 1)
+                fij = np.concatenate( (X[i], wij * Y[j][0]) , 0)
                 F.append(fij)
     F = np.array(F)
     F = scale(F)
@@ -410,7 +410,7 @@ def leaveOneOut_Input_v3( leaveOut ):
         for j in range(n):
             if i != j:
                 wij = np.array([F_dist[i,j], F_flow[i,j]])
-                fij = np.concatenate( (X[i], wij * Y[j][0]), 1)
+                fij = np.concatenate( (X[i], wij * Y[j][0]), 0)
                 F.append(fij)
                 Yd.append(Y[i])
     F = np.array(F)
@@ -514,11 +514,11 @@ def multAbsTermSolver( seq ):
     where seq = {a_1, a_2, ..., a_n}
     """
     
-    demo = seq[0]
+#    demo = seq[0]
     seq.sort()
     
-    import sys
-    minval = sys.maxint
+#    import sys
+#    minval = sys.maxint
 
     n = len(seq)
     rho = np.ones((n,)) 
@@ -609,6 +609,66 @@ def OneNormErrorSolver(X, Y):
 
 
 
+""" ==========================================================================
+CRF model version 4
+    min_{w} sum_i sum_j (y_i - X alpha - w_f d(x_i, x_j) l_f  y_j - w_g l_g y_j  )^2
+========================================================================== """
+
+
+
+
+def actualFlowInteraction(x_i, x_j):
+    """
+    Use demographic features to infer the similarity  "alpha".
+    Give a weight based on the similarity  "exp(-alpha)"
+    
+    This weight is used on the social flow.
+    """
+    return np.exp( - np.abs(x_i - x_j) )    
+    
+    
+    
+    
+def generateInput_v4(fout=False):
+    """
+    Generate complete observation matrix
+    """
+    des, X = generate_corina_features('ca')
+    pvt = X[:,2]    # poverty index of each CA
+    F_dist = generate_geographical_SpatialLag_ca()
+    F_flow = generate_transition_SocialLag(year=2010, lehd_type=0, region='ca')
+
+    Y = retrieve_crime_count(year=2010, col=['total'], region='ca')
+
+    F = []
+    n = Y.size
+    for i in range(n):
+        for j in range(n):
+            if i != j:
+                wij = np.array( [F_dist[i,j], actualFlowInteraction(pvt[i], pvt[j]) * F_flow[i,j]] )
+                fij = np.concatenate( (X[i], wij * Y[j][0]) , 0)
+                F.append(fij)
+    F = np.array(F)
+    F = scale(F)
+
+    if fout:
+        np.savetxt('../matlab/F.csv', F, delimiter=',')
+
+    return Y, F
+
+
+def leaveOneOut_Input_v4( leaveOut ):
+    pass
+
+def CRFv4(Yd, F):
+    pass
+
+def inference_Yi_crfv4( w, F, Y, leaveOut ):
+    pass
+
+
+def CRFv4_leaveOneOut_evaluation():
+    pass
 
 
 if __name__ == '__main__':
