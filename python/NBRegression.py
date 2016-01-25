@@ -183,7 +183,8 @@ Evaluation and fitting real models on Chicago data.
 
 def leaveOneOut_evaluation_onChicagoCrimeData(year=2010, features= ["all"], 
                                               crime_t=['total'], flow_type=0, 
-                                              verboseoutput=False, region='ca'):
+                                              verboseoutput=False, region='ca',
+                                              weightSocialFlow=True):
     """
     Generate the social lag from previous year
     use income/race/education of current year
@@ -199,10 +200,11 @@ def leaveOneOut_evaluation_onChicagoCrimeData(year=2010, features= ["all"],
         popul = C[1][:,0].reshape(C[1].shape[0],1)
         
         # use poverty demographics to weight social lag
-        poverty = C[1][:,2]        
-        for i in range(W.shape[0]):
-            for j in range (W.shape[1]):
-                W[i][j] *= np.exp( - np.abs(poverty[i] - poverty[j]))
+        if weightSocialFlow:
+            poverty = C[1][:,2]        
+            for i in range(W.shape[0]):
+                for j in range (W.shape[1]):
+                    W[i][j] *= np.exp( - np.abs(poverty[i] - poverty[j]))
         
         # crime count is normalized by the total population as crime rate
         # here we use the crime count per 10 thousand residents
@@ -272,8 +274,10 @@ def leaveOneOut_evaluation_onChicagoCrimeData(year=2010, features= ["all"],
     if 'spatiallag' in features:
         f = np.concatenate( (f, f2), axis=1)
         columnName += ['spatial lag']
+    
+    
+    lrf = np.copy(f)
     if 'temporallag' in features:
-        lrf = np.copy(f)
         f = np.concatenate( (f, np.log(Yhat)), axis=1)
         lrf = np.concatenate( (f, Yhat), axis=1)
         columnName += ['temporal lag']
@@ -751,7 +755,7 @@ if __name__ == '__main__':
 #   print f.summary()
     if t == 'leaveOneOut':
         r = leaveOneOut_evaluation_onChicagoCrimeData(2010, 
-                 ['corina', 'spatiallag', 'temporallag', 'sociallag'], 
+                 ['corina', 'spatiallag', 'sociallag'],   # temporallag
                                                   verboseoutput=False, region='ca')
     elif t == 'permutation':
         permutationTest_onChicagoCrimeData(2010, ['corina', 'sociallag', 'spatiallag', 'temporallag'], iters=3)

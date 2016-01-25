@@ -226,7 +226,7 @@ def generateInput_v2(fout=False):
     for i in range(n):
         for j in range(n):
             if i != j:
-                fij = np.concatenate( (X[i], np.array( [Y[j][0], F_dist[i,j], F_flow[i,j]]) ), 1)
+                fij = np.concatenate( (X[i], np.array( [Y[j][0], F_dist[i,j], F_flow[i,j]]) ), 0)
                 F.append(fij)
     F = np.array(F)
     F = scale(F)
@@ -262,7 +262,7 @@ def leaveOneOut_Input_v2( leaveOut ):
     for i in range(n):
         for j in range(n):
             if i != j:
-                fij = np.concatenate( (X[i], np.array( [Y[j,0], F_dist[i,j], F_flow[i,j]] )), 1)
+                fij = np.concatenate( (X[i], np.array( [Y[j,0], F_dist[i,j], F_flow[i,j]] )), 0)
                 F.append(fij)
                 Yd.append(Y[i])
     F = np.array(F)
@@ -331,7 +331,7 @@ def CRFv2_leaveOneOut_evaluation():
         w = CRFv2(Yd, F)
 #        print w
         
-        res = inference_Yi_crfv2(w, Fc, Yc, 1)
+        res = inference_Yi_crfv2(w, Fc, Yc, leaveOut)
         print res, Yc[leaveOut-1, 0]
         
         error.append( abs(res - Yc[leaveOut-1][0]) )
@@ -376,7 +376,6 @@ def generateInput_v3(fout=False):
                 fij = np.concatenate( (X[i], wij * Y[j][0]) , 0)
                 F.append(fij)
     F = np.array(F)
-    F = scale(F)
 
     if fout:
         np.savetxt('../matlab/F.csv', F, delimiter=',')
@@ -414,7 +413,6 @@ def leaveOneOut_Input_v3( leaveOut ):
                 F.append(fij)
                 Yd.append(Y[i])
     F = np.array(F)
-    F = scale(F)
     Yd = np.array(Yd)
     Yd.resize( (Yd.size, 1) )
     
@@ -476,10 +474,10 @@ def CRFv3_leaveOneOut_evaluation():
     error = []
     for leaveOut in range(1, 78):
         Yd, F = leaveOneOut_Input_v3(leaveOut)
-        w = CRFv2(Yd, F)
+        w = CRFv3(Yd, F)
 #        print w
         
-        res = inference_Yi_crfv3(w, Fc, Yc, 1)
+        res = inference_Yi_crfv3(w, Fc, Yc, leaveOut)
         print res, Yc[leaveOut-1, 0]
         
         error.append( abs(res - Yc[leaveOut-1][0]) )
@@ -624,7 +622,8 @@ def actualFlowInteraction(x_i, x_j):
     
     This weight is used on the social flow.
     """
-    return np.exp( - np.abs(x_i - x_j) )    
+    return np.exp( - np.abs(x_i - x_j) )
+#    return 1
     
     
     
@@ -635,10 +634,13 @@ def generateInput_v4(fout=False):
     """
     des, X = generate_corina_features('ca')
     pvt = X[:,2]    # poverty index of each CA
+    popul = X[:,0].reshape(X.shape[0],1)
+    
     F_dist = generate_geographical_SpatialLag_ca()
     F_flow = generate_transition_SocialLag(year=2010, lehd_type=0, region='ca')
 
     Y = retrieve_crime_count(year=2010, col=['total'], region='ca')
+    Y = np.divide(Y, popul) * 10000
 
     F = []
     n = Y.size
@@ -649,7 +651,7 @@ def generateInput_v4(fout=False):
                 fij = np.concatenate( (X[i], wij * Y[j][0]) , 0)
                 F.append(fij)
     F = np.array(F)
-    F = scale(F)
+    np.append(F, np.ones( (F.shape[0], 1) ), axis=1)
 
     if fout:
         np.savetxt('../matlab/F.csv', F, delimiter=',')
@@ -657,23 +659,121 @@ def generateInput_v4(fout=False):
     return Y, F
 
 
+
+
 def leaveOneOut_Input_v4( leaveOut ):
-    pass
+    """
+    Generate observation matrix and vectors
+    Y, F
+
+    Those observations are trimed for the leave-one-out evaluation. Therefore, the leaveOut 
+    indicates the CA id to be left out, ranging from 1-77
+    """
+    des, X = generate_corina_features('ca')
+    popul = X[:,0].reshape(X.shape[0],1)
+    X = np.delete(X, leaveOut-1, 0)
+    pvt = X[:,2]    # poverty index of each CA
+    
+    F_dist = generate_geographical_SpatialLag_ca( leaveOut=leaveOut )
+    F_flow = generate_transition_SocialLag(year=2010, lehd_type=0, region='ca', leaveOut=leaveOut)
+    
+    Y = retrieve_crime_count(year=2010, col=['total'], region='ca')
+    Y = np.divide(Y, popul) * 10000
+    Y = np.delete(Y, leaveOut-1, 0)
+    
+    F = []
+    n = Y.size
+    Yd = []
+    for i in range(n):
+        for j in range(n):
+            if i != j:
+                wij = np.array([F_dist[i,j], actualFlowInteraction(pvt[i], pvt[j]) * F_flow[i,j]])
+                fij = np.concatenate( (X[i], wij * Y[j][0]), 0)
+                F.append(fij)
+                Yd.append(Y[i])
+    F = np.array(F)
+    np.append(F, np.ones( (F.shape[0], 1) ), axis=1)
+    Yd = np.array(Yd)
+    Yd.resize( (Yd.size, 1) )
+    
+    
+    return Yd, F
+    
+    
+    
 
 def CRFv4(Yd, F):
-    pass
+    """
+    Version 4 of the CRF model, solve the following problem
+        argmin{w}  ||Yd - F w||_2^2
+    """
+    w, rsd, rank, s = np.linalg.lstsq(F, Yd)
+    
+    return w
+
+
 
 def inference_Yi_crfv4( w, F, Y, leaveOut ):
-    pass
+    """
+    Make the inference on y_i
+        
+        P(y_i|F_i, Y, F, w)
+        
+        y_i = \sum (yi - w f_ij) / (n-1)
+    """
+    n = Y.size
+    startidx = (leaveOut-1) * (n-1)
 
+    yi = 0
+    for j in range(n-1):
+        s = np.dot(np.transpose(w), F[startidx + j])[0]
+        yi += s
+        
+    return yi / (n-1)
+    
+    
+    
+    
 
 def CRFv4_leaveOneOut_evaluation():
-    pass
+    """
+    Evaluate the CRF v4
+    """
+    print 'CRF v4 -- potential function is defined on size-2 clique only'
+    
+    Yc, Fc = generateInput_v4()
+    
+    error = []
+    for leaveOut in range(1, 78):
+        Yd, F = leaveOneOut_Input_v4(leaveOut)
+        w = CRFv4(Yd, F)
+#        print w
+        
+        res = inference_Yi_crfv4(w, Fc, Yc, leaveOut)
+        print res, Yc[leaveOut-1, 0]
+        
+        error.append( abs(res - Yc[leaveOut-1][0]) )
+
+    mae = np.mean(error)
+    var = np.sqrt( np.var(error) )
+    mre = mae / Yc.mean()
+
+    print 'Use 2-norm inference mae \t s.d. \t mre\n {0}\t{1}\t{2}'.format( mae, var, mre )
+    
+    
+    
+    
+    
+    
+    
+    
+    
 
 
 if __name__ == '__main__':
 
 #    CRFv1_leaveOneOut_evaluation()
 #    CRFv2_leaveOneOut_evaluation()
-    CRFv3_leaveOneOut_evaluation()
+#    CRFv3_leaveOneOut_evaluation()
+    CRFv4_leaveOneOut_evaluation()
 
