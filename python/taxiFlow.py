@@ -1,5 +1,8 @@
 # -*- coding: utf-8 -*-
 """
+Generate the taxi flow in Chicago.
+
+
 Created on Mon Jan 25 16:19:18 2016
 
 @author: kok
@@ -14,6 +17,29 @@ import numpy as np
 import os.path
 
 here = os.path.dirname(os.path.abspath(__file__))
+
+
+
+
+
+def getTaxiFlow(leaveOut = -1):
+    """
+    Retrieve taxi flow from file
+    
+    the self-flow is set to zero.
+    
+    LeaveOut define the region to be left out for evaluation. Value 
+    ranges from 1 to 77
+    """
+    s = np.loadtxt("TF.csv", delimiter=",")
+    n = s.shape[0]
+    for i in range(n):
+        s[i,i] = 0
+    
+    if leaveOut > 0:
+        s = np.delete(s, leaveOut -1, 0)
+        s = np.delete(s, leaveOut -1, 1)
+    return s
 
 
 if __name__ == '__main__':

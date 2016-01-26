@@ -613,6 +613,8 @@ CRF model version 4
 ========================================================================== """
 
 
+from taxiFlow import getTaxiFlow
+from foursquarePOI import getFourSquareCount, getFourSquarePOIDistribution
 
 
 def actualFlowInteraction(x_i, x_j):
@@ -636,8 +638,15 @@ def generateInput_v4(fout=False):
     pvt = X[:,2]    # poverty index of each CA
     popul = X[:,0].reshape(X.shape[0],1)
     
+#    poi_cnt = getFourSquareCount()
+#    poi_cnt = np.divide(poi_cnt, popul) * 10000
+    
+    poi_dist = getFourSquarePOIDistribution()
+    poi_dist = np.divide(poi_dist, popul) * 10000
+    
     F_dist = generate_geographical_SpatialLag_ca()
     F_flow = generate_transition_SocialLag(year=2010, lehd_type=0, region='ca')
+    F_taxi = getTaxiFlow()
 
     Y = retrieve_crime_count(year=2010, col=['total'], region='ca')
     Y = np.divide(Y, popul) * 10000
@@ -647,8 +656,10 @@ def generateInput_v4(fout=False):
     for i in range(n):
         for j in range(n):
             if i != j:
-                wij = np.array( [F_dist[i,j], actualFlowInteraction(pvt[i], pvt[j]) * F_flow[i,j]] )
-                fij = np.concatenate( (X[i], wij * Y[j][0]) , 0)
+                wij = np.array( [F_dist[i,j], 
+                                actualFlowInteraction(pvt[i], pvt[j]) * F_flow[i,j],
+                                F_taxi[i,j] ] )
+                fij = np.concatenate( (X[i], poi_dist[i], wij * Y[j][0]) , 0)
                 F.append(fij)
     F = np.array(F)
     np.append(F, np.ones( (F.shape[0], 1) ), axis=1)
@@ -670,16 +681,24 @@ def leaveOneOut_Input_v4( leaveOut ):
     indicates the CA id to be left out, ranging from 1-77
     """
     des, X = generate_corina_features('ca')
-    popul = X[:,0].reshape(X.shape[0],1)
     X = np.delete(X, leaveOut-1, 0)
+    popul = X[:,0].reshape(X.shape[0],1)
     pvt = X[:,2]    # poverty index of each CA
+    
+#    poi_cnt = getFourSquareCount(leaveOut)
+#    poi_cnt = np.divide(poi_cnt, popul) * 10000
+    
+    poi_dist = getFourSquarePOIDistribution(leaveOut)
+    poi_dist = np.divide(poi_dist, popul) * 10000
     
     F_dist = generate_geographical_SpatialLag_ca( leaveOut=leaveOut )
     F_flow = generate_transition_SocialLag(year=2010, lehd_type=0, region='ca', leaveOut=leaveOut)
+    F_taxi = getTaxiFlow(leaveOut = leaveOut)
+    
     
     Y = retrieve_crime_count(year=2010, col=['total'], region='ca')
-    Y = np.divide(Y, popul) * 10000
     Y = np.delete(Y, leaveOut-1, 0)
+    Y = np.divide(Y, popul) * 10000
     
     F = []
     n = Y.size
@@ -687,8 +706,10 @@ def leaveOneOut_Input_v4( leaveOut ):
     for i in range(n):
         for j in range(n):
             if i != j:
-                wij = np.array([F_dist[i,j], actualFlowInteraction(pvt[i], pvt[j]) * F_flow[i,j]])
-                fij = np.concatenate( (X[i], wij * Y[j][0]), 0)
+                wij = np.array( [F_dist[i,j], 
+                                actualFlowInteraction(pvt[i], pvt[j]) * F_flow[i,j],
+                                F_taxi[i,j] ])
+                fij = np.concatenate( (X[i], poi_dist[i],  wij * Y[j][0]), 0)
                 F.append(fij)
                 Yd.append(Y[i])
     F = np.array(F)
@@ -758,7 +779,7 @@ def CRFv4_leaveOneOut_evaluation():
     var = np.sqrt( np.var(error) )
     mre = mae / Yc.mean()
 
-    print 'Use 2-norm inference mae \t s.d. \t mre\n {0}\t{1}\t{2}'.format( mae, var, mre )
+    print 'Use 2-norm inference mae \t s.d. \t mre\n{0}\t{1}\t{2}'.format( mae, var, mre )
     
     
     
