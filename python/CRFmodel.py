@@ -642,7 +642,7 @@ def generateInput_v4(fout=False):
 #    poi_cnt = np.divide(poi_cnt, popul) * 10000
     
     poi_dist = getFourSquarePOIDistribution()
-    poi_dist = np.divide(poi_dist, popul) * 10000
+#    poi_dist = np.divide(poi_dist, popul) * 10000
     
     F_dist = generate_geographical_SpatialLag_ca()
     F_flow = generate_transition_SocialLag(year=2010, lehd_type=0, region='ca')
@@ -659,7 +659,8 @@ def generateInput_v4(fout=False):
                 wij = np.array( [F_dist[i,j], 
                                 actualFlowInteraction(pvt[i], pvt[j]) * F_flow[i,j],
                                 F_taxi[i,j] ] )
-                fij = np.concatenate( (X[i], poi_dist[i], wij * Y[j][0]) , 0)
+#                fij = np.concatenate( (X[i], poi_dist[i], wij * Y[j][0]) , 0)
+                fij = np.concatenate( (X[i], wij * Y[j][0]) , 0)
                 F.append(fij)
     F = np.array(F)
     np.append(F, np.ones( (F.shape[0], 1) ), axis=1)
@@ -689,7 +690,7 @@ def leaveOneOut_Input_v4( leaveOut ):
 #    poi_cnt = np.divide(poi_cnt, popul) * 10000
     
     poi_dist = getFourSquarePOIDistribution(leaveOut)
-    poi_dist = np.divide(poi_dist, popul) * 10000
+#    poi_dist = np.divide(poi_dist, popul) * 10000
     
     F_dist = generate_geographical_SpatialLag_ca( leaveOut=leaveOut )
     F_flow = generate_transition_SocialLag(year=2010, lehd_type=0, region='ca', leaveOut=leaveOut)
@@ -709,7 +710,8 @@ def leaveOneOut_Input_v4( leaveOut ):
                 wij = np.array( [F_dist[i,j], 
                                 actualFlowInteraction(pvt[i], pvt[j]) * F_flow[i,j],
                                 F_taxi[i,j] ])
-                fij = np.concatenate( (X[i], poi_dist[i],  wij * Y[j][0]), 0)
+#                fij = np.concatenate( (X[i], poi_dist[i],  wij * Y[j][0]), 0)
+                fij = np.concatenate( (X[i],   wij * Y[j][0]), 0)
                 F.append(fij)
                 Yd.append(Y[i])
     F = np.array(F)
@@ -766,12 +768,16 @@ def CRFv4_leaveOneOut_evaluation():
     
     error = []
     for leaveOut in range(1, 78):
+        
+        if leaveOut == 33:
+            continue
+        
         Yd, F = leaveOneOut_Input_v4(leaveOut)
         w = CRFv4(Yd, F)
 #        print w
         
         res = inference_Yi_crfv4(w, Fc, Yc, leaveOut)
-        print res, Yc[leaveOut-1, 0]
+        print leaveOut, res, Yc[leaveOut-1, 0]
         
         error.append( abs(res - Yc[leaveOut-1][0]) )
 
