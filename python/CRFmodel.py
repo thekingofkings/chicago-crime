@@ -642,7 +642,7 @@ def generateInput_v4(fout=False):
 #    poi_cnt = np.divide(poi_cnt, popul) * 10000
     
     poi_dist = getFourSquarePOIDistribution()
-#    poi_dist = np.divide(poi_dist, popul) * 10000
+    poi_dist = np.divide(poi_dist, popul) * 10000
     
     F_dist = generate_geographical_SpatialLag_ca()
     F_flow = generate_transition_SocialLag(year=2010, lehd_type=0, region='ca')
@@ -690,7 +690,7 @@ def leaveOneOut_Input_v4( leaveOut ):
 #    poi_cnt = np.divide(poi_cnt, popul) * 10000
     
     poi_dist = getFourSquarePOIDistribution(leaveOut)
-#    poi_dist = np.divide(poi_dist, popul) * 10000
+    poi_dist = np.divide(poi_dist, popul) * 10000
     
     F_dist = generate_geographical_SpatialLag_ca( leaveOut=leaveOut )
     F_flow = generate_transition_SocialLag(year=2010, lehd_type=0, region='ca', leaveOut=leaveOut)
@@ -748,8 +748,10 @@ def inference_Yi_crfv4( w, F, Y, leaveOut ):
     startidx = (leaveOut-1) * (n-1)
 
     yi = 0
+#    print w
     for j in range(n-1):
         s = np.dot(np.transpose(w), F[startidx + j])[0]
+#        print j, s
         yi += s
         
     return yi / (n-1)
@@ -769,7 +771,7 @@ def CRFv4_leaveOneOut_evaluation():
     error = []
     for leaveOut in range(1, 78):
         
-        if leaveOut == 33:
+        if leaveOut in [33]:
             continue
         
         Yd, F = leaveOneOut_Input_v4(leaveOut)
@@ -790,7 +792,28 @@ def CRFv4_leaveOneOut_evaluation():
     
     
     
+""" ==========================================================================
+Case exploration in CRF model version 4
+    min_{w} sum_i sum_j (y_i - X alpha - w_f d(x_i, x_j) l_f  y_j - w_g l_g y_j  )^2
+========================================================================== """
+
+
+
+def explore_POI_dist():
+    des, X = generate_corina_features('ca')
+    popul = X[:,0].reshape(X.shape[0],1)
+    poi_dist = getFourSquarePOIDistribution()
+#    poi_dist = np.divide(poi_dist, popul) * 10000
     
+    avgd = np.sum(poi_dist, axis=0) / poi_dist.shape[0]
+#    plot(avgd)
+    cnt = 0
+    for row in poi_dist:
+        if cnt % 5 == 0:
+            figure()
+            title('{0} - {1}'.format(cnt, cnt + 4))
+        plot(row)
+        cnt += 1
     
     
     
@@ -803,4 +826,8 @@ if __name__ == '__main__':
 #    CRFv2_leaveOneOut_evaluation()
 #    CRFv3_leaveOneOut_evaluation()
     CRFv4_leaveOneOut_evaluation()
+#    explore_POI_dist()
+
+
+
 
