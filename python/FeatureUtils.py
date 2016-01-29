@@ -149,8 +149,7 @@ def generate_transition_SocialLag(year = 2010, lehd_type=0, region='ca', leaveOu
     elif region == 'tract':
         ts = Tract.createAllTractObjects()
         fn = here + '/../data/chicago_od_tract_{0}.csv'.format(year)
-    tsk = [int(e) for e in ts.keys()]
-    ordkey = sorted(tsk)
+    ordkey = sorted(ts.keys())
     
     
     listIdx = {}

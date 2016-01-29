@@ -122,7 +122,7 @@ class Tract:
         
         shps = cls.sf.shapes()
         for idx, shp in enumerate(shps):
-            tid = cls.sf.record(idx)[3]
+            tid = int(cls.sf.record(idx)[3])
             trt = Tract(shp)
             cls.tracts[tid] = trt
         

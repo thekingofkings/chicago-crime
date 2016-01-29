@@ -47,11 +47,19 @@ def getFourSquarePOIDistribution( leaveOut = -1):
     
     
     
+def generatePOIfeature(gridLevel = 'ca'):
+    """
+    generate POI features and write out to a file
     
+    regionLevel could be "ca" or "tract"
+    """
+    if gridLevel == 'ca':
+        cas = Tract.createAllCAObjects()
+    elif gridLevel == 'tract':
+        cas = Tract.createAllTractObjects()
 
-if __name__ == '__main__':
+    ordKey = sorted(cas.keys())
     
-    cas = Tract.createAllCAObjects()
     gcn = np.zeros((len(cas), 2))   # check-in count and user count
     gcat = {}
     
@@ -62,7 +70,6 @@ if __name__ == '__main__':
         poi_cat = pickle.load(f2)
     
     cnt = 0
-    zero = 0
     for poi in POIs.values():
         loc = Point(poi.location.lon, poi.location.lat)
         if poi.cat in poi_cat:
@@ -72,8 +79,8 @@ if __name__ == '__main__':
         
         for key, grid in cas.items():
             if grid.polygon.contains(loc):
-                gcn[key-1,0] += poi.checkin_count
-                gcn[key-1,1] += poi.user_count
+                gcn[ordKey.index(key),0] += poi.checkin_count
+                gcn[ordKey.index(key),1] += poi.user_count
                 """
                 Build a two-level dictionary,
                 first index by region id,
@@ -104,14 +111,24 @@ if __name__ == '__main__':
     
     
     gdist = np.zeros( (len(cas), len(hi_catgy)) )
-    for key in range(1, 78):
-        distDict = gcat[key]
+    for key, distDict in gcat.items():
         for idx, cate in enumerate(hi_catgy):
             if cate in distDict:            
-                gdist[key-1, idx] = distDict[cate]
+                gdist[ordKey.index(key), idx] = distDict[cate]
             else:
-                gdist[key-1, idx] = 0
+                gdist[ordKey.index(key), idx] = 0
                 
+    if gridLevel == 'ca':
+        np.savetxt(here + "/POI_dist.csv", gdist, delimiter="," )
+        np.savetxt(here + "/POI_cnt.csv", gcn, delimiter="," )
+    elif gridLevel == 'tract':
+        np.savetxt(here + "/POI_dist_tract.csv", gdist, delimiter="," )
+        np.savetxt(here + "/POI_cnt_tract.csv", gcn, delimiter="," )
     
-    np.savetxt(here + "/POI_dist.csv", gdist, delimiter="," )
-    np.savetxt(here + "/POI_cnt.csv", gcn, delimiter="," )
+    
+    
+    
+
+if __name__ == '__main__':
+    
+   r = generatePOIfeature(gridLevel='ca')
