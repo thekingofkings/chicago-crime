@@ -179,6 +179,8 @@ Part Three
 Evaluation and fitting real models on Chicago data.
 """
 
+from foursquarePOI import getFourSquarePOIDistribution
+from taxiFlow import getTaxiFlow
 
 
 def leaveOneOut_evaluation_onChicagoCrimeData(year=2010, features= ["all"], 
@@ -192,6 +194,10 @@ def leaveOneOut_evaluation_onChicagoCrimeData(year=2010, features= ["all"],
     W = generate_transition_SocialLag(year, lehd_type=flow_type, region=region)
     
     if region == 'ca':
+        # add POI distribution and taxi flow
+        poi_dist = getFourSquarePOIDistribution()
+        F_taxi = getTaxiFlow(usePercentage=True)
+        
         W2 = generate_geographical_SpatialLag_ca()
         
         Yhat = retrieve_crime_count(year-1, col = crime_t)
@@ -199,7 +205,7 @@ def leaveOneOut_evaluation_onChicagoCrimeData(year=2010, features= ["all"],
         C = generate_corina_features()
         popul = C[1][:,0].reshape(C[1].shape[0],1)
         
-        # use poverty demographics to weight social lag
+        """ use poverty demographics to weight social lag """
         if weightSocialFlow:
             poverty = C[1][:,2]        
             for i in range(W.shape[0]):
@@ -247,6 +253,7 @@ def leaveOneOut_evaluation_onChicagoCrimeData(year=2010, features= ["all"],
     
     f1 = np.dot(W, Y)
     f2 = np.dot(W2, Y)
+    ftaxi = np.dot(F_taxi, Y)
     
     
     # add intercept
@@ -274,6 +281,14 @@ def leaveOneOut_evaluation_onChicagoCrimeData(year=2010, features= ["all"],
     if 'spatiallag' in features:
         f = np.concatenate( (f, f2), axis=1)
         columnName += ['spatial lag']
+    if 'taxiflow' in features:
+        f = np.concatenate( (f, ftaxi), axis=1 )
+        columnName += ['taxi flow']
+    if 'POIdist' in features:
+        f = np.concatenate( (f, poi_dist), axis=1 )
+        columnName += ['POI food', 'POI residence', 'POI travel', 'POI arts entertainment', 
+                       'POI outdoors recreation', 'POI education', 'POI nightlife', 
+                       'POI professional', 'POI shops', 'POI event']
     
     
     lrf = np.copy(f)
@@ -295,9 +310,9 @@ def leaveOneOut_evaluation_onChicagoCrimeData(year=2010, features= ["all"],
     
     Y = Y.reshape((len(Y),))
     loo = cross_validation.LeaveOneOut(len(Y))
-    mae = 0
+#    mae = 0
     mae2 = 0
-    errors1 = []
+#    errors1 = []
     errors2 = []
     for train_idx, test_idx in loo:
         f_train, f_test = lrf[train_idx], lrf[test_idx]
@@ -755,7 +770,7 @@ if __name__ == '__main__':
 #   print f.summary()
     if t == 'leaveOneOut':
         r = leaveOneOut_evaluation_onChicagoCrimeData(2010, 
-                 ['corina', 'spatiallag', 'sociallag'],   # temporallag
+                 ['corina', 'spatiallag', 'sociallag', 'taxiflow', 'POIdist'],   # temporallag
                                                   verboseoutput=False, region='ca')
     elif t == 'permutation':
         permutationTest_onChicagoCrimeData(2010, ['corina', 'sociallag', 'spatiallag', 'temporallag'], iters=3)

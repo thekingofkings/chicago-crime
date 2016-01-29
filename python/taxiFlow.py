@@ -22,7 +22,7 @@ here = os.path.dirname(os.path.abspath(__file__))
 
 
 
-def getTaxiFlow(leaveOut = -1):
+def getTaxiFlow(leaveOut = -1, usePercentage=False):
     """
     Retrieve taxi flow from file
     
@@ -35,6 +35,11 @@ def getTaxiFlow(leaveOut = -1):
     n = s.shape[0]
     for i in range(n):
         s[i,i] = 0
+        
+    if usePercentage:
+        fsum = np.sum(s, axis=1)
+        for idx, row in enumerate(s):
+            s[idx] = row / fsum[idx]
     
     if leaveOut > 0:
         s = np.delete(s, leaveOut -1, 0)
@@ -42,8 +47,11 @@ def getTaxiFlow(leaveOut = -1):
     return s
 
 
-if __name__ == '__main__':
-    
+
+def generateTaxiFlow():
+    """
+    Generate taxi flow and write it to a file
+    """
     cas = Tract.createAllCAObjects()
     n = len(cas)
     TF = np.zeros((n, n))   # taxi flow matrix
@@ -78,3 +86,13 @@ if __name__ == '__main__':
 #                break
 
     np.savetxt(here + "/TF.csv", TF, delimiter="," )
+
+
+
+
+
+
+if __name__ == '__main__':
+    
+#    generateTaxiFlow()
+    s = getTaxiFlow(usePercentage=True)

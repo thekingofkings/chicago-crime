@@ -660,7 +660,7 @@ def generateInput_v4(fout=False):
                                 actualFlowInteraction(pvt[i], pvt[j]) * F_flow[i,j],
                                 F_taxi[i,j] ] )
 #                fij = np.concatenate( (X[i], poi_dist[i], wij * Y[j][0]) , 0)
-                fij = np.concatenate( (X[i], wij * Y[j][0]) , 0)
+                fij = np.concatenate( (X[i], wij * Y[j,0]) , 0)
                 F.append(fij)
     F = np.array(F)
     np.append(F, np.ones( (F.shape[0], 1) ), axis=1)
