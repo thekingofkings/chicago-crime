@@ -79,7 +79,7 @@ def generate_geographical_SpatialLag():
     Generate the spatial lag from the geographically adjacent regions.
     """
     ts = Tract.createAllTractObjects()
-    ordkey = sorted(ts, key=lambda x: int(x))
+    ordkey = sorted(ts)
     centers = [ ts[k].polygon.centroid for k in ordkey ]
     
     W = np.zeros( (len(centers), len(centers)) )
@@ -87,7 +87,7 @@ def generate_geographical_SpatialLag():
         for j, dst in enumerate(centers):
             if src != dst:
                 W[i][j] = 1 / src.distance(dst)
-    return W, [int(k) for k in ordkey]
+    return W, ordkey
         
         
 

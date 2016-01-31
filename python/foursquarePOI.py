@@ -9,6 +9,7 @@ Created on Tue Jan 26 11:09:49 2016
 @author: kok
 """
 
+from FeatureUtils import retrieve_crime_count
 from Crime import Tract
 from shapely.geometry import Point
 import pickle
@@ -34,11 +35,14 @@ def getFourSquareCount(leaveOut = -1):
     
     
     
-def getFourSquarePOIDistribution( leaveOut = -1):
+def getFourSquarePOIDistribution( leaveOut = -1, gridLevel = 'ca'):
     """
     retrieve Foursquare POI distribution from local file
     """
-    d = np.loadtxt("POI_dist.csv", delimiter=",")
+    if gridLevel == 'ca':
+        d = np.loadtxt("POI_dist.csv", delimiter=",")
+    elif gridLevel == 'tract':
+        d = np.loadtxt('POI_dist_tract.csv', delimiter=",")
     
     if leaveOut > 0:
         d = np.delete(d, leaveOut-1, 0)
@@ -108,6 +112,7 @@ def generatePOIfeature(gridLevel = 'ca'):
             s += c
             
     hi_catgy = list(set(hi_catgy))
+    print hi_catgy
     
     
     gdist = np.zeros( (len(cas), len(hi_catgy)) )
@@ -126,9 +131,55 @@ def generatePOIfeature(gridLevel = 'ca'):
         np.savetxt(here + "/POI_cnt_tract.csv", gcn, delimiter="," )
     
     
+
+
+def correlation_POIdist_crime():
+    """
+    we calculate the correlation between POI distribution and crime for each
+    community area(CA).
+    Within each CA, the crime count is number of crime in each tract.
+    The POI count is number of POIs in each tract.
+    """
+    tracts = Tract.createAllTractObjects()
+    ordkey = sorted(tracts.keys())
+    CAs = {}
+    for key, val in tracts.items():
+        if val.CA not in CAs:
+            CAs[val.CA] = [key]
+        else:
+            CAs[val.CA].append(key)
     
+    Y = retrieve_crime_count(2010, col=['total'], region='tract')
+    poi_dist = getFourSquarePOIDistribution(gridLevel='tract')
+    
+    
+    Pearson = {}
+    for cakey, calist in CAs.items():
+        crime = []
+        pois = []
+        for tractkey in calist:
+            crime.append(Y[tractkey])
+            pois.append(poi_dist[ordkey.index(tractkey)])
+        # calculate correlation
+        pois = np.array(pois)
+        crime = np.array(crime)
+        pearson = []
+        for i in range(pois.shape[1]):
+            r = np.vstack( (pois[:,i], crime) )
+            pearson.append( np.corrcoef(r)[0,1] )
+            
+        Pearson[cakey] = np.nan_to_num( pearson )
+
+    P = []
+    for key in range(1, 78):
+        P.append(Pearson[key])
+    
+    np.savetxt("../R/poi_correlation_ca.csv", P, delimiter=",")
+    return np.array(P)
     
 
 if __name__ == '__main__':
     
-   r = generatePOIfeature(gridLevel='ca')
+   generatePOIfeature(gridLevel='ca')
+#   getFourSquarePOIDistribution()
+#   a = correlation_POIdist_crime()

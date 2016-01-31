@@ -95,13 +95,15 @@ class CrimeDataset:
 class Tract:
     
     
-    def __init__( self, shp ):
+    def __init__( self, shp, rec=None ):
         """
         Build one Tract object from the shapefile._Shape object
         """
         self.bbox = box(*shp.bbox)
         self.polygon = Polygon(shp.points)
         self.count = {'total': 0} # type: value
+        if rec != None:
+            self.CA = rec[7]
         
         
     
@@ -122,8 +124,9 @@ class Tract:
         
         shps = cls.sf.shapes()
         for idx, shp in enumerate(shps):
-            tid = int(cls.sf.record(idx)[3])
-            trt = Tract(shp)
+            rec = cls.sf.record(idx)
+            tid = int(rec[3])
+            trt = Tract(shp, rec)
             cls.tracts[tid] = trt
         
         return cls.tracts
