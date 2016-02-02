@@ -56,6 +56,10 @@ def generatePOIfeature(gridLevel = 'ca'):
     generate POI features and write out to a file
     
     regionLevel could be "ca" or "tract"
+    
+    ['Food', 'Residence', 'Travel', 'Arts & Entertainment', 
+    'Outdoors & Recreation', 'College & Education', 'Nightlife', 
+    'Professional', 'Shops', 'Event']
     """
     if gridLevel == 'ca':
         cas = Tract.createAllCAObjects()

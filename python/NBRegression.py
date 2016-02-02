@@ -186,7 +186,8 @@ from taxiFlow import getTaxiFlow
 def leaveOneOut_evaluation_onChicagoCrimeData(year=2010, features= ["all"], 
                                               crime_t=['total'], flow_type=0, 
                                               verboseoutput=False, region='ca',
-                                              weightSocialFlow=True):
+                                              weightSocialFlow=True, 
+                                              useRate=True):
     """
     Generate the social lag from previous year
     use income/race/education of current year
@@ -206,16 +207,18 @@ def leaveOneOut_evaluation_onChicagoCrimeData(year=2010, features= ["all"],
         popul = C[1][:,0].reshape(C[1].shape[0],1)
         
         """ use poverty demographics to weight social lag """
+        wC = 28 # 130.0 if useRate else 32.0     # constant parameter
         if weightSocialFlow:
             poverty = C[1][:,2]        
             for i in range(W.shape[0]):
                 for j in range (W.shape[1]):
-                    W[i][j] *= np.exp( - np.abs(poverty[i] - poverty[j]))
+                    W[i][j] *= np.exp( - np.abs(poverty[i] - poverty[j]) / wC )
         
         # crime count is normalized by the total population as crime rate
         # here we use the crime count per 10 thousand residents
-        Y = np.divide(Y, popul) * 10000
-        Yhat = np.divide(Yhat, popul) * 10000
+        if useRate:
+            Y = np.divide(Y, popul) * 10000
+            Yhat = np.divide(Yhat, popul) * 10000
     elif region == 'tract':
         W2, tractkey = generate_geographical_SpatialLag()
     
@@ -242,8 +245,9 @@ def leaveOneOut_evaluation_onChicagoCrimeData(year=2010, features= ["all"],
         
         # crime count is normalized by the total population as crime rate
         # here we use the crime count per 10 thousand residents
-#        Y = np.divide(Y, popul) * 10000
-#        Yhat = np.divide(Yhat, popul) * 10000
+        if useRate:
+            Y = np.divide(Y, popul) * 10000
+            Yhat = np.divide(Yhat, popul) * 10000
     
     
     
@@ -770,7 +774,7 @@ if __name__ == '__main__':
 #   print f.summary()
     if t == 'leaveOneOut':
         r = leaveOneOut_evaluation_onChicagoCrimeData(2010, 
-                 ['corina', 'spatiallag', 'sociallag', 'taxiflow', 'POIdist'],   # temporallag
+                 ['corina', 'spatiallag', 'sociallag', 'taxiflow2', 'POIdist2'],   # temporallag
                                                   verboseoutput=False, region='ca')
     elif t == 'permutation':
         permutationTest_onChicagoCrimeData(2010, ['corina', 'sociallag', 'spatiallag', 'temporallag'], iters=3)
