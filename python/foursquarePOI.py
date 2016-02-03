@@ -32,7 +32,12 @@ def getFourSquareCount(leaveOut = -1):
         s = np.delete(s, leaveOut-1, 0)
     return s
     
-    
+
+def getFourSquarePOIDistributionHeader():
+    header = ['Food', 'Residence', 'Travel', 'Arts & Entertainment', 
+        'Outdoors & Recreation', 'College & Education', 'Nightlife', 
+        'Professional', 'Shops', 'Event']
+    return header
     
     
 def getFourSquarePOIDistribution( leaveOut = -1, gridLevel = 'ca'):
@@ -141,5 +146,5 @@ def generatePOIfeature(gridLevel = 'ca'):
 
 if __name__ == '__main__':
     
-   generatePOIfeature(gridLevel='ca')
-#   getFourSquarePOIDistribution()
+#   generatePOIfeature(gridLevel='ca')
+    d = getFourSquarePOIDistribution()

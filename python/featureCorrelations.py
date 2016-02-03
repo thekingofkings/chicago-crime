@@ -13,8 +13,8 @@ Created on Sun Jan 31 21:09:18 2016
 import numpy as np
 from FeatureUtils import *
 from Crime import Tract
-from foursquarePOI import getFourSquarePOIDistribution
-
+from foursquarePOI import getFourSquarePOIDistribution, getFourSquarePOIDistributionHeader
+import matplotlib.pyplot as plt
 
 
 
@@ -71,7 +71,13 @@ def correlation_POI_crime(gridLevel='tract'):
     calculate correlation for different POI category
     """
     Y = retrieve_crime_count(2010, col=['total'], region=gridLevel)
+    h, D = generate_corina_features(region='ca')
+    popul = D[:,0].reshape(D.shape[0],1)
     poi_dist = getFourSquarePOIDistribution(gridLevel=gridLevel)
+    poi_sum = np.sum(poi_dist, axis=1)
+    for i in range(len(poi_sum)):
+        poi_dist[i] = poi_dist[i] / poi_sum[i]
+    poi_dist = np.nan_to_num(poi_dist)
     cate_label = ['Food', 'Residence', 'Travel', 'Arts & Entertainment', 
                 'Outdoors & Recreation', 'College & Education', 'Nightlife', 
                 'Professional', 'Shops', 'Event']
@@ -95,6 +101,7 @@ def correlation_POI_crime(gridLevel='tract'):
             print pcc
             
     elif gridLevel == 'ca':
+        Y = np.divide(Y, popul) * 10000
         Y = np.transpose(Y)
         poi_dist = np.transpose(poi_dist)
         for i in range(poi_dist.shape[0]):
@@ -102,6 +109,34 @@ def correlation_POI_crime(gridLevel='tract'):
             r = np.vstack( (poi, Y) )
             pcc = np.corrcoef(r)[0,1]
             print pcc
+
+
+
+def line_POI_crime():
+    d = getFourSquarePOIDistribution(gridLevel='ca')
+    y = retrieve_crime_count(2010, col=['total'], region='ca')
+    h, D = generate_corina_features(region='ca')
+    popul = D[:,0].reshape(D.shape[0],1)
+    
+    hd = getFourSquarePOIDistributionHeader()
+    yhat = np.divide(y, popul) * 10000
+    
+    for i in range(6,8):
+        plt.figure()
+        plt.scatter(d[:,i], y)
+        plt.xlim(0, 1000)
+        plt.xlabel('POI count -- {0} category'.format(hd[i]))
+        plt.ylabel('Crime count')
+        
+    
+        
+        plt.figure()
+        plt.scatter(d[:,i], yhat)
+        plt.xlim(0, 1000)
+        plt.xlabel('POI count -- {0} category'.format(hd[i]))
+        plt.ylabel('Crime rate (per 10,000)')
+
+
 
 
 
@@ -121,6 +156,9 @@ def correlation_demo_crime():
         print np.corrcoef(r)[0,1]
     
     
+
+
+
 
 
 def correlation_socialflow_crime(region='tract', useRate=False, 
@@ -179,12 +217,87 @@ def correlation_socialflow_crime(region='tract', useRate=False,
     pcc2 = np.corrcoef(r)
     
     print '{0}: social lag {1}, spatial lag {2}'.format(region, pcc1[0,1], pcc2[0,1])
+
+
+
+
+def line_socialflow_crime():
+    W = generate_transition_SocialLag(region='ca')
+    
+    C = generate_corina_features()
+    poverty = C[1][:,2]        
+    for i in range(W.shape[0]):
+        for j in range (W.shape[1]):
+            W[i][j] *= np.exp( - np.abs(poverty[i] - poverty[j]) / 32 )
+            
+            
+    Y = retrieve_crime_count(2010, col=['total'], region='ca')
+    h, D = generate_corina_features(region='ca')
+    popul = D[:,0].reshape(D.shape[0],1)
+    Y = np.divide(Y, popul) * 10000
+    f1 = np.dot(W, Y)
+    
+    
+    plt.scatter(f1, Y)
+    plt.xlabel('Social lag weighted by demographic similarity')
+    plt.ylabel('crime rate')
+
+
+
     
     
     
+
+def line_spatialflow_crime():
+    W = generate_geographical_SpatialLag_ca()
+            
+    Y = retrieve_crime_count(2010, col=['total'], region='ca')
+    h, D = generate_corina_features(region='ca')
+    popul = D[:,0].reshape(D.shape[0],1)
+    Y = np.divide(Y, popul) * 10000
+    f1 = np.dot(W, Y)
+    
+    
+    plt.scatter(f1, Y)
+    plt.xlabel('Spatial lag')
+    plt.ylabel('crime rate')    
+    
+    
+    
+    
+    
+    
+    
+
+from taxiFlow import getTaxiFlow
+
+def correlation_taxiflow_crime(flowPercentage=True, crimeRate=True):
+    """
+    correlation between taxi flow and crime
+    """
+    s = getTaxiFlow(usePercentage=flowPercentage)
+    Y = retrieve_crime_count(2010, region='ca')
+    if crimeRate:
+        h, D = generate_corina_features(region='ca')
+        popul = D[:,0].reshape(D.shape[0],1)
+        Y = np.divide(Y, popul) * 10000
+    
+    f1 = np.dot(s, Y)
+    r = np.hstack( (f1, Y) )
+    r = np.transpose(r)
+    pcc = np.corrcoef(r)
+    print pcc
+
+
+
+
 if __name__ == '__main__':
     
 #    correlation_POIdist_crime()
-#    correlation_POI_crime()
+#    correlation_POI_crime('ca')
+#    line_POI_crime()
+#    line_socialflow_crime()
+    line_spatialflow_crime()
 #    correlation_socialflow_crime(region='ca', useRate=True, weightSocialFlow=True)
-    r = correlation_demo_crime()
+#    r = correlation_demo_crime()
+#    correlation_taxiflow_crime(flowPercentage=True, crimeRate=True)

@@ -1,3 +1,29 @@
+corr_ca_rate <- read.csv( con <- textConnection('0.176101373641
+												0.00279937879165
+												0.108316512972
+												0.235512070086
+												0.152893939918
+												0.329881607181
+												0.0354238050071
+												0.366204121034
+												0.1488963899
+												0.260061956684'), header=FALSE)
+close(con)
+
+
+corr_poi_dist <- read.csv( con<- textConnection('-0.154285791213
+												-0.0609571435703
+												-0.00169993791919
+												-0.00492725236219
+												0.066816876534
+												-0.00765190618549
+												-0.155271313295
+												0.322079303378
+												-0.167636924855
+												0.219649125677'), header=FALSE)
+close(con)												
+
+
 corr_ca <- read.csv(con <- textConnection('0.324394971027
 			  0.235673422821
 			  0.0745214228252
@@ -28,11 +54,11 @@ barlabs = c('Food', 'Residence', 'Travel', 'Entertainment',
 			'Recreation', 'Education', 'Nightlife', 
 			'Professional', 'Shops', 'Event')
 
-counts <- matrix(data=c(corr_ca$V1, corr_tract$V1), nrow=2, byrow=TRUE)
+counts <- as.vector(corr_ca_rate$V1 )#  , corr_ca$V1, corr_tract$V1), nrow=3, byrow=TRUE)
 pdf('bar-corr-socialflow.pdf', height=6, width=8)
 par(las=2, mar=c(7,3,2,0))
 barplot( counts, ylab="correlation coefficient",
-		 col=c('darkblue', 'red'), legend=c('CA', 'Tract'), beside=TRUE,
+		 col=c('blue'), #legend=c('CA rate'), 
 		 names.arg=barlabs, args.legend=c(x='top')) 
 box()
 grid()
