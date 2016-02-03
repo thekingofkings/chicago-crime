@@ -73,11 +73,7 @@ def correlation_POI_crime(gridLevel='tract'):
     Y = retrieve_crime_count(2010, col=['total'], region=gridLevel)
     h, D = generate_corina_features(region='ca')
     popul = D[:,0].reshape(D.shape[0],1)
-    poi_dist = getFourSquarePOIDistribution(gridLevel=gridLevel)
-    poi_sum = np.sum(poi_dist, axis=1)
-    for i in range(len(poi_sum)):
-        poi_dist[i] = poi_dist[i] / poi_sum[i]
-    poi_dist = np.nan_to_num(poi_dist)
+    poi_dist = getFourSquarePOIDistribution(gridLevel=gridLevel, useRatio=True)
     cate_label = ['Food', 'Residence', 'Travel', 'Arts & Entertainment', 
                 'Outdoors & Recreation', 'College & Education', 'Nightlife', 
                 'Professional', 'Shops', 'Event']

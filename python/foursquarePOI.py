@@ -40,7 +40,7 @@ def getFourSquarePOIDistributionHeader():
     return header
     
     
-def getFourSquarePOIDistribution( leaveOut = -1, gridLevel = 'ca'):
+def getFourSquarePOIDistribution( leaveOut = -1, gridLevel = 'ca', useRatio=False):
     """
     retrieve Foursquare POI distribution from local file
     """
@@ -51,6 +51,12 @@ def getFourSquarePOIDistribution( leaveOut = -1, gridLevel = 'ca'):
     
     if leaveOut > 0:
         d = np.delete(d, leaveOut-1, 0)
+        
+    if useRatio:
+        poi_sum = np.sum(d, axis=1)
+        for i in range(len(poi_sum)):
+            d[i] = d[i] / poi_sum[i]
+        d = np.nan_to_num(d)
     
     return d
     
@@ -147,4 +153,5 @@ def generatePOIfeature(gridLevel = 'ca'):
 if __name__ == '__main__':
     
 #   generatePOIfeature(gridLevel='ca')
-    d = getFourSquarePOIDistribution()
+    d = getFourSquarePOIDistribution(useRatio=True)
+    np.savetxt("../R/poi_dist.csv", d, delimiter=",")
