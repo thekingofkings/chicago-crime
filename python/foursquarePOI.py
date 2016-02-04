@@ -154,4 +154,4 @@ if __name__ == '__main__':
     
 #   generatePOIfeature(gridLevel='ca')
     d = getFourSquarePOIDistribution(useRatio=True)
-    np.savetxt("../R/poi_dist.csv", d, delimiter=",")
+#    np.savetxt("../R/poi_dist.csv", d, delimiter=",")

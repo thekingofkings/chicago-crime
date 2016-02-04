@@ -15,6 +15,9 @@ from FeatureUtils import *
 from Crime import Tract
 from foursquarePOI import getFourSquarePOIDistribution, getFourSquarePOIDistributionHeader
 import matplotlib.pyplot as plt
+from scipy.stats import pearsonr
+
+
 
 
 
@@ -98,13 +101,13 @@ def correlation_POI_crime(gridLevel='tract'):
             
     elif gridLevel == 'ca':
         Y = np.divide(Y, popul) * 10000
-        Y = np.transpose(Y)
+        Y = Y.reshape( (len(Y),) )
         poi_dist = np.transpose(poi_dist)
+        
         for i in range(poi_dist.shape[0]):
-            poi = np.reshape(poi_dist[i,:], (1, Y.shape[1] ) )
-            r = np.vstack( (poi, Y) )
-            pcc = np.corrcoef(r)[0,1]
-            print pcc
+            poi = np.reshape(poi_dist[i,:], Y.shape )
+            r, p = pearsonr(poi, Y)
+            print cate_label[i], r, p
 
 
 
@@ -143,13 +146,15 @@ def correlation_demo_crime():
     Y = retrieve_crime_count(year=2010, col=['total'], region='ca')
     h, D = generate_corina_features(region='ca')
     print h
+    popul = D[:,0].reshape(D.shape[0],1)
+    Y = np.divide(Y, popul) * 10000
     
-    Y = Y.transpose()
+    Y = Y.reshape( (len(Y),) )
     D = D.transpose()
     for i in range(D.shape[0]):
-        demo = D[i,:].reshape( (1, Y.shape[1] ) )
-        r = np.vstack( (demo, Y) )
-        print np.corrcoef(r)[0,1]
+        demo = D[i,:].reshape( (Y.shape ) )
+        r, p = pearsonr(demo, Y)
+        print r, p
     
     
 
@@ -290,10 +295,10 @@ def correlation_taxiflow_crime(flowPercentage=True, crimeRate=True):
 if __name__ == '__main__':
     
 #    correlation_POIdist_crime()
-#    correlation_POI_crime('ca')
+    correlation_POI_crime('ca')
 #    line_POI_crime()
 #    line_socialflow_crime()
-    line_spatialflow_crime()
+#    line_spatialflow_crime()
 #    correlation_socialflow_crime(region='ca', useRate=True, weightSocialFlow=True)
 #    r = correlation_demo_crime()
 #    correlation_taxiflow_crime(flowPercentage=True, crimeRate=True)
