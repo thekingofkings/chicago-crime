@@ -782,6 +782,10 @@ if __name__ == '__main__':
                                                   verboseoutput=False, region='ca')
     elif t == 'permutation':
         permutationTest_onChicagoCrimeData(2010, ['corina', 'sociallag', 'spatiallag', 'temporallag'], iters=3)
+    elif t == 'socialflow':
+        for year in range(2002, 2014):
+            W = generate_transition_SocialLag(year, lehd_type=0)
+            np.savetxt(here + "/W-{0}.csv".format(year), W, delimiter="," )
     
 #    CV = '10Fold'
 #    feat_candi = ['corina', 'spatiallag', 'temporallag', 'sociallag']
