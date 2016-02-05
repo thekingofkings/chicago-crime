@@ -6,6 +6,8 @@ library(grDevices)
 categories = c('Food', 'Residence', 'Travel', 'Arts & Entertainment', 'Outdoors & Recreation', 
 			   'College & Education', 'Nightlife', 'Professional', 'Shops', 'Event')
 CAs = readShapeSpatial('../data/ChiCA_gps/ChiCaGPS')
+cr = coordinates(CAs)
+
 ids = as.numeric(as.character(CAs$AREA_NUMBE))
 
 
@@ -20,7 +22,7 @@ if (length(args) < 1) {
 	for (i in 1:77) {
 		f_ordered[[i]] = feature[ids[i],]
 	}
-	fts <- matrix(unlist(f_ordered), nrow=77, byrow=T)
+	fts <- matrix(unlist(f_ordered), nrow=77, byrow=F)
 
 
 	# build color
@@ -31,7 +33,6 @@ if (length(args) < 1) {
 		pdf(file=paste('poi-dist', i, '.pdf', sep=''), width=7, height=7 )
 		par(mai=c(0,0,0,0))
 		plot(CAs, border='blue', col=chooseColor(21)[findInterval(fts[,i], seq(min(fts[,i]), max(fts[,i]), (max(fts[,i])-min(fts[,i]))/20))])
-		cr = coordinates(CAs)
 		text(cr, labels=as.character(ids))
 		dev.off()
 	}
@@ -47,7 +48,7 @@ if (length(args) < 1) {
 	for (i in 1:77) {
 		demo_ord[[i]] = demos[ids[i],]
 	}
-	demos = matrix(unlist(demo_ord), nrow=77, byrow=T)
+	demos = matrix(unlist(demo_ord), nrow=77, byrow=F)
 
 	chooseColor <- colorRampPalette( c('white', 'blue') )
 
@@ -58,7 +59,6 @@ if (length(args) < 1) {
 		plot(CAs, border='darkgreen', col=chooseColor(21)[findInterval(demos[,i], 
 																  seq(min(demos[,i]), 
 																	  max(demos[,i]), (max(demos[,i]) - min(demos[,i]))/20))])
-		cr = coordinates(CAs)
 		text(cr, labels=as.character(ids))
 		dev.off()
 	}
@@ -78,7 +78,6 @@ if (length(args) < 1) {
 	plot(CAs, border='black', col=colorMap(21)[findInterval(crimes, seq(min(crimes), max(crimes),
 																		(max(crimes)-min(crimes)) / 20))])
 
-	cr = coordinates(CAs)
 	text(cr, labels=as.character(ids))
 	dev.off()
 } else {

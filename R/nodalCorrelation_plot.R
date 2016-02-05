@@ -12,7 +12,7 @@ corr_ordered <- list()
 for (i in 1:77) {
 	corr_ordered[[i]] = correlations[ids[i],]
 }
-corr <- matrix(unlist(corr_ordered), nrow=77, byrow=T)
+corr <- matrix(unlist(corr_ordered), nrow=77, byrow=F)
 
 
 # build color

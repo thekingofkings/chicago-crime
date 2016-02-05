@@ -95,4 +95,4 @@ def generateTaxiFlow():
 if __name__ == '__main__':
     
 #    generateTaxiFlow()
-    s = getTaxiFlow(usePercentage=True)
+    s = getTaxiFlow(usePercentage=False)

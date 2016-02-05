@@ -777,8 +777,8 @@ if __name__ == '__main__':
     # f = unitTest_onChicagoCrimeData()
 #   print f.summary()
     if t == 'leaveOneOut':
-        r = leaveOneOut_evaluation_onChicagoCrimeData(2010, 
-                 ['corina', 'spatiallag', 'sociallag', 'taxiflow', 'POIdist'],   # temporallag
+        r = leaveOneOut_evaluation_onChicagoCrimeData(2011, 
+                 ['corina', 'spatiallag2', 'sociallag2', 'taxiflow2', 'POIdist2'],   # temporallag
                                                   verboseoutput=False, region='ca')
     elif t == 'permutation':
         permutationTest_onChicagoCrimeData(2010, ['corina', 'sociallag', 'spatiallag', 'temporallag'], iters=3)
