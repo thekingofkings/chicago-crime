@@ -266,6 +266,27 @@ def line_spatialflow_crime():
     
     
     
+from taxiFlow import getTaxiFlow
+
+def line_taxiflow_crime():
+    s = getTaxiFlow(usePercentage=False)
+    
+    Y = retrieve_crime_count(2010, col=['total'], region='ca')
+    h, D = generate_corina_features(region='ca')
+    popul = D[:,0].reshape(D.shape[0],1)
+    Y = np.divide(Y, popul) * 10000
+    
+    f1 = np.dot(s, Y)
+    
+    plt.scatter(f1, Y)
+    plt.xlabel('Taxi flow (count) lag')
+    plt.ylabel('Crime rate')
+    
+    
+    
+
+
+
     
     
     
@@ -295,7 +316,8 @@ def correlation_taxiflow_crime(flowPercentage=True, crimeRate=True):
 if __name__ == '__main__':
     
 #    correlation_POIdist_crime()
-    correlation_POI_crime('ca')
+#    correlation_POI_crime('ca')
+    line_taxiflow_crime()
 #    line_POI_crime()
 #    line_socialflow_crime()
 #    line_spatialflow_crime()

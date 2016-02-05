@@ -24,7 +24,7 @@ if (length(args) < 1) {
 
 
 	# build color
-	chooseColor <- colorRampPalette( c('white', 'yellow') )
+	chooseColor <- colorRampPalette( c('white', 'darkgreen') )
 
 
 	for ( i in 1:10 ) {
