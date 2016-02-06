@@ -187,7 +187,7 @@ def leaveOneOut_evaluation_onChicagoCrimeData(year=2010, features= ["all"],
                                               crime_t=['total'], flow_type=0, 
                                               verboseoutput=False, region='ca',
                                               weightSocialFlow=True, 
-                                              useRate=True):
+                                              useRate=True, logFeatures = []):
     """
     Generate the social lag from previous year
     use income/race/education of current year
@@ -267,39 +267,56 @@ def leaveOneOut_evaluation_onChicagoCrimeData(year=2010, features= ["all"],
     # add intercept
     columnName = ['intercept']
     f = np.ones(f1.shape)
+    lrf = np.copy(f)
 
     if "all" in features:
         f = np.concatenate( (f, f1, i[1], e[1], r[1]), axis=1)
         f = pd.DataFrame(f, columns=['social lag'] + i[0] + e[0] + r[0])
-    if "sociallag" in features: 
-        f = np.concatenate( (f, f1), axis=1)
+    if "sociallag" in features:
+        if 'sociallag' in logFeatures:
+            f = np.concatenate( (f, np.log(f1)), axis=1 )
+        else:
+            f = np.concatenate( (f, f1), axis=1)
+        lrf = np.concatenate( (f, f1), axis=1)
         columnName += ['social lag']
     if  "income" in features:
         f = np.concatenate( (f, i[1]), axis=1)
+        lrf = np.concatenate( (f, i[1]), axis=1)
         columnName += i[0]
     if "race" in features:
         f = np.concatenate( (f, r[1]), axis=1)
+        lrf = np.concatenate( (f, r[1]), axis=1)
         columnName += r[0]
     if "education" in features :
         f = np.concatenate( (f, e[1]), axis=1)
+        lrf = np.concatenate( (f, e[1]), axis=1)
         columnName += e[0]
     if 'corina' in features :
         f = np.concatenate( (f, C[1]), axis=1)
+        lrf = np.concatenate( (f, C[1]), axis=1)
         columnName += C[0]
     if 'spatiallag' in features:
-        f = np.concatenate( (f, f2), axis=1)
+        if 'spatiallag' in logFeatures:
+            f = np.concatenate( (f, np.log(f2)), axis=1)
+        else:
+            f = np.concatenate( (f, f2), axis=1)
+        lrf = np.concatenate( (f, f2), axis=1)
         columnName += ['spatial lag']
     if 'taxiflow' in features:
-        f = np.concatenate( (f, ftaxi), axis=1 )
+        if 'taxiflow' in logFeatures:
+            f = np.concatenate( (f, np.log(ftaxi)), axis=1 )
+        else:
+            f = np.concatenate( (f, ftaxi), axis=1 )
+        lrf = np.concatenate( (f, ftaxi), axis=1 )
         columnName += ['taxi flow']
     if 'POIdist' in features:
         f = np.concatenate( (f, poi_dist), axis=1 )
+        lrf = np.concatenate( (f, poi_dist), axis=1 )
         columnName += ['POI food', 'POI residence', 'POI travel', 'POI arts entertainment', 
                        'POI outdoors recreation', 'POI education', 'POI nightlife', 
                        'POI professional', 'POI shops', 'POI event']
+
     
-    
-    lrf = np.copy(f)
     if 'temporallag' in features:
         f = np.concatenate( (f, np.log(Yhat)), axis=1)
         lrf = np.concatenate( (f, Yhat), axis=1)
@@ -777,9 +794,9 @@ if __name__ == '__main__':
     # f = unitTest_onChicagoCrimeData()
 #   print f.summary()
     if t == 'leaveOneOut':
-        r = leaveOneOut_evaluation_onChicagoCrimeData(2011, 
-                 ['corina', 'spatiallag2', 'sociallag2', 'taxiflow2', 'POIdist2'],   # temporallag
-                                                  verboseoutput=False, region='ca')
+        r = leaveOneOut_evaluation_onChicagoCrimeData(2011, features=
+                 ['corina', 'spatiallag', 'sociallag2', 'taxiflow', 'POIdist2'],   # temporallag
+                 verboseoutput=False, region='ca', logFeatures=['spatiallag2', 'sociallag2', 'taxiflow2'])
     elif t == 'permutation':
         permutationTest_onChicagoCrimeData(2010, ['corina', 'sociallag', 'spatiallag', 'temporallag'], iters=3)
     elif t == 'socialflow':
