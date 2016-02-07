@@ -196,11 +196,7 @@ def leaveOneOut_evaluation_onChicagoCrimeData(year=2010, features= ["all"],
     
     if region == 'ca':
         # add POI distribution and taxi flow
-        poi_dist = getFourSquarePOIDistribution()
-#        poi_sum = np.sum(poi_dist, axis=1)
-#        for i in range(len(poi_sum)):
-#            poi_dist[i] = poi_dist[i] / poi_sum[i]
-#        poi_dist = np.nan_to_num(poi_dist)
+        poi_dist = getFourSquarePOIDistribution(useRatio=False)
         F_taxi = getTaxiFlow(usePercentage=True)
         
         W2 = generate_geographical_SpatialLag_ca()
@@ -794,8 +790,8 @@ if __name__ == '__main__':
     # f = unitTest_onChicagoCrimeData()
 #   print f.summary()
     if t == 'leaveOneOut':
-        r = leaveOneOut_evaluation_onChicagoCrimeData(2011, features=
-                 ['corina', 'spatiallag', 'sociallag2', 'taxiflow', 'POIdist2'],   # temporallag
+        r = leaveOneOut_evaluation_onChicagoCrimeData(2010, features=
+                 ['corina', 'spatiallag', 'sociallag', 'taxiflow', 'POIdist'],   # temporallag
                  verboseoutput=False, region='ca', logFeatures=['spatiallag2', 'sociallag2', 'taxiflow2'])
     elif t == 'permutation':
         permutationTest_onChicagoCrimeData(2010, ['corina', 'sociallag', 'spatiallag', 'temporallag'], iters=3)

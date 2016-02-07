@@ -79,7 +79,7 @@ def generatePOIfeature(gridLevel = 'ca'):
 
     ordKey = sorted(cas.keys())
     
-    gcn = np.zeros((len(cas), 2))   # check-in count and user count
+    gcn = np.zeros((len(cas), 3))   # check-in count, user count, and POI count
     gcat = {}
     
     with open('../data/all_POIs_chicago', 'r') as fin:
@@ -100,6 +100,7 @@ def generatePOIfeature(gridLevel = 'ca'):
             if grid.polygon.contains(loc):
                 gcn[ordKey.index(key),0] += poi.checkin_count
                 gcn[ordKey.index(key),1] += poi.user_count
+                gcn[ordKey.index(key),2] += 1
                 """
                 Build a two-level dictionary,
                 first index by region id,
@@ -152,6 +153,6 @@ def generatePOIfeature(gridLevel = 'ca'):
 
 if __name__ == '__main__':
     
-#   generatePOIfeature(gridLevel='ca')
-    d = getFourSquarePOIDistribution(useRatio=True)
+    generatePOIfeature(gridLevel='ca')
+#    d = getFourSquarePOIDistribution(useRatio=True)
 #    np.savetxt("../R/poi_dist.csv", d, delimiter=",")

@@ -332,3 +332,39 @@ def retrieve_race_features():
     
     
     
+    
+def generateDotFile(s, threshold=400, fileName='taxiflow'):
+    """
+    generate dot file
+    
+    The dot file is used by graphviz to visualize graph
+    """
+    nodes = set()
+    with open('{0}.dot'.format(fileName), 'w') as fout:
+        fout.write('digraph taxiChicago {\n')
+        for i, row in enumerate(s):
+            for j, ele in enumerate(row):
+                if ele > threshold:
+                    if i not in nodes:
+                        fout.write('{0} [label="{1}"];\n'.format(i, i+1))
+                        nodes.add(i)
+                    if j not in nodes:
+                        fout.write('{0} [label="{1}"];\n'.format(j, j+1))
+                        nodes.add(j)
+                    fout.write('{0} -> {1} [label="{2:.3f}"];\n'.format(i,j, ele) )
+        fout.write('}\n')
+        
+    import subprocess
+    subprocess.call(['dot ', '-Tpdf', '-o{0}.pdf'.format(fileName),  '{0}.dot'.format(fileName)])
+    
+
+
+if __name__ == '__main__':
+    
+#    from taxiFlow import getTaxiFlow
+#    s = getTaxiFlow(usePercentage=False)
+#    generateDotFile(s, 5000)
+    
+    
+    t = generate_transition_SocialLag(year = 2010, lehd_type=0, region='ca', leaveOut=-1)
+    generateDotFile(t, 0.08, 'sociallag')

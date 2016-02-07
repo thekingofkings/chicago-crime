@@ -11,10 +11,11 @@ cr = coordinates(CAs)
 ids = as.numeric(as.character(CAs$AREA_NUMBE))
 
 
-args <- commandArgs(trailingOnly=T)
+#args <- commandArgs(trailingOnly=T)
+args = c('poi_count')
 
 if (length(args) < 1) {
-	cat('Usage: <poi|demo|crime>\n')
+	cat('Usage: <poi|demo|crime|poi_count>\n')
 } else if (args[1] == 'poi') {
 
 	feature = read.csv('poi_dist.csv', header=FALSE)
@@ -22,7 +23,7 @@ if (length(args) < 1) {
 	for (i in 1:77) {
 		f_ordered[[i]] = feature[ids[i],]
 	}
-	fts <- matrix(unlist(f_ordered), nrow=77, byrow=F)
+	fts <- matrix(unlist(f_ordered), nrow=77, byrow=T)
 
 
 	# build color
@@ -37,6 +38,27 @@ if (length(args) < 1) {
 		dev.off()
 	}
 
+} else if (args[1] == 'poi_count') {
+	
+	poic = read.csv('../python/POI_cnt.csv', header=FALSE)
+	f_ordered <- list()
+	for (i in 1:77) {
+		f_ordered[[i]] = poic[ids[i],]
+	}
+	fts <- matrix(unlist(f_ordered), nrow=77, byrow=T)
+
+
+	# build color
+	chooseColor <- colorRampPalette( c('white', 'darkgreen') )
+
+	for (i in 1:3) { 
+		pdf(file=paste('poi-cnt', i, '.pdf', sep=''), width=7, height=7) 
+		par(mai=c(0,0,0,0)) 
+		plot(CAs, border='darkblue', col=chooseColor(51)[findInterval(fts[,i], seq(min(fts[,i]), 6000, (6000-min(fts[,i]))/50))])
+		text(cr, labels=as.character(ids))
+		dev.off()
+	}
+	
 } else if (args[1] == 'demo') {
 
 
@@ -81,5 +103,5 @@ if (length(args) < 1) {
 	text(cr, labels=as.character(ids))
 	dev.off()
 } else {
-	cat('Usage: <poi|demo|crime>\n')
+	cat('Usage: <poi|demo|crime|poi_count>\n')
 }
