@@ -22,7 +22,7 @@ here = os.path.dirname(os.path.abspath(__file__))
 
 
 
-def getTaxiFlow(leaveOut = -1, normalization="bydestination"):
+def getTaxiFlow(leaveOut = -1, normalization="bydestination", gridLevel='ca'):
     """
     Retrieve taxi flow from file
     
@@ -33,7 +33,10 @@ def getTaxiFlow(leaveOut = -1, normalization="bydestination"):
     
     normalization takes value "none/bydestination/bysource"
     """
-    s = np.loadtxt("TF.csv", delimiter=",")
+    if gridLevel == 'ca':
+        s = np.loadtxt("TF.csv", delimiter=",")
+    elif gridLevel == 'tract':
+        s = np.loadtxt("TF_tract.csv", delimiter=",")
     n = s.shape[0]
     for i in range(n):
         s[i,i] = 0
@@ -55,13 +58,18 @@ def getTaxiFlow(leaveOut = -1, normalization="bydestination"):
 
 
 
-def generateTaxiFlow():
+def generateTaxiFlow(gridLevel='ca'):
     """
     Generate taxi flow and write it to a file
     """
-    cas = Tract.createAllCAObjects()
+    if gridLevel == 'ca':
+        cas = Tract.createAllCAObjects()
+    elif gridLevel == 'tract':
+        cas = Tract.createAllTractObjects()
     n = len(cas)
     TF = np.zeros((n, n))   # taxi flow matrix
+    
+    ordKey = sorted(cas.keys())
     
 #    cnt = 0
     
@@ -81,9 +89,9 @@ def generateTaxiFlow():
                 map the start/end point of trip into grids to get flow
                 """
                 if grid.polygon.contains(start):
-                    sid = key - 1
+                    sid = ordKey.index(key)
                 if grid.polygon.contains(end):
-                    eid = key - 1
+                    eid = ordKey.index(key)
                 if sid != -1 and eid != -1:
                     break
             
@@ -91,8 +99,10 @@ def generateTaxiFlow():
 #            cnt += 1
 #            if (cnt > 1000):
 #                break
-
-    np.savetxt(here + "/TF.csv", TF, delimiter="," )
+    if gridLevel == 'ca':
+        np.savetxt(here + "/TF.csv", TF, delimiter="," )
+    elif gridLevel == 'tract':
+        np.savetxt(here + "/TF_tract.csv", TF, delimiter="," )
 
 
 
