@@ -193,7 +193,7 @@ if __name__ == '__main__':
                     cntstr.append( str(v.count[tp]) )
                 else:
                     cntstr.append('0')
-            fout.write(','.join( [k] + cntstr ))
+            fout.write(','.join( [str(k)] + cntstr ))
             fout.write("\n")
             
     print "Bad records: {0}".format(CrimeRecord.cntBadRecord)

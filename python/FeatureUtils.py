@@ -187,6 +187,15 @@ def generate_transition_SocialLag(year = 2010, lehd_type=0, region='ca', leaveOu
     return W
 
 
+import pandas as pd
+
+def retrieve_health_data():
+    """
+    get health data
+    """
+    h = pd.read_stata("../data/ChiCas77_PubHealthScale_ForNSFproject.dta")
+    return h['phlth12vc2alpha'].values, h['phlth10novcAlpha'].values
+
 
 
 def retrieve_crime_count(year, col=['total'], region='ca'):
@@ -366,5 +375,7 @@ if __name__ == '__main__':
 #    generateDotFile(s, 5000)
     
     
-    t = generate_transition_SocialLag(year = 2010, lehd_type=0, region='ca', leaveOut=-1)
-    generateDotFile(t, 0.08, 'sociallag')
+#    t = generate_transition_SocialLag(year = 2010, lehd_type=0, region='ca', leaveOut=-1)
+#    generateDotFile(t, 0.08, 'sociallag')
+    
+    h = retrieve_health_data()

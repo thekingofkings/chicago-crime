@@ -192,27 +192,32 @@ def leaveOneOut_evaluation_onChicagoCrimeData(year=2010, features= ["all"],
     Generate the social lag from previous year
     use income/race/education of current year
     """
-    W = generate_transition_SocialLag(year, lehd_type=flow_type, region=region)
+    if 'sociallag' in features:
+        W = generate_transition_SocialLag(year, lehd_type=flow_type, region=region)
     
     if region == 'ca':
         # add POI distribution and taxi flow
         poi_dist = getFourSquarePOIDistribution(useRatio=False)
-        F_taxi = getTaxiFlow(usePercentage=True)
+        F_taxi = getTaxiFlow(normalization="bydestination")
         
         W2 = generate_geographical_SpatialLag_ca()
         
         Yhat = retrieve_crime_count(year-1, col = crime_t)
+#        h = retrieve_health_data()
+#        Y = h[0].reshape((77,1))
         Y = retrieve_crime_count(year, col = crime_t)
         C = generate_corina_features()
         popul = C[1][:,0].reshape(C[1].shape[0],1)
         
-        """ use poverty demographics to weight social lag """
-        wC = 28 # 130.0 if useRate else 32.0     # constant parameter
-        if weightSocialFlow:
-            poverty = C[1][:,2]        
-            for i in range(W.shape[0]):
-                for j in range (W.shape[1]):
-                    W[i][j] *= np.exp( - np.abs(poverty[i] - poverty[j]) / wC )
+        
+        if 'sociallag' in features:
+            """ use poverty demographics to weight social lag """
+            wC = 28 # 130.0 if useRate else 32.0     # constant parameter
+            if weightSocialFlow:
+                poverty = C[1][:,2]        
+                for i in range(W.shape[0]):
+                    for j in range (W.shape[1]):
+                        W[i][j] *= np.exp( - np.abs(poverty[i] - poverty[j]) / wC )
         
         # crime count is normalized by the total population as crime rate
         # here we use the crime count per 10 thousand residents
@@ -255,20 +260,20 @@ def leaveOneOut_evaluation_onChicagoCrimeData(year=2010, features= ["all"],
     e = retrieve_education_features()
     r = retrieve_race_features()
     
-    f1 = np.dot(W, Y)
     f2 = np.dot(W2, Y)
     ftaxi = np.dot(F_taxi, Y)
     
     
     # add intercept
     columnName = ['intercept']
-    f = np.ones(f1.shape)
+    f = np.ones(f2.shape)
     lrf = np.copy(f)
 
     if "all" in features:
         f = np.concatenate( (f, f1, i[1], e[1], r[1]), axis=1)
         f = pd.DataFrame(f, columns=['social lag'] + i[0] + e[0] + r[0])
-    if "sociallag" in features:
+    if "sociallag" in features:        
+        f1 = np.dot(W, Y)
         if 'sociallag' in logFeatures:
             f = np.concatenate( (f, np.log(f1)), axis=1 )
         else:
@@ -790,8 +795,8 @@ if __name__ == '__main__':
     # f = unitTest_onChicagoCrimeData()
 #   print f.summary()
     if t == 'leaveOneOut':
-        r = leaveOneOut_evaluation_onChicagoCrimeData(2010, features=
-                 ['corina', 'spatiallag', 'sociallag', 'taxiflow', 'POIdist'],   # temporallag
+        r = leaveOneOut_evaluation_onChicagoCrimeData(2013, features=
+                 ['corina', 'spatiallag2', 'sociallag2', 'taxiflow2', 'POIdist2'],   # temporallag
                  verboseoutput=False, region='ca', logFeatures=['spatiallag2', 'sociallag2', 'taxiflow2'])
     elif t == 'permutation':
         permutationTest_onChicagoCrimeData(2010, ['corina', 'sociallag', 'spatiallag', 'temporallag'], iters=3)

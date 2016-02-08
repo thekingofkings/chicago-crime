@@ -22,7 +22,7 @@ here = os.path.dirname(os.path.abspath(__file__))
 
 
 
-def getTaxiFlow(leaveOut = -1, usePercentage=False):
+def getTaxiFlow(leaveOut = -1, normalization="bydestination"):
     """
     Retrieve taxi flow from file
     
@@ -30,16 +30,23 @@ def getTaxiFlow(leaveOut = -1, usePercentage=False):
     
     LeaveOut define the region to be left out for evaluation. Value 
     ranges from 1 to 77
+    
+    normalization takes value "none/bydestination/bysource"
     """
     s = np.loadtxt("TF.csv", delimiter=",")
     n = s.shape[0]
     for i in range(n):
         s[i,i] = 0
         
-    if usePercentage:
+    if normalization == 'bydestination':
         fsum = np.sum(s, axis=1)
         for idx, row in enumerate(s):
             s[idx] = row / fsum[idx]
+    elif normalization == 'bysource':
+        fsum = np.sum(s, axis=0)
+        s = s / fsum
+    elif normalization == 'none':
+        pass
     
     if leaveOut > 0:
         s = np.delete(s, leaveOut -1, 0)
