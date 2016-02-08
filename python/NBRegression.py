@@ -247,14 +247,12 @@ def leaveOneOut_evaluation_onChicagoCrimeData(year=2010, features= ["all"],
                 C_mtx.append( [0 for i in range(7)] )
         
         C = ( C[0], np.array( C_mtx ) )
-        popul = C[1][:,0].reshape(len(C[1]),1)
         
         
-        # crime count is normalized by the total population as crime rate
-        # here we use the crime count per 10 thousand residents
+        # at tract level we don't normalize by population, since the tract is
+        # defined as region with around 2000 population
         if useRate:
-            Y = np.divide(Y, popul) * 10000
-            Yhat = np.divide(Yhat, popul) * 10000
+            pass
     
     
     
