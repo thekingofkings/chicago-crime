@@ -195,11 +195,13 @@ def leaveOneOut_evaluation_onChicagoCrimeData(year=2010, features= ["all"],
     if 'sociallag' in features:
         W = generate_transition_SocialLag(year, lehd_type=flow_type, region=region)
     
-    if region == 'ca':
-        # add POI distribution and taxi flow
-        poi_dist = getFourSquarePOIDistribution(useRatio=False)
-        F_taxi = getTaxiFlow(normalization="bydestination")
+    
+    # add POI distribution and taxi flow
+    poi_dist = getFourSquarePOIDistribution(useRatio=False, gridLevel=region)
+    F_taxi = getTaxiFlow(normalization="bydestination", gridLevel=region)
         
+        
+    if region == 'ca':
         W2 = generate_geographical_SpatialLag_ca()
         
         Yhat = retrieve_crime_count(year-1, col = crime_t)
