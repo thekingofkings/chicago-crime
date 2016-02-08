@@ -784,9 +784,117 @@ def generate_flowType_crimeCount_matrix():
     np.savetxt('mre1.array', mre1)
     np.savetxt('mre2.array', mre2)
     
+
+
+
+
+def permutationTest_accuracy(iters, permute='taxiflow'):
+    """
+    Evaluate crime rate
+    
+    use full feature set:
+        Corina, spaitallag, taxiflow, POIdist
+    evaluate on 2013
+    
+    at CA level
+    
+    leave one out
+    
+    permutation
+        permute one feature 1000 times takes roughly 30-40 minutes.
+        The results are dumped as "permute-{feature}.pickle"
+    """
+    poi_dist = getFourSquarePOIDistribution(useRatio=False)
+    F_taxi = getTaxiFlow(normalization="bydestination")
+    W2 = generate_geographical_SpatialLag_ca()
+    Y = retrieve_crime_count(year=2013)
+    C = generate_corina_features()
+    D = C[1]
+    
+    popul = C[1][:,0].reshape(C[1].shape[0],1)
+    Y = np.divide(Y, popul) * 10000
+    
+    f2 = np.dot(W2, Y)
+    ftaxi = np.dot(F_taxi, Y)
     
     
+    nb_mae = []
+    nb_mre = []
+    lr_mae = []
+    lr_mre = []
+    for i in range(iters):
+        if permute == 'corina':
+            D = np.random.permutation(D)
+        elif permute == 'spatiallag':
+            f2 = np.random.permutation(f2)
+        elif permute == 'taxiflow':
+            ftaxi = np.random.permutation(ftaxi)
+        elif permute == 'POIdist':
+            poi_dist = np.random.permutation(poi_dist)
+        f = np.ones(f2.shape)
+        f = np.concatenate( (f, D, f2, ftaxi, poi_dist), axis=1 )
+        header = ['intercept'] + C[0] + [ 'spatiallag', 'taxiflow'] + \
+            ['POI food', 'POI residence', 'POI travel', 'POI arts entertainment', 
+                           'POI outdoors recreation', 'POI education', 'POI nightlife', 
+                           'POI professional', 'POI shops', 'POI event']
+        df = pd.DataFrame(f, columns=header)
+        
+        np.savetxt("Y.csv", Y, delimiter=",")
+        df.to_csv("f.csv", sep=",", index=False)
+        
+        # NB permute
+        nbres = subprocess.check_output( ['Rscript', 'nbr_eval.R', 'ca'] )
+        ls = nbres.split(' ')
+        nb_mae.append( float(ls[0]) )
+        nb_mre.append( float(ls[2]) )
+
+        mae2, mre2 = permutation_Test_LR(Y, f)
+        lr_mae.append(mae2)
+        lr_mre.append(mre2)
+        
+        if i % 10 == 0:
+            print i
+        
+    print '{0} iterations finished.'.format(iters)
+    print pvalue(412.305, lr_mae), pvalue(0.363, lr_mre), \
+        pvalue(319.86, nb_mae), pvalue(0.281, nb_mre)
+    return nb_mae, nb_mre, lr_mae, lr_mre
     
+    
+def pvalue(v, l):
+    cnt = 0.
+    for e in l:
+        if e < v:
+            cnt += 1
+    
+    return cnt / len(l)
+
+
+def permutation_Test_LR(Y, f):
+    
+    Y = Y.reshape((len(Y),))
+    loo = cross_validation.LeaveOneOut(len(Y))
+    
+    errors = []
+    for train_idx, test_idx in loo:
+        f_train, f_test = f[train_idx], f[test_idx]
+        Y_train, Y_test = Y[train_idx], Y[test_idx]
+        
+        r = linearRegression(f_train, Y_train)
+        y = r.predict(f_test)
+        errors.append(np.abs(Y_test - y))
+        
+    mae = np.mean(errors)
+    mre = mae / Y.mean()
+    
+    return mae, mre
+
+
+
+
+
+
+
 if __name__ == '__main__':
     import sys
     t = sys.argv[1]
@@ -796,7 +904,7 @@ if __name__ == '__main__':
 #   print f.summary()
     if t == 'leaveOneOut':
         r = leaveOneOut_evaluation_onChicagoCrimeData(2013, features=
-                 ['corina', 'spatiallag2', 'sociallag2', 'taxiflow2', 'POIdist2'],   # temporallag
+                 ['corina', 'spatiallag', 'sociallag2', 'taxiflow', 'POIdist'],   # temporallag
                  verboseoutput=False, region='ca', logFeatures=['spatiallag2', 'sociallag2', 'taxiflow2'])
     elif t == 'permutation':
         permutationTest_onChicagoCrimeData(2010, ['corina', 'sociallag', 'spatiallag', 'temporallag'], iters=3)
@@ -804,6 +912,8 @@ if __name__ == '__main__':
         for year in range(2002, 2014):
             W = generate_transition_SocialLag(year, lehd_type=0)
             np.savetxt(here + "/W-{0}.csv".format(year), W, delimiter="," )
+    elif t == 'permuteAccu':
+        r = permutationTest_accuracy(1000)
     
 #    CV = '10Fold'
 #    feat_candi = ['corina', 'spatiallag', 'temporallag', 'sociallag']
