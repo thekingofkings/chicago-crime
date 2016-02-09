@@ -44,7 +44,8 @@ def getTaxiFlow(leaveOut = -1, normalization="bydestination", gridLevel='ca'):
     if normalization == 'bydestination':
         fsum = np.sum(s, axis=1)
         for idx, row in enumerate(s):
-            s[idx] = row / fsum[idx]
+            if fsum[idx] != 0:
+                s[idx] = row / fsum[idx]
     elif normalization == 'bysource':
         fsum = np.sum(s, axis=0)
         s = s / fsum

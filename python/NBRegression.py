@@ -65,8 +65,11 @@ def linearRegression(features, Y):
     output the regression analysis parameters
     plot scatter plot
     """
-    mod = sm.OLS(Y, features )
-    res = mod.fit()
+    
+    from sklearn import linear_model
+#    mod = sm.OLS(Y, features )
+    mod = linear_model.LinearRegression()
+    res = mod.fit(features, Y)
     return res
 
 
@@ -197,7 +200,7 @@ def leaveOneOut_evaluation_onChicagoCrimeData(year=2010, features= ["all"],
     
     
     # add POI distribution and taxi flow
-    poi_dist = getFourSquarePOIDistribution(useRatio=False, gridLevel=region)
+    poi_dist = getFourSquarePOIDistribution(useRatio=True, gridLevel=region)
     F_taxi = getTaxiFlow(normalization="bydestination", gridLevel=region)
         
         
@@ -321,11 +324,10 @@ def leaveOneOut_evaluation_onChicagoCrimeData(year=2010, features= ["all"],
     if 'temporallag' in features:
         f = np.concatenate( (f, np.log(Yhat)), axis=1)
         lrf = np.concatenate( (f, Yhat), axis=1)
-        columnName += ['temporal lag']
+        columnName += ['temporal lag']  
     f = pd.DataFrame(f, columns = columnName)
     
 
-        
     # call the Rscript to get Negative Binomial Regression results
     np.savetxt("Y.csv", Y, delimiter=",")
     f.to_csv("f.csv", sep=",", index=False)
@@ -346,14 +348,18 @@ def leaveOneOut_evaluation_onChicagoCrimeData(year=2010, features= ["all"],
 #        res, mod = negativeBinomialRegression(f_train, Y_train)
 #        ybar = mod.predict(res.params, exog=f_test)
 #        errors1.append( np.abs(Y_test - ybar.values[0])[0] )
-
-
-        r2 = linearRegression(f_train, Y_train)
-        y2 = r2.predict(f_test)
-        errors2.append( np.abs( Y_test - y2 ) )
-#        print test_idx, Y_test[0], ybar.values[0], y2[0]
-        if verboseoutput:
-            print Y_test[0], y2[0]
+        
+        if not np.any(np.isnan(f_train)) and np.all(np.isfinite(f_train)):
+            r2 = linearRegression(f_train, Y_train)
+            y2 = r2.predict(f_test)
+            errors2.append( np.abs( Y_test - y2 ) )
+    #        print test_idx, Y_test[0], ybar.values[0], y2[0]
+            if verboseoutput:
+                print Y_test[0], y2[0]
+        else:
+            print 'nan or infinite'
+            pass
+        
         
 #    mae = np.mean(errors1)
     mae2 = np.mean(errors2)
@@ -513,6 +519,8 @@ def tenFoldCV_onChicagoCrimeData(features=['corina'], CVmethod='10Fold', P = 10,
         print np.mean(mae2), np.mean(sd_mae2), np.median(med_mae2), np.mean(mre2), np.mean(sd_mre2), np.median(med_mre2)
         
     return mae1, mae2
+
+
 
 
 
@@ -891,6 +899,38 @@ def permutation_Test_LR(Y, f):
 
 
 
+def NB_coefficients(year=2010):
+    poi_dist = getFourSquarePOIDistribution(useRatio=False)
+    F_taxi = getTaxiFlow(normalization="bydestination")
+    W2 = generate_geographical_SpatialLag_ca()
+    Y = retrieve_crime_count(year=year)
+    C = generate_corina_features()
+    D = C[1]
+
+    popul = C[1][:,0].reshape(C[1].shape[0],1)
+    Y = np.divide(Y, popul) * 10000
+    
+    f2 = np.dot(W2, Y)
+    ftaxi = np.dot(F_taxi, Y)
+    
+    f = np.ones(f2.shape)
+    f = np.concatenate( (f, D, f2, ftaxi, poi_dist), axis=1 )
+    header = ['intercept'] + C[0] + [ 'spatiallag', 'taxiflow'] + \
+        ['POI food', 'POI residence', 'POI travel', 'POI arts entertainment', 
+                       'POI outdoors recreation', 'POI education', 'POI nightlife', 
+                       'POI professional', 'POI shops', 'POI event']
+    df = pd.DataFrame(f, columns=header)
+    
+    np.savetxt("Y.csv", Y, delimiter=",")
+    df.to_csv("f.csv", sep=",", index=False)
+    
+    # NB permute
+    nbres = subprocess.check_output( ['Rscript', 'nbr_eval.R', 'ca', 'coefficient'] )
+    
+    ls = nbres.strip().split(" ")
+    coef = [float(e) for e in ls]
+    print coef
+    return coef
 
 
 
@@ -904,8 +944,8 @@ if __name__ == '__main__':
 #   print f.summary()
     if t == 'leaveOneOut':
         r = leaveOneOut_evaluation_onChicagoCrimeData(2013, features=
-                 ['corina', 'spatiallag', 'sociallag2', 'taxiflow', 'POIdist'],   # temporallag
-                 verboseoutput=False, region='ca', logFeatures=['spatiallag2', 'sociallag2', 'taxiflow2'])
+                 ['corina', 'spatiallag2', 'sociallag2', 'taxiflow2', 'POIdist2'],   # temporallag
+                 verboseoutput=False, region='tract', logFeatures=['spatiallag2', 'sociallag2', 'taxiflow2'])
     elif t == 'permutation':
         permutationTest_onChicagoCrimeData(2010, ['corina', 'sociallag', 'spatiallag', 'temporallag'], iters=3)
     elif t == 'socialflow':
@@ -914,6 +954,21 @@ if __name__ == '__main__':
             np.savetxt(here + "/W-{0}.csv".format(year), W, delimiter="," )
     elif t == 'permuteAccu':
         r = permutationTest_accuracy(1000)
+    elif t == 'coefficient':
+        v = []
+        for year in range(2010, 2015):
+            r = NB_coefficients(year)
+            v.append(r)
+        v = np.array(v)
+        plt.figure()        
+        plt.plot(v[:,0], )
+        plt.xticks(range(5), ('2010', '2011', '2012', '2013', '2014'))
+        
+        plt.figure()
+        plt.plot(v[:,1:])
+        plt.xticks(range(5), ('2010', '2011', '2012', '2013', '2014'))
+        
+        
     
 #    CV = '10Fold'
 #    feat_candi = ['corina', 'spatiallag', 'temporallag', 'sociallag']

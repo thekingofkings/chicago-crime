@@ -23,23 +23,33 @@ f <- read.csv('f.csv')
 
 
 
-errors = c()
-for (i in 1:iters) {
-	dat <- data.frame( y[-i,], f[-i,] )
-	mod <- glm.nb( data=dat )
-	ybar <- predict(mod, newdata=f[i,], type=c('response') )
-	
-    if (length(args) == 1 && args[1] == 'verbose') {
-        cat(paste(y[i,], ybar, '\n'))
-    }
-	errors = c(errors, abs(ybar - y[i,]) )
-}
-
-
-if (length(args) == 1 && args[1] == 'verbose') {
-    cat(paste("MAE", mean(errors), "SD", sd(errors), "MRE", mean(errors) / mean(y$V1), '\n'))
+if (length(args) >= 2) {
+	if (args[2] == 'coefficient') {
+		dat <- data.frame(y, f)
+		mod <- glm.nb(data=dat)
+		
+		coef <- mod$coefficients
+		cat(coef[-2], '\n')
+	}
 } else {
-    cat(paste(mean(errors), sd(errors), mean(errors) / mean(y$V1)))
+
+	errors = c()
+	for (i in 1:iters) {
+		dat <- data.frame( y[-i,], f[-i,] )
+		mod <- glm.nb( data=dat )
+		ybar <- predict(mod, newdata=f[i,], type=c('response') )
+		
+		if (length(args) == 1 && args[1] == 'verbose') {
+			cat(paste(y[i,], ybar, '\n'))
+		}
+		errors = c(errors, abs(ybar - y[i,]) )
+	}
+
+
+	if (length(args) == 1 && args[1] == 'verbose') {
+		cat(paste("MAE", mean(errors), "SD", sd(errors), "MRE", mean(errors) / mean(y$V1), '\n'))
+	} else {
+		cat(paste(mean(errors), sd(errors), mean(errors) / mean(y$V1)))
+	}
+
 }
-
-
