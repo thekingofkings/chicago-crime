@@ -200,7 +200,7 @@ def leaveOneOut_evaluation_onChicagoCrimeData(year=2010, features= ["all"],
     
     
     # add POI distribution and taxi flow
-    poi_dist = getFourSquarePOIDistribution(useRatio=True, gridLevel=region)
+    poi_dist = getFourSquarePOIDistribution(useRatio=False, gridLevel=region)
     F_taxi = getTaxiFlow(normalization="bydestination", gridLevel=region)
         
         
@@ -930,7 +930,7 @@ def NB_coefficients(year=2010):
     ls = nbres.strip().split(" ")
     coef = [float(e) for e in ls]
     print coef
-    return coef
+    return coef, header
 
 
 
@@ -943,9 +943,9 @@ if __name__ == '__main__':
     # f = unitTest_onChicagoCrimeData()
 #   print f.summary()
     if t == 'leaveOneOut':
-        r = leaveOneOut_evaluation_onChicagoCrimeData(2013, features=
-                 ['corina', 'spatiallag2', 'sociallag2', 'taxiflow2', 'POIdist2'],   # temporallag
-                 verboseoutput=False, region='tract', logFeatures=['spatiallag2', 'sociallag2', 'taxiflow2'])
+        r = leaveOneOut_evaluation_onChicagoCrimeData(2014, features=
+                 ['corina', 'spatiallag', 'sociallag2', 'taxiflow2', 'POIdist'],   # temporallag
+                 verboseoutput=False, region='ca', logFeatures=['spatiallag2', 'sociallag2', 'taxiflow2'])
     elif t == 'permutation':
         permutationTest_onChicagoCrimeData(2010, ['corina', 'sociallag', 'spatiallag', 'temporallag'], iters=3)
     elif t == 'socialflow':
@@ -957,17 +957,24 @@ if __name__ == '__main__':
     elif t == 'coefficient':
         v = []
         for year in range(2010, 2015):
-            r = NB_coefficients(year)
+            r, h = NB_coefficients(year)
             v.append(r)
         v = np.array(v)
-        plt.figure()        
-        plt.plot(v[:,0], )
-        plt.xticks(range(5), ('2010', '2011', '2012', '2013', '2014'))
-        
-        plt.figure()
-        plt.plot(v[:,1:])
-        plt.xticks(range(5), ('2010', '2011', '2012', '2013', '2014'))
-        
+        visualize = False
+        if visualize == True:
+            plt.figure()        
+            plt.plot(v[:,0], )
+            plt.xticks(range(5), ('2010', '2011', '2012', '2013', '2014'))
+            
+            plt.figure()
+            plt.plot(v[:,1:])
+            plt.xticks(range(5), ('2010', '2011', '2012', '2013', '2014'))
+        else:
+            v0 = v[0]
+            o = np.flipud(np.argsort(v0))
+            for i in range(1,6):
+                j = o[i]
+                print ' &'.join( [h[j]] + ['{0:.3f}'.format(row[j]) for row in v] )
         
     
 #    CV = '10Fold'

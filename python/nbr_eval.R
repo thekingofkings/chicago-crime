@@ -45,7 +45,7 @@ if (length(args) >= 2) {
 		errors = c(errors, abs(ybar - y[i,]) )
 	}
 
-
+	#cat(errors, '\n')
 	if (length(args) == 1 && args[1] == 'verbose') {
 		cat(paste("MAE", mean(errors), "SD", sd(errors), "MRE", mean(errors) / mean(y$V1), '\n'))
 	} else {
