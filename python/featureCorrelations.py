@@ -260,16 +260,26 @@ def line_spatialflow_crime():
     
     
     plt.scatter(f1, Y)
-    plt.xlabel('Spatial lag')
-    plt.ylabel('crime rate')    
+    plt.axis([0,700000, 0, 6000])
+    idx = [31, 75, 37]
+    sf1 = f1[idx]
+    sY = Y[idx]
+    plt.scatter(sf1, sY, edgecolors='red', s=50, linewidths=2 )
+    plt.figtext(0.43, 0.78, '#32', fontsize='large')
+    plt.figtext(0.15, 0.37, '#76', fontsize='large')    
+    plt.figtext(0.79, 0.33, '#38', fontsize='large')
+    plt.xlabel('Geographical neigbhor feature value', fontsize='x-large')
+    plt.ylabel('Crime rate', fontsize='x-large')
     
+    plt.savefig('spatial-crime-rate.pdf', format='pdf')
+    return f1
     
     
     
 from taxiFlow import getTaxiFlow
 
 def line_taxiflow_crime():
-    s = getTaxiFlow(usePercentage=False)
+    s = getTaxiFlow(normalization='bydestination')
     
     Y = retrieve_crime_count(2010, col=['total'], region='ca')
     h, D = generate_corina_features(region='ca')
@@ -279,19 +289,25 @@ def line_taxiflow_crime():
     f1 = np.dot(s, Y)
     
     plt.scatter(f1, Y)
-    plt.xlabel('Taxi flow (count) lag')
-    plt.ylabel('Crime rate')
+    plt.axis([0, 6000, 0, 6000])
+    idx = [31, 8, 46]
+    sf1 = f1[idx]
+    sY = Y[idx]
+    plt.scatter(sf1, sY, edgecolors='red', s=50, linewidths=2 )
+    plt.figtext(0.16, 0.2, '#9', fontsize='large')
+    plt.figtext(0.33, 0.8, '#32', fontsize='large')
+    plt.figtext(0.75, 0.34, '#47', fontsize='large')
+    plt.xlabel('Hyperlink by taxi flow feature value', fontsize='x-large')
+    plt.ylabel('Crime rate', fontsize='x-large')
     
-    
+    plt.savefig('taxi-flow-percent.pdf', format='pdf')
+    return f1
     
 
 
 
-    
-    
-    
 
-from taxiFlow import getTaxiFlow
+
 
 def correlation_taxiflow_crime(flowPercentage=True, crimeRate=True):
     """
@@ -317,10 +333,10 @@ if __name__ == '__main__':
     
 #    correlation_POIdist_crime()
 #    correlation_POI_crime('ca')
-    line_taxiflow_crime()
+    r = line_taxiflow_crime()
 #    line_POI_crime()
 #    line_socialflow_crime()
-#    line_spatialflow_crime()
+#    r = line_spatialflow_crime()
 #    correlation_socialflow_crime(region='ca', useRate=True, weightSocialFlow=True)
 #    r = correlation_demo_crime()
 #    correlation_taxiflow_crime(flowPercentage=True, crimeRate=True)
