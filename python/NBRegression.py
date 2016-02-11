@@ -796,7 +796,7 @@ def generate_flowType_crimeCount_matrix():
 
 
 
-def permutationTest_accuracy(iters, permute='taxiflow'):
+def permutationTest_accuracy(iters, permute='spatiallag'):
     """
     Evaluate crime rate
     
@@ -834,9 +834,11 @@ def permutationTest_accuracy(iters, permute='taxiflow'):
         if permute == 'corina':
             D = np.random.permutation(D)
         elif permute == 'spatiallag':
-            f2 = np.random.permutation(f2)
-        elif permute == 'taxiflow':
-            ftaxi = np.random.permutation(ftaxi)
+            yhat = np.random.permutation(Y)
+            f2 = np.dot(W2, yhat)
+        elif permute == 'taxiflow':            
+            yhat = np.random.permutation(Y)
+            ftaxi = np.dot(F_taxi, Y)
         elif permute == 'POIdist':
             poi_dist = np.random.permutation(poi_dist)
         f = np.ones(f2.shape)
