@@ -796,7 +796,7 @@ def generate_flowType_crimeCount_matrix():
 
 
 
-def permutationTest_accuracy(iters, permute='spatiallag'):
+def permutationTest_accuracy(iters, permute='taxiflow'):
     """
     Evaluate crime rate
     
@@ -816,12 +816,15 @@ def permutationTest_accuracy(iters, permute='spatiallag'):
     F_taxi = getTaxiFlow(normalization="bydestination")
     W2 = generate_geographical_SpatialLag_ca()
     Y = retrieve_crime_count(year=2013)
+    
+    
     C = generate_corina_features()
     D = C[1]
     
     popul = C[1][:,0].reshape(C[1].shape[0],1)
     Y = np.divide(Y, popul) * 10000
     
+     
     f2 = np.dot(W2, Y)
     ftaxi = np.dot(F_taxi, Y)
     
@@ -901,6 +904,9 @@ def permutation_Test_LR(Y, f):
 
 
 
+from sklearn.preprocessing import MinMaxScaler
+
+
 def NB_coefficients(year=2010):
     poi_dist = getFourSquarePOIDistribution(useRatio=False)
     F_taxi = getTaxiFlow(normalization="bydestination")
@@ -915,9 +921,11 @@ def NB_coefficients(year=2010):
     f2 = np.dot(W2, Y)
     ftaxi = np.dot(F_taxi, Y)
     
-    f = np.ones(f2.shape)
-    f = np.concatenate( (f, D, f2, ftaxi, poi_dist), axis=1 )
-    header = ['intercept'] + C[0] + [ 'spatiallag', 'taxiflow'] + \
+    f = np.concatenate( (D, f2, ftaxi, poi_dist), axis=1 )
+    mms = MinMaxScaler(copy=False)
+    mms.fit(f)
+    mms.transform(f)
+    header = C[0] + [ 'spatiallag', 'taxiflow'] + \
         ['POI food', 'POI residence', 'POI travel', 'POI arts entertainment', 
                        'POI outdoors recreation', 'POI education', 'POI nightlife', 
                        'POI professional', 'POI shops', 'POI event']
@@ -928,6 +936,7 @@ def NB_coefficients(year=2010):
     
     # NB permute
     nbres = subprocess.check_output( ['Rscript', 'nbr_eval.R', 'ca', 'coefficient'] )
+    print nbres
     
     ls = nbres.strip().split(" ")
     coef = [float(e) for e in ls]
@@ -945,8 +954,8 @@ if __name__ == '__main__':
     # f = unitTest_onChicagoCrimeData()
 #   print f.summary()
     if t == 'leaveOneOut':
-        r = leaveOneOut_evaluation_onChicagoCrimeData(2014, features=
-                 ['corina', 'spatiallag', 'sociallag2', 'taxiflow2', 'POIdist'],   # temporallag
+        r = leaveOneOut_evaluation_onChicagoCrimeData(2010, features=
+                 ['corina', 'spatiallag2', 'sociallag2', 'taxiflow', 'POIdist'],   # temporallag
                  verboseoutput=False, region='ca', logFeatures=['spatiallag2', 'sociallag2', 'taxiflow2'])
     elif t == 'permutation':
         permutationTest_onChicagoCrimeData(2010, ['corina', 'sociallag', 'spatiallag', 'temporallag'], iters=3)
@@ -974,8 +983,11 @@ if __name__ == '__main__':
         else:
             v0 = v[0]
             o = np.flipud(np.argsort(v0))
-            for i in range(1,6):
+            for i in range(1,4):
                 j = o[i]
+                print ' &'.join( [h[j]] + ['{0:.3f}'.format(row[j]) for row in v] )
+            for i in range(3, 0, -1):
+                j = o[-i]
                 print ' &'.join( [h[j]] + ['{0:.3f}'.format(row[j]) for row in v] )
         
     

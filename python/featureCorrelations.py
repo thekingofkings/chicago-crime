@@ -69,14 +69,14 @@ def correlation_POIdist_crime():
 
 
 
-def correlation_POI_crime(gridLevel='tract'):
+def correlation_POI_crime(gridLevel='tract', poiRatio=False):
     """
     calculate correlation for different POI category
     """
     Y = retrieve_crime_count(2010, col=['total'], region=gridLevel)
     h, D = generate_corina_features(region='ca')
     popul = D[:,0].reshape(D.shape[0],1)
-    poi_dist = getFourSquarePOIDistribution(gridLevel=gridLevel, useRatio=True)
+    poi_dist = getFourSquarePOIDistribution(gridLevel=gridLevel, useRatio=poiRatio)
     cate_label = ['Food', 'Residence', 'Travel', 'Arts & Entertainment', 
                 'Outdoors & Recreation', 'College & Education', 'Nightlife', 
                 'Professional', 'Shops', 'Event']
@@ -258,7 +258,6 @@ def line_spatialflow_crime():
     Y = np.divide(Y, popul) * 10000
     f1 = np.dot(W, Y)
     
-    
     plt.scatter(f1, Y)
     plt.axis([0,700000, 0, 6000])
     idx = [31, 75, 37]
@@ -272,7 +271,7 @@ def line_spatialflow_crime():
     plt.ylabel('Crime rate', fontsize='x-large')
     
     plt.savefig('spatial-crime-rate.pdf', format='pdf')
-    return f1
+    return Y
     
     
     
@@ -290,11 +289,10 @@ def line_taxiflow_crime():
     
     plt.scatter(f1, Y)
     plt.axis([0, 6000, 0, 6000])
-    idx = [31, 8, 46]
+    idx = [31, 46]
     sf1 = f1[idx]
     sY = Y[idx]
     plt.scatter(sf1, sY, edgecolors='red', s=50, linewidths=2 )
-    plt.figtext(0.16, 0.2, '#9', fontsize='large')
     plt.figtext(0.33, 0.8, '#32', fontsize='large')
     plt.figtext(0.75, 0.34, '#47', fontsize='large')
     plt.xlabel('Hyperlink by taxi flow feature value', fontsize='x-large')
@@ -332,8 +330,8 @@ def correlation_taxiflow_crime(flowPercentage=True, crimeRate=True):
 if __name__ == '__main__':
     
 #    correlation_POIdist_crime()
-#    correlation_POI_crime('ca')
-    r = line_taxiflow_crime()
+    correlation_POI_crime('ca')
+#    r = line_taxiflow_crime()
 #    line_POI_crime()
 #    line_socialflow_crime()
 #    r = line_spatialflow_crime()

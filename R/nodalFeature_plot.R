@@ -12,7 +12,7 @@ ids = as.numeric(as.character(CAs$AREA_NUMBE))
 
 
 #args <- commandArgs(trailingOnly=T)
-args = c('error')
+args = c('poi')
 
 if (length(args) < 1) {
 	cat('Usage: <poi|demo|crime|poi_count|error>\n')
@@ -86,12 +86,12 @@ if (length(args) < 1) {
 	}
 
 } else if (args[1] == 'crime') {
-	crimes = read.csv('../python/Y.csv', header=FALSE)
+	crimes = read.csv('crime-rate-ca.csv', header=FALSE)
 	crimes_ord <- list()
 	for ( i in 1:77 ) {
 		crimes_ord[[i]] <- crimes[ids[i],]
 	}
-	crimes = as.vector(crimes$V1)
+	crimes = unlist(crimes_ord)
 
 	colorMap <- colorRampPalette( c('white', 'red') )
 

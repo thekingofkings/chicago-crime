@@ -29,7 +29,7 @@ if (length(args) >= 2) {
 		mod <- glm.nb(data=dat)
 		
 		coef <- mod$coefficients
-		cat(coef[-2], '\n')
+		cat(coef[-1], '\n')
 	}
 } else {
 
