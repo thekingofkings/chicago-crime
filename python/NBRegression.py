@@ -196,7 +196,8 @@ def leaveOneOut_evaluation_onChicagoCrimeData(year=2010, features= ["all"],
     use income/race/education of current year
     """
     if 'sociallag' in features:
-        W = generate_transition_SocialLag(year, lehd_type=flow_type, region=region)
+        W = generate_transition_SocialLag(year, lehd_type=flow_type, region=region,
+                                          normalization='pair')
     
     
     # add POI distribution and taxi flow
@@ -542,7 +543,7 @@ def permutationTest_onChicagoCrimeData(year=2010, features= ["all"], logFeatures
     Second try:
     permute the feature of interest
     """
-    W = generate_transition_SocialLag(year, lehd_type=flowType)
+    W = generate_transition_SocialLag(year, lehd_type=flowType, normalization='source')
     np.savetxt(here + "/W.csv", W, delimiter="," )
 
     Yhat = retrieve_crime_count(year-1, crimeType)
@@ -955,7 +956,7 @@ if __name__ == '__main__':
 #   print f.summary()
     if t == 'leaveOneOut':
         r = leaveOneOut_evaluation_onChicagoCrimeData(2010, features=
-                 ['corina', 'spatiallag2', 'sociallag2', 'taxiflow', 'POIdist'],   # temporallag
+                 ['corina', 'spatiallag', 'sociallag', 'taxiflow', 'POIdist'],   # temporallag
                  verboseoutput=False, region='ca', logFeatures=['spatiallag2', 'sociallag2', 'taxiflow2'])
     elif t == 'permutation':
         permutationTest_onChicagoCrimeData(2010, ['corina', 'sociallag', 'spatiallag', 'temporallag'], iters=3)

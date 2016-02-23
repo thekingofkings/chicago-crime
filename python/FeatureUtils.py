@@ -127,7 +127,7 @@ def generate_geographical_SpatialLag_ca(knearest=True, leaveOut=-1):
         
 
 
-def generate_transition_SocialLag(year = 2010, lehd_type=0, region='ca', leaveOut=-1):
+def generate_transition_SocialLag(year = 2010, lehd_type=0, region='ca', leaveOut=-1, normalization='source'):
     """
     Generate the spatial lag from the transition flow connected CAs.
     
@@ -175,15 +175,27 @@ def generate_transition_SocialLag(year = 2010, lehd_type=0, region='ca', leaveOu
             sdict = listIdx[srcid]
             if leaveOut in sdict:
                 del sdict[leaveOut]
-            total = (float) (sum( sdict.values() ))
             for dstid, val in sdict.items():
-                if srcid != dstid:
-                    if total == 0:
-                        W[ordkey.index(srcid)][ordkey.index(dstid)] = 0
-                    else:
-                        W[ordkey.index(srcid)][ordkey.index(dstid)] = val / total
+                W[ordkey.index(srcid)][ordkey.index(dstid)] = val
         else:
             W[ordkey.index(srcid)] = np.zeros( (1,len(ts)) )
+            
+    
+    if normalization == 'source':
+        sW = np.sum(W, axis=0)
+        W = W / sW
+    elif normalization == 'destination':
+        sW = np.sum(W, axis=1)
+        sW = sW.reshape((len(sW),1))
+        W = W / sW
+    elif normalization == 'pair':
+        sW = W + np.transpose(W)
+        sW = np.sum(sW)
+        W = W / sW
+    # update diagonal as 0
+    for i in range(len(W)):
+        W[i,i] = 0
+        
     return W
 
 
@@ -375,7 +387,8 @@ if __name__ == '__main__':
 #    generateDotFile(s, 5000)
     
     
-#    t = generate_transition_SocialLag(year = 2010, lehd_type=0, region='ca', leaveOut=-1)
+    t = generate_transition_SocialLag(year = 2010, lehd_type=0, region='ca', 
+                                      leaveOut=-1, normalization='pair')
 #    generateDotFile(t, 0.08, 'sociallag')
     
-    h = retrieve_health_data()
+#    h = retrieve_health_data()
