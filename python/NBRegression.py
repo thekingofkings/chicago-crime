@@ -946,6 +946,28 @@ def NB_coefficients(year=2010):
 
 
 
+def coefficients_pvalue():
+    """
+    Permutation test + leave-one-out evaluation
+    Retrieve leave-one-out error distribution. To determine the p-value
+    
+    The model to be evaluated is the NB model.
+    The features used in this model only includes spatial lag, social lag, and demographics
+    """
+    
+    C = generate_corina_features('ca')
+    demo = pd.DataFrame(data=C[1], columns=C[0], dtype="float")
+    W1 = generate_geographical_SpatialLag_ca()
+    W2 = generate_transition_SocialLag(year=2010, lehd_type=0, region='ca',
+                                       normalization='none')
+    Y = retrieve_crime_count(year=2010)
+    
+    demo.to_csv("../R/pvalue-demo.csv", index=False)
+    np.savetxt("../R/pvalue-spatiallag.csv", W1, delimiter=",")
+    np.savetxt("../R/pvalue-sociallag.csv", W2, delimiter=",")
+    np.savetxt("../R/pvalue-crime.csv", Y)
+    
+
 
 if __name__ == '__main__':
     import sys
@@ -990,7 +1012,8 @@ if __name__ == '__main__':
             for i in range(3, 0, -1):
                 j = o[-i]
                 print ' &'.join( [h[j]] + ['{0:.3f}'.format(row[j]) for row in v] )
-        
+    elif t == 'pvalue':
+        coefficients_pvalue()
     
 #    CV = '10Fold'
 #    feat_candi = ['corina', 'spatiallag', 'temporallag', 'sociallag']

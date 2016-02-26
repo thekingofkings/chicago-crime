@@ -132,7 +132,7 @@ def generate_transition_SocialLag(year = 2010, lehd_type=0, region='ca', leaveOu
     Generate the spatial lag from the transition flow connected CAs.
     
     0 - #total jobs
-    1 - #jobs age under 29, 
+    1 - #jobs age under 29,
     2 - #jobs age from 30 to 54, 
     3 - #jobs above 55, 
     4 - #jobs earning under $1250/month, 
