@@ -3,7 +3,7 @@ library(MASS)
 
 
 
-leaveOneOut <- function(demos, w1, w2, Y, coeff=FALSE) {
+leaveOneOut <- function(demos, w1, w2, Y, coeff=FALSE, normalize=FALSE) {
     N <- length(Y)
     # leave one out evaluation
     errors = c()
@@ -16,13 +16,15 @@ leaveOneOut <- function(demos, w1, w2, Y, coeff=FALSE) {
         sco <- w2[-i, -i]
         y <- Y[-i]
 
-        F[,'spatial.lag'] = spt %*% y
-        F[,'social.lag'] = sco %*% y
+        F[,'spatial.lag'] = as.vector(spt %*% y)
+        F[,'social.lag'] = as.vector(sco %*% y)
 
         # normalize features
-        F <- scale(F, center=TRUE, scale=TRUE)
-        F.center <- as.vector(attributes(F)["scaled:center"][[1]])
-        F.scale <- as.vector(attributes(F)["scaled:scale"][[1]])
+		if (normalize) {
+			F <- scale(F, center=TRUE, scale=TRUE)
+			F.center <- as.vector(attributes(F)["scaled:center"][[1]])
+			F.scale <- as.vector(attributes(F)["scaled:scale"][[1]])
+		}
         # fit NB model
         dat <- data.frame(y, F)
         mod <- glm.nb(data=dat)
@@ -34,7 +36,9 @@ leaveOneOut <- function(demos, w1, w2, Y, coeff=FALSE) {
         spatial.lag <- w1[i,-i] %*% y
         social.lag <- w2[i,-i] %*% y
         dn <- data.frame(demos[i,], spatial.lag, social.lag)
-        dn <- data.frame(scale(dn, center=F.center, scale=F.scale))
+		if (normalize) {
+			dn <- data.frame(scale(dn, center=F.center, scale=F.scale))
+		}
         ybar <- predict(mod, newdata=dn, type=c('response'))
         errors <- c(errors, abs(ybar - Y[i]))
     }
@@ -49,7 +53,7 @@ leaveOneOut <- function(demos, w1, w2, Y, coeff=FALSE) {
 
 
 
-leaveOneOut.PermuteLag <- function(demos, w1, w2, Y) {
+leaveOneOut.PermuteLag <- function(demos, w1, w2, Y, normalize=FALSE) {
     N <- length(Y)
     # permute lag matix is equivalent to permute Y
     y = sample(Y)
@@ -64,17 +68,19 @@ leaveOneOut.PermuteLag <- function(demos, w1, w2, Y) {
             
 
             if (lag == "social") {
-                F[,'spatial.lag'] = spt %*% Y[-i]
-                F[,'social.lag'] = sco %*% y[-i]
+                F[,'spatial.lag'] = as.vector(spt %*% Y[-i])
+                F[,'social.lag'] = as.vector(sco %*% y[-i])
             } else {
-                F[,'spatial.lag'] = spt %*% y[-i]
-                F[,'social.lag'] = sco %*% Y[-i]
+                F[,'spatial.lag'] = as.vector(spt %*% y[-i])
+                F[,'social.lag'] = as.vector(sco %*% Y[-i])
             }
 
             # normalize features
-            F <- scale(F, center=TRUE, scale=TRUE)
-            F.center <- as.vector(attributes(F)["scaled:center"][[1]])
-            F.scale <- as.vector(attributes(F)["scaled:scale"][[1]])
+			if (normalize) {
+				F <- scale(F, center=TRUE, scale=TRUE)
+				F.center <- as.vector(attributes(F)["scaled:center"][[1]])
+				F.scale <- as.vector(attributes(F)["scaled:scale"][[1]])
+			}
             # fit NB model
             dat <- data.frame(Y[-i], F)
             mod <- glm.nb(data=dat)
@@ -83,11 +89,13 @@ leaveOneOut.PermuteLag <- function(demos, w1, w2, Y) {
             spatial.lag <- w1[i,-i] %*% y[-i]
             social.lag <- w2[i,-i] %*% y[-i]
             dn <- data.frame(demos[i,], spatial.lag, social.lag)
-            dn <- data.frame(scale(dn, center=F.center, scale=F.scale))
+			if (normalize) {
+				dn <- data.frame(scale(dn, center=F.center, scale=F.scale))
+			}
             ybar <- predict(mod, newdata=dn, type=c('response'))
             errors <- c(errors, abs(ybar - Y[i]))
-            mae = c(mae, mean(errors))
         }
+        mae = c(mae, mean(errors))
     }
 
     return(mae)
@@ -108,8 +116,10 @@ Y <- Y / demos$total.population * 10000
 demos$total.population = log(demos$total.population)
 
 
-mae.org <- leaveOneOut(demos, w1, w2, Y, TRUE)
+mae.org <- leaveOneOut(demos, w1, w2, Y, coeff=TRUE, normalize=TRUE)
+cat(mae.org, "\n")
 itersN <- 100
+normalize=TRUE
 
 # permute demographics
 for (i in 1:ncol(demos)) {
@@ -121,7 +131,7 @@ for (i in 1:ncol(demos)) {
         demos.copy <- demos
         # permute features
         demos.copy[,i] <- sample( demos[,i] )
-        mae <- leaveOneOut(demos.copy, w1, w2, Y)
+        mae <- leaveOneOut(demos.copy, w1, w2, Y, normalize=normalize)
         if (mae.org > mae) {
             cnt = cnt + 1
         }
@@ -129,11 +139,12 @@ for (i in 1:ncol(demos)) {
     cat(cnt / itersN, '\n')
 }
 
+
 # permute lag
 cnt.social = 0
 cnt.spatial = 0
 for (j in 1:itersN) {
-    mae = leaveOneOut.PermuteLag(demos, w1, w2, Y)
+    mae = leaveOneOut.PermuteLag(demos, w1, w2, Y, normalize)
     if (mae.org > mae[1]) { # first one is social lag
         cnt.social = cnt.social + 1
     }
