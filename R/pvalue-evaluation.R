@@ -3,17 +3,26 @@ library(MASS)
 
 
 
-leaveOneOut <- function(demos, w1, w2, Y, coeff=FALSE, normalize=FALSE) {
+leaveOneOut <- function(demos, w1, w2, Y, coeff=FALSE, normalize=FALSE, socialnorm="bydestination") {
     N <- length(Y)
     # leave one out evaluation
     errors = c()
     if (coeff) {
-        coeffs = vector("double", 11)
+        coeffs = vector("double", ncol(demos) + 2)
     }
     for ( i in 1:N ) {
         F <- demos[-i,]
         spt <- w1[-i, -i]
         sco <- w2[-i, -i]
+
+        if (socialnorm == "bysource") {
+            cs <- colSums(sco)
+            sco <- sweep(sco, 2, cs, "/")
+        } else if (socialnorm == "bydestination") {
+            rs <- rowSums(sco)
+            sco <- sweep(sco, 1, rs, "/")
+        }
+            
         y <- Y[-i]
 
         F[,'spatial.lag'] = as.vector(spt %*% y)
@@ -34,11 +43,16 @@ leaveOneOut <- function(demos, w1, w2, Y, coeff=FALSE, normalize=FALSE) {
 
         # predict at point i
         spatial.lag <- w1[i,-i] %*% y
-        social.lag <- w2[i,-i] %*% y
+        if (socialnorm == "bysource") {
+            social.lag <- w2[i,-i] / cs %*% y
+        } else if (socialnorm == "bydestination") {
+            social.lag <- w2[i,-i]  %*% y / sum(w2[i,-i])
+        }
         dn <- data.frame(demos[i,], spatial.lag, social.lag)
-		if (normalize) {
-			dn <- data.frame(scale(dn, center=F.center, scale=F.scale))
-		}
+
+	if (normalize) {
+            dn <- data.frame(scale(dn, center=F.center, scale=F.scale))
+	}
         ybar <- predict(mod, newdata=dn, type=c('response'))
         errors <- c(errors, abs(ybar - Y[i]))
     }
@@ -53,7 +67,7 @@ leaveOneOut <- function(demos, w1, w2, Y, coeff=FALSE, normalize=FALSE) {
 
 
 
-leaveOneOut.PermuteLag <- function(demos, w1, w2, Y, normalize=FALSE) {
+leaveOneOut.PermuteLag <- function(demos, w1, w2, Y, normalize=FALSE, socialnorm="bydestination") {
     N <- length(Y)
     # permute lag matix is equivalent to permute Y
     y = sample(Y)
@@ -65,6 +79,14 @@ leaveOneOut.PermuteLag <- function(demos, w1, w2, Y, normalize=FALSE) {
             F <- demos[-i,]
             spt <- w1[-i, -i]
             sco <- w2[-i, -i]
+
+            if (socialnorm == "bysource") {
+                cs <- colSums(sco)
+                sco <- sweep(sco, 2, cs, "/")
+            } else if (socialnorm == "bydestination") {
+                rs <- rowSums(sco)
+                sco <- sweep(sco, 1, rs, "/")
+            }
             
 
             if (lag == "social") {
@@ -87,7 +109,11 @@ leaveOneOut.PermuteLag <- function(demos, w1, w2, Y, normalize=FALSE) {
 
             # predict at point i
             spatial.lag <- w1[i,-i] %*% y[-i]
-            social.lag <- w2[i,-i] %*% y[-i]
+            if (socialnorm == "bysource") {
+                social.lag <- w2[i,-i] / cs %*% y[-i]
+            } else if (socialnorm == "bydestination") {
+                social.lag <- w2[i,-i]  %*% y[-i] / sum(w2[i,-i])
+            }
             dn <- data.frame(demos[i,], spatial.lag, social.lag)
 			if (normalize) {
 				dn <- data.frame(scale(dn, center=F.center, scale=F.scale))
@@ -104,34 +130,43 @@ leaveOneOut.PermuteLag <- function(demos, w1, w2, Y, normalize=FALSE) {
 
 
 demos <- read.table('pvalue-demo.csv', header=TRUE, sep=",")
+focusColumn <- names(demos) %in% c("total.population", "poverty.index", "residential.stability")
+demos.part <- demos[focusColumn]
+cat(names(demos.part), "\n")
+
+
 # spatial matrix
 w1 <- as.matrix(read.csv('pvalue-spatiallag.csv', header=FALSE))
 # social matrix
+# The entry (i,j) means the flow from j entering i.
+# row i means, the flow from other CAs entering CA_i
 w2 <- as.matrix(read.csv('pvalue-sociallag.csv', header=FALSE))
+w2 <- t(w2)
 # crime
 Y <- read.csv('pvalue-crime.csv', header=FALSE)
 Y <- Y$V1
 Y <- Y / demos$total.population * 10000
 
-demos$total.population = log(demos$total.population)
+demos.part$total.population = log(demos.part$total.population)
 
 
-mae.org <- leaveOneOut(demos, w1, w2, Y, coeff=TRUE, normalize=TRUE)
+mae.org <- leaveOneOut(demos.part, w1, w2, Y, coeff=TRUE, normalize=TRUE, socialnorm="bydestination")
 cat(mae.org, "\n")
 itersN <- 100
-normalize=TRUE
+normalize <- TRUE
+sn <- "bydestination"
 
 # permute demographics
-for (i in 1:ncol(demos)) {
+for (i in 1:ncol(demos.part)) {
     
-    cat(colnames(demos)[i], ' ')
+    cat(colnames(demos.part)[i], ' ')
     cnt <- 0
     
     for (j in 1:itersN) {
-        demos.copy <- demos
+        demos.copy <- demos.part
         # permute features
-        demos.copy[,i] <- sample( demos[,i] )
-        mae <- leaveOneOut(demos.copy, w1, w2, Y, normalize=normalize)
+        demos.copy[,i] <- sample( demos.part[,i] )
+        mae <- leaveOneOut(demos.copy, w1, w2, Y, normalize=normalize, socialnorm=sn)
         if (mae.org > mae) {
             cnt = cnt + 1
         }
@@ -144,7 +179,7 @@ for (i in 1:ncol(demos)) {
 cnt.social = 0
 cnt.spatial = 0
 for (j in 1:itersN) {
-    mae = leaveOneOut.PermuteLag(demos, w1, w2, Y, normalize)
+    mae = leaveOneOut.PermuteLag(demos.part, w1, w2, Y, normalize, socialnorm=sn)
     if (mae.org > mae[1]) { # first one is social lag
         cnt.social = cnt.social + 1
     }
