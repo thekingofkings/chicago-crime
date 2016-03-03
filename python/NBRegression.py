@@ -969,6 +969,46 @@ def coefficients_pvalue():
     
 
 
+
+def longTable_features_allYears():
+    """
+    To serve the needs of Corina run her own experiemtns.
+    Create the following tables in sperate tables containing all different years.
+    """
+    
+    # Crime for different years
+    violentCrime = ['HOMICIDE', 'CRIM SEXUAL ASSAULT', 'BATTERY', 'ROBBERY', 
+                'ARSON', 'DOMESTIC VIOLENCE', 'ASSAULT']
+    total_crime = []
+    violent_crime = []
+    homicide_crime = []
+    for year in range(2001, 2016):
+        y = retrieve_crime_count(year, col=['total'], region='ca')
+        total_crime.append(y)
+        yv = retrieve_crime_count(year, col=violentCrime, region='ca')
+        violent_crime.append(yv)
+        yh = retrieve_crime_count(year, col=['HOMICIDE'], region='ca')
+        homicide_crime.append(yh)
+        
+    crime_header = ','.join( [str(i) for i in  range(2001, 2016)] )
+    
+    total_crime = np.transpose(np.squeeze( np.array(total_crime) ))
+    np.savetxt("total_crime.csv", total_crime, delimiter=",", fmt="%d", 
+               header=crime_header, comments='')
+               
+    violent_crime = np.transpose(np.squeeze(np.array(violent_crime)))
+    np.savetxt("violent_crime.csv", violent_crime, delimiter=",", fmt="%d",
+               header=crime_header, comments='')
+               
+    homicide_crime = np.transpose(np.squeeze(np.array(homicide_crime)))
+    np.savetxt("homicide_crime.csv", homicide_crime, delimiter=",", fmt="%d",
+               header=crime_header, comments='')
+               
+    # 
+    
+    
+    
+
 if __name__ == '__main__':
     import sys
     t = sys.argv[1]
@@ -1014,6 +1054,8 @@ if __name__ == '__main__':
                 print ' &'.join( [h[j]] + ['{0:.3f}'.format(row[j]) for row in v] )
     elif t == 'pvalue':
         coefficients_pvalue()
+    elif t == 'getlongtable':
+        r = longTable_features_allYears()
     
 #    CV = '10Fold'
 #    feat_candi = ['corina', 'spatiallag', 'temporallag', 'sociallag']
