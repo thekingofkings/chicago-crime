@@ -65,9 +65,11 @@ leaveOneOut <- function(demos, ca, w2, Y, coeff=FALSE, normalize=FALSE, socialno
         # predict at point i
         spatial.lag <- w1[i,-i] %*% y
         if (socialnorm == "bysource") {
-            social.lag <- w2[i,-i] / cs %*% y
+            social.lag <- (w2[i,-i] / cs) %*% y
         } else if (socialnorm == "bydestination") {
             social.lag <- w2[i,-i]  %*% y / sum(w2[i,-i])
+        } else {
+            social.lag <- w2[i,-i] %*% y
         }
         dn <- data.frame(demos[i, , drop=FALSE], spatial.lag, social.lag)
 
@@ -94,6 +96,7 @@ leaveOneOut.PermuteLag <- function(demos, ca, w2, Y, normalize=FALSE, socialnorm
     y = sample(Y)
     mae = c()
     w1 <- spatialWeight(ca)
+    # control which lags to use
     for (lag in c("social", "spatial")) {
         # leave one out evaluation
         errors = c()
@@ -132,11 +135,13 @@ leaveOneOut.PermuteLag <- function(demos, ca, w2, Y, normalize=FALSE, socialnorm
             # predict at point i
             spatial.lag <- w1[i,-i] %*% y[-i]
             if (socialnorm == "bysource") {
-                social.lag <- w2[i,-i] / cs %*% y[-i]
+                social.lag <- (w2[i,-i] / cs) %*% y[-i]
             } else if (socialnorm == "bydestination") {
                 social.lag <- w2[i,-i]  %*% y[-i] / sum(w2[i,-i])
+            } else {
+                social.lag <- w2[i,-i] %*% y[-i]
             }
-            dn <- data.frame(demos[i,], spatial.lag, social.lag)
+            dn <- data.frame(demos[i, , drop=FALSE], spatial.lag, social.lag)
 			if (normalize) {
 				dn <- data.frame(scale(dn, center=F.center, scale=F.scale))
 			}
@@ -157,7 +162,7 @@ ca = readShapeSpatial("../data/ChiCA_gps/ChiCaGPS")
 w1 <- spatialWeight(ca)
 
 demos <- read.table('pvalue-demo.csv', header=TRUE, sep=",")
-focusColumn <- names(demos) %in% c("total.population") #, "poverty.index", "residential.stability")
+focusColumn <- names(demos) %in% c("total.population", "poverty.index", "residential.stability")
 demos.part <- demos[focusColumn]
 cat(names(demos.part), "\n")
 
@@ -176,14 +181,14 @@ Y <- read.csv('pvalue-crime.csv', header=FALSE)
 Y <- Y$V1
 #Y <- Y / demos$total.population * 10000
 
-#demos.part$total.population = log(demos.part$total.population)
+demos.part$total.population = log(demos.part$total.population)
 
 normalize <- TRUE
-sn <- "bysource"
+sn <- "bydestination"
 
 mae.org <- leaveOneOut(demos.part, ca, w2, Y, coeff=TRUE, normalize=normalize, socialnorm=sn)
 cat(mae.org, "\n")
-itersN <- 500
+itersN <- 200
 
 # permute demographics
 for (i in 1:ncol(demos.part)) {
@@ -199,7 +204,6 @@ for (i in 1:ncol(demos.part)) {
         if (mae.org > mae) {
             cnt = cnt + 1
         }
-        cat("-->", mae, "\n")
     }
     cat(cnt / itersN, '\n')
 }
@@ -210,6 +214,7 @@ cnt.social = 0
 cnt.spatial = 0
 for (j in 1:itersN) {
     mae = leaveOneOut.PermuteLag(demos.part, ca, w2, Y, normalize, socialnorm=sn)
+	cat("-->", mae, "\n")
     if (mae.org > mae[1]) { # first one is social lag
         cnt.social = cnt.social + 1
     }
