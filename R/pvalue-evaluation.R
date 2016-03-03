@@ -201,6 +201,9 @@ for (i in 1:ncol(demos.part)) {
         # permute features
         demos.copy[,i] <- sample( demos.part[,i] )
         mae <- leaveOneOut(demos.copy, ca, w2, Y, normalize=normalize, socialnorm=sn)
+		if (i %% 100 == 0) {
+			cat("-->", mae, "\n")
+		}
         if (mae.org > mae) {
             cnt = cnt + 1
         }
@@ -214,7 +217,9 @@ cnt.social = 0
 cnt.spatial = 0
 for (j in 1:itersN) {
     mae = leaveOneOut.PermuteLag(demos.part, ca, w2, Y, normalize, socialnorm=sn)
-	cat("-->", mae, "\n")
+	if (j %% 100 == 0) {
+		cat("-->", mae, "\n")
+	}
     if (mae.org > mae[1]) { # first one is social lag
         cnt.social = cnt.social + 1
     }
