@@ -27,7 +27,7 @@ leaveOneOut <- function(demos, ca, w2, Y, coeff=FALSE, normalize=FALSE, socialno
     # leave one out evaluation
     errors = c()
     if (coeff) {
-        coeffs = vector("double", ncol(demos) + 2)
+        coeffs = vector("double", ncol(demos) + 3)
     }
 
     w1 <- spatialWeight(ca)
@@ -184,7 +184,7 @@ Y <- Y$V1
 demos.part$total.population = log(demos.part$total.population)
 
 normalize <- TRUE
-sn <- "bydestination"
+sn <- "bysource"
 
 mae.org <- leaveOneOut(demos.part, ca, w2, Y, coeff=TRUE, normalize=normalize, socialnorm=sn)
 cat(mae.org, "\n")
@@ -201,7 +201,7 @@ for (i in 1:ncol(demos.part)) {
         # permute features
         demos.copy[,i] <- sample( demos.part[,i] )
         mae <- leaveOneOut(demos.copy, ca, w2, Y, normalize=normalize, socialnorm=sn)
-		if (i %% 100 == 0) {
+		if (j %% 100 == 0) {
 			cat("-->", mae, "\n")
 		}
         if (mae.org > mae) {
