@@ -181,6 +181,7 @@ def generate_transition_SocialLag(year = 2010, lehd_type=0, region='ca', leaveOu
             W[ordkey.index(srcid)] = np.zeros( (1,len(ts)) )
             
     
+    W = np.transpose(W)
     if normalization == 'source':
         sW = np.sum(W, axis=0)
         W = W / sW

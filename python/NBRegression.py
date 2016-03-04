@@ -960,7 +960,9 @@ def coefficients_pvalue():
     W1 = generate_geographical_SpatialLag_ca()
     W2 = generate_transition_SocialLag(year=2010, lehd_type=0, region='ca',
                                        normalization='none')
-    Y = retrieve_crime_count(year=2010)
+    violentCrime = ['HOMICIDE', 'CRIM SEXUAL ASSAULT', 'BATTERY', 'ROBBERY', 
+                'ARSON', 'DOMESTIC VIOLENCE', 'ASSAULT']
+    Y = retrieve_crime_count(year=2010, col=violentCrime, region='ca')
     
     demo.to_csv("../R/pvalue-demo.csv", index=False)
     np.savetxt("../R/pvalue-spatiallag.csv", W1, delimiter=",")
@@ -982,6 +984,12 @@ def longTable_features_allYears():
     total_crime = []
     violent_crime = []
     homicide_crime = []
+    
+    # social lag
+    norms = ['source', 'destination', 'pair']
+    sociallag_low = dict( [(key, []) for key in norms])
+    sociallag_all = dict( [(key, []) for key in norms])
+    
     for year in range(2001, 2016):
         y = retrieve_crime_count(year, col=['total'], region='ca')
         total_crime.append(y)
@@ -989,6 +997,22 @@ def longTable_features_allYears():
         violent_crime.append(yv)
         yh = retrieve_crime_count(year, col=['HOMICIDE'], region='ca')
         homicide_crime.append(yh)
+        
+        if year >= 2002 and year <= 2013:
+            for n in norms:
+                # social lag with low income flow
+                socialLOW = generate_transition_SocialLag(year=year, lehd_type=4, 
+                                                          region='ca', normalization=n)
+                                                          
+                s_low = np.dot(socialLOW, y)
+                sociallag_low[n].append(s_low)
+                                                  
+                socialALL = generate_transition_SocialLag(year=year, lehd_type=0,
+                                                          region='ca', normalization=n)
+                s_all = np.dot(socialALL, y)
+                sociallag_all[n].append(s_all)
+            
+            
         
     crime_header = ','.join( [str(i) for i in  range(2001, 2016)] )
     
@@ -1003,8 +1027,19 @@ def longTable_features_allYears():
     homicide_crime = np.transpose(np.squeeze(np.array(homicide_crime)))
     np.savetxt("homicide_crime.csv", homicide_crime, delimiter=",", fmt="%d",
                header=crime_header, comments='')
-               
-    # 
+            
+    lag_header = ",".join( [str(i) for i in range(2002, 2014)])
+    
+    
+    for n in norms:
+        sl = np.transpose(np.squeeze(np.array(sociallag_low[n])))
+        np.savetxt("sociallag_low_{0}.csv".format(n), sl, delimiter=",", fmt="%f",
+                   header=lag_header, comments='')
+                   
+        
+        sa = np.transpose(np.squeeze(np.array(sociallag_all[n])))
+        np.savetxt("sociallag_all_{0}.csv".format(n), sa, delimiter=",", fmt="%f",
+               header=lag_header, comments='')
     
     
     
