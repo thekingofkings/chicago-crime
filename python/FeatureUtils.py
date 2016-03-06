@@ -182,6 +182,12 @@ def generate_transition_SocialLag(year = 2010, lehd_type=0, region='ca', leaveOu
             
     
     W = np.transpose(W)
+    # update diagonal as 0
+    for i in range(len(W)):
+        W[i,i] = 0
+    # first make all self-factor 0
+        
+    # normalization section
     if normalization == 'source':
         sW = np.sum(W, axis=0)
         W = W / sW
@@ -193,9 +199,7 @@ def generate_transition_SocialLag(year = 2010, lehd_type=0, region='ca', leaveOu
         sW = W + np.transpose(W)
         sW = np.sum(sW)
         W = W / sW
-    # update diagonal as 0
-    for i in range(len(W)):
-        W[i,i] = 0
+    
         
     return W
 

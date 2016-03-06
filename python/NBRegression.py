@@ -946,7 +946,7 @@ def NB_coefficients(year=2010):
 
 
 
-def coefficients_pvalue():
+def coefficients_pvalue(crimeType='total'):
     """
     Permutation test + leave-one-out evaluation
     Retrieve leave-one-out error distribution. To determine the p-value
@@ -962,7 +962,10 @@ def coefficients_pvalue():
                                        normalization='none')
     violentCrime = ['HOMICIDE', 'CRIM SEXUAL ASSAULT', 'BATTERY', 'ROBBERY', 
                 'ARSON', 'DOMESTIC VIOLENCE', 'ASSAULT']
-    Y = retrieve_crime_count(year=2010, col=violentCrime, region='ca')
+    if crimeType == 'total':
+        Y = retrieve_crime_count(year=2010, col=['total'], region='ca')
+    elif crimeType == 'violent':
+        Y = retrieve_crime_count(year=2010, col=violentCrime, region='ca')
     
     demo.to_csv("../R/pvalue-demo.csv", index=False)
     np.savetxt("../R/pvalue-spatiallag.csv", W1, delimiter=",")
@@ -1088,7 +1091,7 @@ if __name__ == '__main__':
                 j = o[-i]
                 print ' &'.join( [h[j]] + ['{0:.3f}'.format(row[j]) for row in v] )
     elif t == 'pvalue':
-        coefficients_pvalue()
+        coefficients_pvalue('total')
     elif t == 'getlongtable':
         r = longTable_features_allYears()
     

@@ -42,6 +42,11 @@ leaveOneOut <- function(demos, ca, w2, Y, coeff=FALSE, normalize=FALSE, socialno
         } else if (socialnorm == "bydestination") {
             rs <- rowSums(sco)
             sco <- sweep(sco, 1, rs, "/")
+        } else if (socialnorm == 'bypair') {
+            sco <- sco + t(sco)
+            s <- sum(sco)
+            sco <- sco / s
+            stopifnot( sco[4, 4] == 0, nrow(sco)==N-1, ncol(sco)==N-1, sum(sco) == 1)
         }
             
         y <- Y[-i]
@@ -68,9 +73,13 @@ leaveOneOut <- function(demos, ca, w2, Y, coeff=FALSE, normalize=FALSE, socialno
             social.lag <- (w2[i,-i] / cs) %*% y
         } else if (socialnorm == "bydestination") {
             social.lag <- w2[i,-i]  %*% y / sum(w2[i,-i])
+        } else if (socialnorm == "bypair") {
+            social.lag <- (w2[i,-i] / s) %*% y
         } else {
             social.lag <- w2[i,-i] %*% y
         }
+        stopifnot( length(social.lag) == 1)
+        
         dn <- data.frame(demos[i, , drop=FALSE], spatial.lag, social.lag)
 
 	if (normalize) {
@@ -111,6 +120,11 @@ leaveOneOut.PermuteLag <- function(demos, ca, w2, Y, normalize=FALSE, socialnorm
             } else if (socialnorm == "bydestination") {
                 rs <- rowSums(sco)
                 sco <- sweep(sco, 1, rs, "/")
+            } else if (socialnorm == 'bypair') {
+                sco <- sco + t(sco)
+                s <- sum(sco)
+                sco <- sco / s
+                stopifnot( sco[4, 4] == 0, nrow(sco)==N-1, ncol(sco)==N-1, sum(sco)== 1)
             }
             
 
@@ -138,9 +152,12 @@ leaveOneOut.PermuteLag <- function(demos, ca, w2, Y, normalize=FALSE, socialnorm
                 social.lag <- (w2[i,-i] / cs) %*% y[-i]
             } else if (socialnorm == "bydestination") {
                 social.lag <- w2[i,-i]  %*% y[-i] / sum(w2[i,-i])
+            } else if (socialnorm == "bypair") {
+                social.lag <- (w2[i,-i] / s) %*% y[-1]
             } else {
                 social.lag <- w2[i,-i] %*% y[-i]
             }
+            stopifnot( length(social.lag) == N-1)
             dn <- data.frame(demos[i, , drop=FALSE], spatial.lag, social.lag)
 			if (normalize) {
 				dn <- data.frame(scale(dn, center=F.center, scale=F.scale))
@@ -184,7 +201,7 @@ Y <- Y$V1
 demos.part$total.population = log(demos.part$total.population)
 
 normalize <- TRUE
-sn <- "bysource"
+sn <- "bypair"
 
 mae.org <- leaveOneOut(demos.part, ca, w2, Y, coeff=TRUE, normalize=normalize, socialnorm=sn)
 cat(mae.org, "\n")
