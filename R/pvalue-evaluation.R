@@ -157,7 +157,7 @@ leaveOneOut.PermuteLag <- function(demos, ca, w2, Y, normalize=FALSE, socialnorm
             } else {
                 social.lag <- w2[i,-i] %*% y[-i]
             }
-            stopifnot( length(social.lag) == N-1)
+            stopifnot( length(social.lag) == 1)
             dn <- data.frame(demos[i, , drop=FALSE], spatial.lag, social.lag)
 			if (normalize) {
 				dn <- data.frame(scale(dn, center=F.center, scale=F.scale))
@@ -207,6 +207,7 @@ mae.org <- leaveOneOut(demos.part, ca, w2, Y, coeff=TRUE, normalize=normalize, s
 cat(mae.org, "\n")
 itersN <- 200
 
+if (FALSE) {
 # permute demographics
 for (i in 1:ncol(demos.part)) {
     
@@ -227,7 +228,7 @@ for (i in 1:ncol(demos.part)) {
     }
     cat(cnt / itersN, '\n')
 }
-
+}
 
 # permute lag
 cnt.social = 0
