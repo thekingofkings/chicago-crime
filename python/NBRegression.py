@@ -946,7 +946,7 @@ def NB_coefficients(year=2010):
 
 
 
-def coefficients_pvalue(crimeType='total'):
+def coefficients_pvalue(crimeType='violent'):
     """
     Permutation test + leave-one-out evaluation
     Retrieve leave-one-out error distribution. To determine the p-value
@@ -958,7 +958,7 @@ def coefficients_pvalue(crimeType='total'):
     C = generate_corina_features('ca')
     demo = pd.DataFrame(data=C[1], columns=C[0], dtype="float")
     W1 = generate_geographical_SpatialLag_ca()
-    W2 = generate_transition_SocialLag(year=2010, lehd_type=0, region='ca',
+    W2 = generate_transition_SocialLag(year=2010, lehd_type=4, region='ca',
                                        normalization='none')
     violentCrime = ['HOMICIDE', 'CRIM SEXUAL ASSAULT', 'BATTERY', 'ROBBERY', 
                 'ARSON', 'DOMESTIC VIOLENCE', 'ASSAULT']

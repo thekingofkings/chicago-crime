@@ -27,7 +27,7 @@ leaveOneOut <- function(demos, ca, w2, Y, coeff=FALSE, normalize=FALSE, socialno
     # leave one out evaluation
     errors = c()
     if (coeff) {
-        coeffs = vector("double", ncol(demos) + 3)
+        coeffs = vector("double")
     }
 
     w1 <- spatialWeight(ca)
@@ -62,9 +62,15 @@ leaveOneOut <- function(demos, ca, w2, Y, coeff=FALSE, normalize=FALSE, socialno
 		}
         # fit NB model
         dat <- data.frame(y, F)
-        mod <- glm.nb(data=dat)
+        mod <- glm.nb(y ~ offset(total.population) + poverty.index + residential.stability +
+                      ethnic.diversity + spatial.lag + social.lag, data=dat)
         if (coeff) {
-            coeffs <- coeffs + as.vector(mod$coefficients)
+            coef_iter <- as.vector(mod$coefficients)
+            if (length(coeffs) == 0) {
+                coeffs <- vector("double", length(coef_iter))
+            }
+            coeffs <- coeffs + coef_iter
+            stopifnot( length(coeffs) == length(coef_iter) )
         }
 
         # predict at point i
@@ -90,7 +96,7 @@ leaveOneOut <- function(demos, ca, w2, Y, coeff=FALSE, normalize=FALSE, socialno
     }
 
     if (coeff) {
-        cat("names ", names(mod$coefficients), "\n")
+        cat("Coefficients\n", names(mod$coefficients), "\n")
         cat(coeffs / N, "\n")
     }
 
@@ -144,7 +150,9 @@ leaveOneOut.PermuteLag <- function(demos, ca, w2, Y, normalize=FALSE, socialnorm
 			}
             # fit NB model
             dat <- data.frame(Y[-i], F)
-            mod <- glm.nb(data=dat)
+            names(dat)[1] <- "Y"
+            mod <- glm.nb(Y ~ offset(total.population) + poverty.index + residential.stability +
+                      ethnic.diversity + spatial.lag + social.lag, data=dat)
 
             # predict at point i
             spatial.lag <- w1[i,-i] %*% y[-i]
@@ -179,9 +187,10 @@ ca = readShapeSpatial("../data/ChiCA_gps/ChiCaGPS")
 w1 <- spatialWeight(ca)
 
 demos <- read.table('pvalue-demo.csv', header=TRUE, sep=",")
-focusColumn <- names(demos) %in% c("total.population", "poverty.index", "residential.stability")
+focusColumn <- names(demos) %in% c("total.population", "poverty.index", "residential.stability",
+                                   "ethnic.diversity")
 demos.part <- demos[focusColumn]
-cat(names(demos.part), "\n")
+cat("Selected Demographics features:\n", names(demos.part), "\n")
 
 
 # spatial matrix
@@ -207,7 +216,7 @@ mae.org <- leaveOneOut(demos.part, ca, w2, Y, coeff=TRUE, normalize=normalize, s
 cat(mae.org, "\n")
 itersN <- 200
 
-if (FALSE) {
+
 # permute demographics
 for (i in 1:ncol(demos.part)) {
     
@@ -228,7 +237,7 @@ for (i in 1:ncol(demos.part)) {
     }
     cat(cnt / itersN, '\n')
 }
-}
+
 
 # permute lag
 cnt.social = 0
