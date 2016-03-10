@@ -2,6 +2,10 @@ library(MASS)
 library(maptools)
 library(sp)
 library(spdep)
+library(glmmADMB)
+
+
+z = file("glmmadmb.out", open="wa")
 
 
 
@@ -62,10 +66,12 @@ leaveOneOut <- function(demos, ca, w2, Y, coeff=FALSE, normalize=FALSE, socialno
 		}
         # fit NB model
         dat <- data.frame(y, F)
-        mod <- glm.nb(y ~ offset(total.population) + poverty.index + residential.stability +
-                      ethnic.diversity + spatial.lag + social.lag, data=dat)
+        stopifnot( all(is.finite(as.matrix(dat))) )
+        mod <- glmmadmb(y ~ poverty.index + residential.stability + ethnic.diversity + spatial.lag +
+                        social.lag + offset(total.population), data=dat, family="nbinom", verbose=FALSE)
+        
         if (coeff) {
-            coef_iter <- as.vector(mod$coefficients)
+            coef_iter <- as.vector(mod$b)
             if (length(coeffs) == 0) {
                 coeffs <- vector("double", length(coef_iter))
             }
@@ -96,7 +102,7 @@ leaveOneOut <- function(demos, ca, w2, Y, coeff=FALSE, normalize=FALSE, socialno
     }
 
     if (coeff) {
-        cat("Coefficients\n", names(mod$coefficients), "\n")
+        cat("Coefficients\n", names(mod$b), "\n")
         cat(coeffs / N, "\n")
     }
 
@@ -151,8 +157,8 @@ leaveOneOut.PermuteLag <- function(demos, ca, w2, Y, normalize=FALSE, socialnorm
             # fit NB model
             dat <- data.frame(Y[-i], F)
             names(dat)[1] <- "Y"
-            mod <- glm.nb(Y ~ offset(total.population) + poverty.index + residential.stability +
-                      ethnic.diversity + spatial.lag + social.lag, data=dat)
+            mod <- glmmadmb(Y ~ poverty.index + residential.stability + ethnic.diversity + spatial.lag
+                            + social.lag + offset(total.population), data=dat, family='nbinom')
 
             # predict at point i
             spatial.lag <- w1[i,-i] %*% y[-i]
@@ -212,6 +218,8 @@ demos.part$total.population = log(demos.part$total.population)
 normalize <- TRUE
 sn <- "bypair"
 
+
+sink(z, append=TRUE, type="output", split=FALSE)
 mae.org <- leaveOneOut(demos.part, ca, w2, Y, coeff=TRUE, normalize=normalize, socialnorm=sn)
 cat(mae.org, "\n")
 itersN <- 200
@@ -256,3 +264,6 @@ for (j in 1:itersN) {
 }
 
 cat("social.lag ", cnt.social / itersN, "\nspatial.lag", cnt.spatial / itersN, "\n")
+
+sink()
+

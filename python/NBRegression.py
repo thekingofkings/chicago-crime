@@ -1091,7 +1091,7 @@ if __name__ == '__main__':
                 j = o[-i]
                 print ' &'.join( [h[j]] + ['{0:.3f}'.format(row[j]) for row in v] )
     elif t == 'pvalue':
-        coefficients_pvalue('total')
+        coefficients_pvalue('violent')
     elif t == 'getlongtable':
         r = longTable_features_allYears()
     
