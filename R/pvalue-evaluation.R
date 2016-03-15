@@ -67,12 +67,20 @@ leaveOneOut <- function(demos, ca, w2, Y, coeff=FALSE, normalize=FALSE, socialno
         # fit NB model
         dat <- data.frame(y, F)
         stopifnot( all(is.finite(as.matrix(dat))) )
-        if (exposure == "exposure") {
-            mod <- glmmadmb(y ~ poverty.index + residential.stability + ethnic.diversity + spatial.lag +
-                        social.lag + offset(total.population), data=dat, family="nbinom", verbose=FALSE)
-        } else {
-            mod <- glmmadmb(y ~ poverty.index + residential.stability + ethnic.diversity + spatial.lag +
-                        social.lag + total.population, data=dat, family="nbinom", verbose=FALSE)
+        mod <- tryCatch( {
+            if (exposure == "exposure") {
+                mod <- glmmadmb(y ~ poverty.index + residential.stability + ethnic.diversity + spatial.lag +
+                                social.lag + offset(total.population), data=dat, family="nbinom", verbose=FALSE)
+            } else {
+                mod <- glmmadmb(y ~ poverty.index + residential.stability + ethnic.diversity + spatial.lag +
+                                social.lag + total.population, data=dat, family="nbinom", verbose=FALSE)
+            }
+            mod
+        }, error=function(e) e)
+
+        if (inherits(mod, "error")) {
+            warning("error in glmmadbm fitting - skip this iteration\n")
+            next
         }
         
         if (coeff) {
@@ -162,14 +170,24 @@ leaveOneOut.PermuteLag <- function(demos, ca, w2, Y, normalize=FALSE, socialnorm
             # fit NB model
             dat <- data.frame(Y[-i], F)
             names(dat)[1] <- "y"
-            
-            if (exposure == "exposure") {
-                mod <- glmmadmb(y ~ poverty.index + residential.stability + ethnic.diversity + spatial.lag +
-                                social.lag + offset(total.population), data=dat, family="nbinom", verbose=FALSE)
-            } else {
-                mod <- glmmadmb(y ~ poverty.index + residential.stability + ethnic.diversity + spatial.lag +
-                                social.lag + total.population, data=dat, family="nbinom", verbose=FALSE)
-            }
+
+            mod <- tryCatch( {
+                if (exposure == "exposure") {
+                    mod <- glmmadmb(y ~ poverty.index + residential.stability + ethnic.diversity + spatial.lag +
+                                    social.lag + offset(total.population), data=dat, family="nbinom", verbose=FALSE)
+                } else {
+                    mod <- glmmadmb(y ~ poverty.index + residential.stability + ethnic.diversity + spatial.lag +
+                                    social.lag + total.population, data=dat, family="nbinom", verbose=FALSE)
+                }
+                mod
+            }, error=function(e) e)
+
+            if (inherits(mod, "error")) {
+                 warning("error in glmmadbm fitting - skip this iteration\n")
+                 next
+             }
+
+        
 
             # predict at point i
             spatial.lag <- w1[i,-i] %*% y[-i]
@@ -252,7 +270,7 @@ for (i in 1:ncol(demos.part)) {
         # permute features
         demos.copy[,i] <- sample( demos.part[,i] )
         mae <- leaveOneOut(demos.copy, ca, w2, Y, normalize=normalize, socialnorm=sn, exposure=args[4])
-		if (j %% 100 == 0) {
+		if (j %% 100  == 0) {
 			cat("-->", mae, "\n")
 		}
         if (mae.org > mae) {
