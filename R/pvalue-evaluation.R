@@ -161,7 +161,7 @@ leaveOneOut.PermuteLag <- function(demos, ca, w2, Y, normalize=FALSE, socialnorm
 			}
             # fit NB model
             dat <- data.frame(Y[-i], F)
-            names(dat)[1] <- "Y"
+            names(dat)[1] <- "y"
             
             if (exposure == "exposure") {
                 mod <- glmmadmb(y ~ poverty.index + residential.stability + ethnic.diversity + spatial.lag +
