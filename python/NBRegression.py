@@ -946,20 +946,33 @@ def NB_coefficients(year=2010):
 
 
 
-def coefficients_pvalue(crimeType='violent'):
-    """
+def coefficients_pvalue(lehdType="total", crimeType='total'):
+    """Return the pvalue of Negative Binomial model coefficients.
     Permutation test + leave-one-out evaluation
     Retrieve leave-one-out error distribution. To determine the p-value
     
     The model to be evaluated is the NB model.
-    The features used in this model only includes spatial lag, social lag, and demographics
+    The features used in this model only includes spatial lag, scial lag, and demographics.
+    
+    Keyword arguments:
+    lehdType -- the type of LEHD flow (default "total", alternative "lowincome")
+    crimeType -- the type of predicated crime (default "violent", alternative "total")
     """
     
     C = generate_corina_features('ca')
     demo = pd.DataFrame(data=C[1], columns=C[0], dtype="float")
     W1 = generate_geographical_SpatialLag_ca()
-    W2 = generate_transition_SocialLag(year=2010, lehd_type=4, region='ca',
+    
+    # the LEHD type
+    if lehdType == "lowincome":
+        W2 = generate_transition_SocialLag(year=2010, lehd_type=4, region='ca',
                                        normalization='none')
+    else:
+        W2 = generate_transition_SocialLag(year=2010, lehd_type=0, region='ca',
+                                           normalization='none')
+                                           
+    
+    # the predicated crime type                                           
     violentCrime = ['HOMICIDE', 'CRIM SEXUAL ASSAULT', 'BATTERY', 'ROBBERY', 
                 'ARSON', 'DOMESTIC VIOLENCE', 'ASSAULT']
     if crimeType == 'total':
@@ -967,11 +980,22 @@ def coefficients_pvalue(crimeType='violent'):
     elif crimeType == 'violent':
         Y = retrieve_crime_count(year=2010, col=violentCrime, region='ca')
     
+        
     demo.to_csv("../R/pvalue-demo.csv", index=False)
     np.savetxt("../R/pvalue-spatiallag.csv", W1, delimiter=",")
     np.savetxt("../R/pvalue-sociallag.csv", W2, delimiter=",")
     np.savetxt("../R/pvalue-crime.csv", Y)
     
+
+    socialNorm = ['bydestination', 'bysource', 'bypair']
+    os.chdir("../R")
+    with open("pvalue-log", "a") as flog:
+        for sn in socialNorm:
+            for ep in ["exposure", "noexposure"]:
+                for logpop in ["logpop", "nolog"]:
+                    subprocess.check_call(['Rscript', 'pvalue-evaluation.R', lehdType+"lehd", crimeType+"crime", sn, ep, logpop], stdout=flog)    
+
+
 
 
 
@@ -1091,7 +1115,7 @@ if __name__ == '__main__':
                 j = o[-i]
                 print ' &'.join( [h[j]] + ['{0:.3f}'.format(row[j]) for row in v] )
     elif t == 'pvalue':
-        coefficients_pvalue('violent')
+        coefficients_pvalue(lehdType="total", crimeType="total")
     elif t == 'getlongtable':
         r = longTable_features_allYears()
     

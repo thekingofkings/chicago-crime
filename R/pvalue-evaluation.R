@@ -4,9 +4,9 @@ library(sp)
 library(spdep)
 library(glmmADMB)
 
-
-z = file("glmmadmb.out", open="wa")
-
+args <- commandArgs(trailingOnly = TRUE)
+z = file(paste("glmmadmb-", args[1], args[2], args[3], args[4], args[5], ".out", sep="-"), open="wa")
+cat(args, "\n")
 
 
 spatialWeight <- function( ca, leaveOneOut = -1 ) {
@@ -26,7 +26,7 @@ spatialWeight <- function( ca, leaveOneOut = -1 ) {
 
 
 
-leaveOneOut <- function(demos, ca, w2, Y, coeff=FALSE, normalize=FALSE, socialnorm="bydestination") {
+leaveOneOut <- function(demos, ca, w2, Y, coeff=FALSE, normalize=FALSE, socialnorm="bydestination", exposure="exposure") {
     N <- length(Y)
     # leave one out evaluation
     errors = c()
@@ -67,8 +67,13 @@ leaveOneOut <- function(demos, ca, w2, Y, coeff=FALSE, normalize=FALSE, socialno
         # fit NB model
         dat <- data.frame(y, F)
         stopifnot( all(is.finite(as.matrix(dat))) )
-        mod <- glmmadmb(y ~ poverty.index + residential.stability + ethnic.diversity + spatial.lag +
+        if (exposure == "exposure") {
+            mod <- glmmadmb(y ~ poverty.index + residential.stability + ethnic.diversity + spatial.lag +
                         social.lag + offset(total.population), data=dat, family="nbinom", verbose=FALSE)
+        } else {
+            mod <- glmmadmb(y ~ poverty.index + residential.stability + ethnic.diversity + spatial.lag +
+                        social.lag + total.population, data=dat, family="nbinom", verbose=FALSE)
+        }
         
         if (coeff) {
             coef_iter <- as.vector(mod$b)
@@ -111,7 +116,7 @@ leaveOneOut <- function(demos, ca, w2, Y, coeff=FALSE, normalize=FALSE, socialno
 
 
 
-leaveOneOut.PermuteLag <- function(demos, ca, w2, Y, normalize=FALSE, socialnorm="bydestination") {
+leaveOneOut.PermuteLag <- function(demos, ca, w2, Y, normalize=FALSE, socialnorm="bydestination", exposure="exposure") {
     N <- length(Y)
     # permute lag matix is equivalent to permute Y
     y = sample(Y)
@@ -157,8 +162,14 @@ leaveOneOut.PermuteLag <- function(demos, ca, w2, Y, normalize=FALSE, socialnorm
             # fit NB model
             dat <- data.frame(Y[-i], F)
             names(dat)[1] <- "Y"
-            mod <- glmmadmb(Y ~ poverty.index + residential.stability + ethnic.diversity + spatial.lag
-                            + social.lag + offset(total.population), data=dat, family='nbinom')
+            
+            if (exposure == "exposure") {
+                mod <- glmmadmb(y ~ poverty.index + residential.stability + ethnic.diversity + spatial.lag +
+                                social.lag + offset(total.population), data=dat, family="nbinom", verbose=FALSE)
+            } else {
+                mod <- glmmadmb(y ~ poverty.index + residential.stability + ethnic.diversity + spatial.lag +
+                                social.lag + total.population, data=dat, family="nbinom", verbose=FALSE)
+            }
 
             # predict at point i
             spatial.lag <- w1[i,-i] %*% y[-i]
@@ -211,18 +222,22 @@ w2 <- t(w2)
 # crime
 Y <- read.csv('pvalue-crime.csv', header=FALSE)
 Y <- Y$V1
-#Y <- Y / demos$total.population * 10000
+
+if (args[5] == "logpop") {
+    Y <- Y / demos$total.population * 10000
+}
+
 
 demos.part$total.population = log(demos.part$total.population)
 
 normalize <- TRUE
-sn <- "bypair"
+sn <- args[3]
 
 
 sink(z, append=TRUE, type="output", split=FALSE)
-mae.org <- leaveOneOut(demos.part, ca, w2, Y, coeff=TRUE, normalize=normalize, socialnorm=sn)
+mae.org <- leaveOneOut(demos.part, ca, w2, Y, coeff=TRUE, normalize=normalize, socialnorm=sn, exposure=args[4])
 cat(mae.org, "\n")
-itersN <- 200
+itersN <- 20
 
 
 # permute demographics
@@ -235,7 +250,7 @@ for (i in 1:ncol(demos.part)) {
         demos.copy <- demos.part
         # permute features
         demos.copy[,i] <- sample( demos.part[,i] )
-        mae <- leaveOneOut(demos.copy, ca, w2, Y, normalize=normalize, socialnorm=sn)
+        mae <- leaveOneOut(demos.copy, ca, w2, Y, normalize=normalize, socialnorm=sn, exposure=args[4])
 		if (j %% 100 == 0) {
 			cat("-->", mae, "\n")
 		}
@@ -247,12 +262,13 @@ for (i in 1:ncol(demos.part)) {
 }
 
 
+
 # permute lag
 cnt.social = 0
 cnt.spatial = 0
 for (j in 1:itersN) {
-    mae = leaveOneOut.PermuteLag(demos.part, ca, w2, Y, normalize, socialnorm=sn)
-	if (j %% 100 == 0) {
+    mae = leaveOneOut.PermuteLag(demos.part, ca, w2, Y, normalize, socialnorm=sn, exposure=args[4])
+	if (j %% 5 == 0) {
 		cat("-->", mae, "\n")
 	}
     if (mae.org > mae[1]) { # first one is social lag
