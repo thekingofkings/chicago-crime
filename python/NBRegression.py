@@ -987,15 +987,29 @@ def coefficients_pvalue(lehdType="total", crimeType='total'):
     np.savetxt("../R/pvalue-crime.csv", Y)
     
 
+    # use a multiprocess Pool to run subprocess in parallel
     socialNorm = ['bydestination', 'bysource', 'bypair']
     os.chdir("../R")
-    with open("pvalue-log", "a") as flog:
-        for sn in socialNorm:
-            for ep in ["exposure", "noexposure"]:
-                for logpop in ["logpop", "nolog"]:
-                    subprocess.check_call(['Rscript', 'pvalue-evaluation.R', lehdType+"lehd", crimeType+"crime", sn, ep, logpop], stdout=flog)    
+    from multiprocessing import Pool, cpu_count
+    subProcessPool = Pool(cpu_count() / 2)
+
+    
+    for sn in socialNorm:
+        for ep in ["exposure", "noexposure"]:
+            for logpop in ["logpop", "nolog"]:
+                subProcessPool.apply_async(subPworker, (lehdType, crimeType, sn, ep, logpop))
+                #subprocess.Popen(['Rscript', 'pvalue-evaluation.R', lehdType+"lehd", crimeType+"crime", sn, ep, logpop])
+    subProcessPool.close()
+    subProcessPool.join()
+    
 
 
+def subPworker(lehdType, crimeType, sn, ep, logpop):
+        print "Start worker with", sn, ep, logpop
+        p = subprocess.Popen(['Rscript', 'pvalue-evaluation.R', lehdType+"lehd", crimeType+"crime", sn, ep, logpop])
+        print p.pid, "is running"
+        p.wait()
+        
 
 
 

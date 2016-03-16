@@ -241,12 +241,15 @@ w2 <- t(w2)
 Y <- read.csv('pvalue-crime.csv', header=FALSE)
 Y <- Y$V1
 
+# use crime rate instead of crime count
+# Y <- Y / demos$total.population * 10000
+
+
 if (args[5] == "logpop") {
-    Y <- Y / demos$total.population * 10000
+    demos.part$total.population = log(demos.part$total.population)    
 }
 
 
-demos.part$total.population = log(demos.part$total.population)
 
 normalize <- TRUE
 sn <- args[3]
