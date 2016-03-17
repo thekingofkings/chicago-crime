@@ -996,8 +996,8 @@ def coefficients_pvalue(lehdType="total", crimeType='total'):
     for sociFlag in ["useLEHD", "noLEHD"]:
         for geoFlag in ["useGeo", "noGeo"]:
             for sn in socialNorm:
-                for ep in ["exposure", "noexposure"]:
-                    for logpop in ["logpop", "nolog"]:
+                for ep in ["exposure", "noexposure"][0:1]:
+                    for logpop in ["logpop", "nolog"][0:1]:
                         subProcessPool.apply_async(subPworker, (lehdType, crimeType, sn, ep, logpop, sociFlag, geoFlag))
                         #subprocess.Popen(['Rscript', 'pvalue-evaluation.R', lehdType+"lehd", crimeType+"crime", sn, ep, logpop])
     subProcessPool.close()
