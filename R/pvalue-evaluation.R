@@ -26,7 +26,7 @@ spatialWeight <- function( ca, leaveOneOut = -1 ) {
 
 
 
-leaveOneOut <- function(demos, ca, w2, Y, coeff=FALSE, normalize=FALSE, socialnorm="bydestination", exposure="exposure", sociallag=TRUE, spatiallag=TRUE) {
+leaveOneOut <- function(demos, ca, w2, Y, coeff=FALSE, normalize=FALSE, socialnorm="bydestination", exposure="exposure", SOCIALLAG=TRUE, SPATIALLAG=TRUE) {
     N <- length(Y)
     # leave one out evaluation
     errors = c()
@@ -38,8 +38,9 @@ leaveOneOut <- function(demos, ca, w2, Y, coeff=FALSE, normalize=FALSE, socialno
     for ( i in 1:N ) {
         F <- demos[-i, , drop=FALSE]
         y <- Y[-i]
+        test.dn <- demos[i, , drop=FALSE]
         
-        if (sociallag) {
+        if (SOCIALLAG) {
             # training set
             sco <- w2[-i, -i]
 
@@ -57,27 +58,47 @@ leaveOneOut <- function(demos, ca, w2, Y, coeff=FALSE, normalize=FALSE, socialno
             }
 
             F[,'social.lag'] = as.vector(sco %*% y)
+
+            # testing point i
+            if (socialnorm == "bysource") {
+                social.lag <- (w2[i,-i] / cs) %*% y
+            } else if (socialnorm == "bydestination") {
+                social.lag <- w2[i,-i]  %*% y / sum(w2[i,-i])
+            } else if (socialnorm == "bypair") {
+                social.lag <- (w2[i,-i] / s) %*% y
+            } else {
+                social.lag <- w2[i,-i] %*% y
+            }
+            stopifnot( length(social.lag) == 1)
+            test.dn['social.lag'] = social.lag
         }
 
-        if (spatiallag) {
+        if (SPATIALLAG) {
+            # training set
             spt <- spatialWeight(ca, i)
             F[,'spatial.lag'] = as.vector(spt %*% y)
+            # testing point i
+            spatial.lag <- w1[i,-i] %*% y
+            test.dn['spatial.lag'] <- spatial.lag
         }
-       
-       
+        
 
         # normalize features
         if (normalize) {
+            # normalize training set
             F <- scale(F, center=TRUE, scale=TRUE)
             F.center <- as.vector(attributes(F)["scaled:center"][[1]])
             F.scale <- as.vector(attributes(F)["scaled:scale"][[1]])
+            test.dn <- data.frame(scale(test.dn, center=F.center, scale=F.scale))
         }
+
+        
         # fit NB model
         dat <- data.frame(y, F)
         stopifnot( all(is.finite(as.matrix(dat))) )
         mod <- tryCatch( {
             if (exposure == "exposure") {
-                mod <- glmmadmb(y ~ offset(total.population) + ., data=dat, family="nbinom", verbose=FALSE)
+                mod <- glmmadmb(y ~ . - total.population + offset(total.population), data=dat, family="nbinom", verbose=FALSE)
             } else {
                 mod <- glmmadmb(y ~ ., data=dat, family="nbinom", verbose=FALSE)
             }
@@ -98,25 +119,8 @@ leaveOneOut <- function(demos, ca, w2, Y, coeff=FALSE, normalize=FALSE, socialno
             stopifnot( length(coeffs) == length(coef_iter) )
         }
 
-        # predict at point i
-        spatial.lag <- w1[i,-i] %*% y
-        if (socialnorm == "bysource") {
-            social.lag <- (w2[i,-i] / cs) %*% y
-        } else if (socialnorm == "bydestination") {
-            social.lag <- w2[i,-i]  %*% y / sum(w2[i,-i])
-        } else if (socialnorm == "bypair") {
-            social.lag <- (w2[i,-i] / s) %*% y
-        } else {
-            social.lag <- w2[i,-i] %*% y
-        }
-        stopifnot( length(social.lag) == 1)
         
-        dn <- data.frame(demos[i, , drop=FALSE], spatial.lag, social.lag)
-
-	if (normalize) {
-            dn <- data.frame(scale(dn, center=F.center, scale=F.scale))
-	}
-        ybar <- predict(mod, newdata=dn, type=c('response'))
+        ybar <- predict(mod, newdata=test.dn, type=c('response'))
         errors <- c(errors, abs(ybar - Y[i]))
     }
 
