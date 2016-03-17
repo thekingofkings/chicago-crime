@@ -993,20 +993,21 @@ def coefficients_pvalue(lehdType="total", crimeType='total'):
     from multiprocessing import Pool, cpu_count
     subProcessPool = Pool(cpu_count() / 2)
 
-    
-    for sn in socialNorm:
-        for ep in ["exposure", "noexposure"]:
-            for logpop in ["logpop", "nolog"]:
-                subProcessPool.apply_async(subPworker, (lehdType, crimeType, sn, ep, logpop))
-                #subprocess.Popen(['Rscript', 'pvalue-evaluation.R', lehdType+"lehd", crimeType+"crime", sn, ep, logpop])
+    for sociFlag in ["useLEHD", "noLEHD"]:
+        for geoFlag in ["useGeo", "noGeo"]:
+            for sn in socialNorm:
+                for ep in ["exposure", "noexposure"]:
+                    for logpop in ["logpop", "nolog"]:
+                        subProcessPool.apply_async(subPworker, (lehdType, crimeType, sn, ep, logpop, sociFlag, geoFlag))
+                        #subprocess.Popen(['Rscript', 'pvalue-evaluation.R', lehdType+"lehd", crimeType+"crime", sn, ep, logpop])
     subProcessPool.close()
     subProcessPool.join()
     
 
 
-def subPworker(lehdType, crimeType, sn, ep, logpop):
-        print "Start worker with", sn, ep, logpop
-        p = subprocess.Popen(['Rscript', 'pvalue-evaluation.R', lehdType+"lehd", crimeType+"crime", sn, ep, logpop])
+def subPworker(lehdType, crimeType, sn, ep, logpop, sociFlag, geoFlag):
+        print "Start worker with", sn, ep, logpop, sociFlag, geoFlag
+        p = subprocess.Popen(['Rscript', 'pvalue-evaluation.R', lehdType+"lehd", crimeType+"crime", sn, ep, logpop, sociFlag, geoFlag])
         print p.pid, "is running"
         p.wait()
         

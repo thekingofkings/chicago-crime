@@ -143,10 +143,10 @@ leaveOneOut.PermuteLag <- function(demos, ca, w2, Y, normalize=FALSE, socialnorm
 
     lags <- c()
     if (SOCIALLAG) {
-        lags <- c(lag, "social")
+        lags <- c(lags, "social")
     }
     if (SPATIALLAG) {
-        lags <- c(lag, "spatial")
+        lags <- c(lags, "spatial")
     }
     # control which lags to use
     for (lag in lags) {
@@ -223,7 +223,7 @@ leaveOneOut.PermuteLag <- function(demos, ca, w2, Y, normalize=FALSE, socialnorm
 
             mod <- tryCatch( {
                 if (exposure == "exposure") {
-                    mod <- glmmadmb(y ~ offset(total.population) + ., data=dat, family="nbinom", verbose=FALSE)
+                    mod <- glmmadmb(y ~ . - total.population + offset(total.population), data=dat, family="nbinom", verbose=FALSE)
                 } else {
                     mod <- glmmadmb(y ~ ., data=dat, family="nbinom", verbose=FALSE)
                 }
@@ -297,7 +297,7 @@ mae.org <- leaveOneOut(demos.part, ca, w2, Y, coeff=TRUE, normalize=normalize, s
 cat(mae.org, "\n")
 itersN <- 20
 
-
+if (FALSE) {
 # permute demographics
 for (i in 1:ncol(demos.part)) {
     
@@ -318,6 +318,7 @@ for (i in 1:ncol(demos.part)) {
     }
     cat(cnt / itersN, '\n')
 }
+}
 
 
 if (SOCIALLAG || SPATIALLAG) {
@@ -329,15 +330,25 @@ if (SOCIALLAG || SPATIALLAG) {
 	if (j %% 5 == 0) {
             cat("-->", mae, "\n")
 	}
-        if (mae.org > mae[1]) { # first one is social lag
+        if (SOCIALLAG && mae.org > mae[1]) { # first one is social lag
             cnt.social = cnt.social + 1
         }
-        if (mae.org > mae[2]) {
-            cnt.spatial = cnt.spatial + 1
+        if (!SOCIALLAG) {
+            if (SPATIALLAG && mae.org > mae[1]) {
+                cnt.spatial = cnt.spatial + 1
+            }
+        } else {
+            if (SPATIALLAG && mae.org > mae[2]) {
+                cnt.spatial = cnt.spatial + 1
+            }
         }
     }
 
-    cat("social.lag ", cnt.social / itersN, "\nspatial.lag", cnt.spatial / itersN, "\n")
+    if (SOCIALLAG) 
+        cat("social.lag ", cnt.social / itersN, "\n")
+
+    if (SPATIALLAG)
+        cat("spatial.lag", cnt.spatial / itersN, "\n")
 }
 sink()
 
