@@ -297,7 +297,7 @@ mae.org <- leaveOneOut(demos.part, ca, w2, Y, coeff=TRUE, normalize=normalize, s
 cat(mae.org, "\n")
 itersN <- 20
 
-if (FALSE) {
+
 # permute demographics
 for (i in 1:ncol(demos.part)) {
     
@@ -318,7 +318,7 @@ for (i in 1:ncol(demos.part)) {
     }
     cat(cnt / itersN, '\n')
 }
-}
+
 
 
 if (SOCIALLAG || SPATIALLAG) {
