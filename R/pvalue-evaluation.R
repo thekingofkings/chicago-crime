@@ -309,7 +309,7 @@ for (i in 1:ncol(demos.part)) {
         # permute features
         demos.copy[,i] <- sample( demos.part[,i] )
         mae <- leaveOneOut(demos.copy, ca, w2, Y, normalize=normalize, socialnorm=sn, exposure=args[4], SOCIALLAG=SOCIALLAG, SPATIALLAG=SPATIALLAG)
-		if (j %% 100  == 0) {
+		if (j %% (itersN %/% 5)  == 0) {
 			cat("-->", mae, "\n")
 		}
         if (mae.org > mae) {
@@ -327,7 +327,7 @@ if (SOCIALLAG || SPATIALLAG) {
     cnt.spatial = 0
     for (j in 1:itersN) {
         mae = leaveOneOut.PermuteLag(demos.part, ca, w2, Y, normalize, socialnorm=sn, exposure=args[4], SOCIALLAG=SOCIALLAG, SPATIALLAG=SPATIALLAG)
-	if (j %% 5 == 0) {
+	if (j %% (itersN %/% 5) == 0) {
             cat("-->", mae, "\n")
 	}
         if (SOCIALLAG && mae.org > mae[1]) { # first one is social lag
