@@ -5,7 +5,7 @@ library(spdep)
 library(glmmADMB)
 
 args <- commandArgs(trailingOnly = TRUE)
-z = file(paste("glmmadmb-", args[1], args[2], args[3], args[4], args[5], args[6], args[7], ".out", sep="-"), open="wa")
+z = file(paste("glmmadmb-", args[1], args[2], args[3], args[4], args[5], args[6], args[7], args[8], ".out", sep="-"), open="wa")
 
 
 
@@ -295,7 +295,7 @@ sink(z, append=TRUE, type="output", split=FALSE)
 cat(args, "\n")
 mae.org <- leaveOneOut(demos.part, ca, w2, Y, coeff=TRUE, normalize=normalize, socialnorm=sn, exposure=args[4], SOCIALLAG=SOCIALLAG, SPATIALLAG=SPATIALLAG)
 cat(mae.org, "\n")
-itersN <- 20
+itersN <- strtoi(args[8])
 
 
 # permute demographics
