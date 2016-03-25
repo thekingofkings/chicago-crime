@@ -37,7 +37,7 @@ leaveOneOut <- function(demos, ca, w2, Y, coeff=FALSE, normalize=FALSE, socialno
     w1 <- spatialWeight(ca)
     for ( i in 1:N ) {
         F <- demos[-i, , drop=FALSE]
-        y <- Y[-i]
+        y <-   demos$poverty.index[-i] # Y[-i] #
         test.dn <- demos[i, , drop=FALSE]
         
         if (SOCIALLAG) {
@@ -94,7 +94,9 @@ leaveOneOut <- function(demos, ca, w2, Y, coeff=FALSE, normalize=FALSE, socialno
 
         
         # fit NB model
-        dat <- data.frame(y, F)
+        dat <- data.frame(Y[-i], F)
+        names(dat)[1] <- "y"
+        
         stopifnot( all(is.finite(as.matrix(dat))) )
         mod <- tryCatch( {
             if (exposure == "exposure") {
@@ -136,8 +138,9 @@ leaveOneOut <- function(demos, ca, w2, Y, coeff=FALSE, normalize=FALSE, socialno
 
 leaveOneOut.PermuteLag <- function(demos, ca, w2, Y, normalize=FALSE, socialnorm="bydestination", exposure="exposure",  SOCIALLAG=TRUE, SPATIALLAG=TRUE) {
     N <- length(Y)
+    toPermute <- demos$poverty.index # Y 
     # permute lag matix is equivalent to permute Y
-    y = sample(Y)
+    y = sample(toPermute)
     mae = c()
     w1 <- spatialWeight(ca)
 
@@ -160,7 +163,7 @@ leaveOneOut.PermuteLag <- function(demos, ca, w2, Y, normalize=FALSE, socialnorm
                 # training set
                 spt <- spatialWeight(ca, i)
                 if (lag == "social") {
-                    F[,'spatial.lag'] = as.vector(spt %*% Y[-i])
+                    F[,'spatial.lag'] = as.vector(spt %*% toPermute[-i])
                 } else {
                     F[,'spatial.lag'] = as.vector(spt %*% y[-i])
                 }
@@ -189,7 +192,7 @@ leaveOneOut.PermuteLag <- function(demos, ca, w2, Y, normalize=FALSE, socialnorm
                 if (lag == "social") {
                     F[,'social.lag'] = as.vector(sco %*% y[-i])
                 } else {
-                    F[,'social.lag'] = as.vector(sco %*% Y[-i])
+                    F[,'social.lag'] = as.vector(sco %*% toPermute[-i])
                 }
 
                 # testing data at point i
