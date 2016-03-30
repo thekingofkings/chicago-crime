@@ -38,17 +38,19 @@ def getTaxiFlow(leaveOut = -1, normalization="bydestination", gridLevel='ca'):
     elif gridLevel == 'tract':
         s = np.loadtxt("TF_tract.csv", delimiter=",")
     n = s.shape[0]
+    s = np.transpose(s)
     for i in range(n):
         s[i,i] = 0
         
     if normalization == 'bydestination':
-        fsum = np.sum(s, axis=1)
-        for idx, row in enumerate(s):
-            if fsum[idx] != 0:
-                s[idx] = row / fsum[idx]
+        fsum = np.sum(s, axis=1, keepdims=True)
+        assert fsum.shape == (n,1)
+        s = s / fsum
+        assert s.sum() == 77 and s.sum(axis=1)[9] - 1 <= 0.000000002
     elif normalization == 'bysource':
         fsum = np.sum(s, axis=0)
         s = s / fsum
+        assert s.sum() == 77 and s.sum(axis=0)[23] - 1 <= 0.000000002
     elif normalization == 'none':
         pass
     
@@ -113,4 +115,4 @@ def generateTaxiFlow(gridLevel='ca'):
 if __name__ == '__main__':
     
 #    generateTaxiFlow()
-    s = getTaxiFlow(usePercentage=False)
+    s = getTaxiFlow(normalization="bydestination")
