@@ -271,7 +271,7 @@ cat("Selected Demographics features:\n", names(demos.part), "\n")
 # The entry (i,j) means the flow from j entering i.
 # row i means, the flow from other CAs entering CA_i
 w2 <- as.matrix(read.csv('pvalue-sociallag.csv', header=FALSE))
-w2 <- t(w2)
+
 # crime
 Y <- read.csv('pvalue-crime.csv', header=FALSE)
 Y <- Y$V1
