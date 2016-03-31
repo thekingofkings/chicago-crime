@@ -64,6 +64,8 @@ def getTaxiFlow(leaveOut = -1, normalization="bydestination", gridLevel='ca'):
 def generateTaxiFlow(gridLevel='ca'):
     """
     Generate taxi flow and write it to a file
+    
+    This is slow to run
     """
     if gridLevel == 'ca':
         cas = Tract.createAllCAObjects()

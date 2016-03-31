@@ -16,11 +16,15 @@ spatialWeight <- function( ca, leaveOneOut = -1 ) {
 
     ids <- as.numeric(as.vector(ca$AREA_NUMBE))
     w1 <- nb2mat(poly2nb(ca, row.names=ids), zero.policy=TRUE)
+
     ids.name <- as.character(ids)
-    rownames(w1) <- ids.name
     colnames(w1) <- ids.name
-    w1[ids.name,ids.name] <- w1
-    return(w1)
+
+    order.ids.n <- as.character(sort(ids))
+    w1.res <- w1[order.ids.n, order.ids.n]
+    
+    stopifnot(!all(w1.res == w1))
+    return(w1.res)
 }
 
 
@@ -37,7 +41,7 @@ leaveOneOut <- function(demos, ca, w2, Y, coeff=FALSE, normalize=FALSE, socialno
     w1 <- spatialWeight(ca)
     for ( i in 1:N ) {
         F <- demos[-i, , drop=FALSE]
-        y <-   demos$poverty.index[-i] # Y[-i] #
+        y <- Y[-i]   # demos$poverty.index[-i] #
         test.dn <- demos[i, , drop=FALSE]
         
         if (SOCIALLAG) {
@@ -47,9 +51,11 @@ leaveOneOut <- function(demos, ca, w2, Y, coeff=FALSE, normalize=FALSE, socialno
             if (socialnorm == "bysource") {
                 cs <- colSums(sco)
                 sco <- sweep(sco, 2, cs, "/")
+                stopifnot( sco[4,4] == 0, nrow(sco)==N-1, ncol(sco)==N-1, sum(sco[,3]) == 1)
             } else if (socialnorm == "bydestination") {
                 rs <- rowSums(sco)
                 sco <- sweep(sco, 1, rs, "/")
+                stopifnot( sco[4,4] == 0, nrow(sco)==N-1, ncol(sco)==N-1, sum(sco[3,]) == 1)
             } else if (socialnorm == 'bypair') {
                 sco <- sco + t(sco)
                 s <- sum(sco)
@@ -138,7 +144,7 @@ leaveOneOut <- function(demos, ca, w2, Y, coeff=FALSE, normalize=FALSE, socialno
 
 leaveOneOut.PermuteLag <- function(demos, ca, w2, Y, normalize=FALSE, socialnorm="bydestination", exposure="exposure",  SOCIALLAG=TRUE, SPATIALLAG=TRUE) {
     N <- length(Y)
-    toPermute <- demos$poverty.index # Y 
+    toPermute <- Y # demos$poverty.index
     # permute lag matix is equivalent to permute Y
     y = sample(toPermute)
     mae = c()

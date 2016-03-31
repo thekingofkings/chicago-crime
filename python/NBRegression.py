@@ -967,9 +967,11 @@ def coefficients_pvalue(lehdType="total", crimeType='total'):
     if lehdType == "lowincome":
         W2 = generate_transition_SocialLag(year=2010, lehd_type=4, region='ca',
                                        normalization='none')
-    else:
+    elif lehdType == "total":
         W2 = generate_transition_SocialLag(year=2010, lehd_type=0, region='ca',
                                            normalization='none')
+    elif lehdType == "taxi":
+        W2 = getTaxiFlow(normalization="none")
                                            
     
     # the predicated crime type                                           
