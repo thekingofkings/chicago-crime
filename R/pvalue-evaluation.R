@@ -5,7 +5,7 @@ library(spdep)
 library(glmmADMB)
 
 args <- commandArgs(trailingOnly = TRUE)
-z = file(paste("glmmadmb-", args[1], args[2], args[3], args[4], args[5], args[6], args[7], args[8], ".out", sep="-"), open="wa")
+z = file(paste("glmmadmb-", args[1], args[2], args[3], args[4], args[5], args[6], args[7], args[8], args[9], ".out", sep="-"), open="wa")
 
 
 
@@ -288,6 +288,11 @@ Y <- Y$V1
 
 if (args[5] == "logpop") {
     demos.part$total.population = log(demos.part$total.population)    
+}
+
+
+if (args[9] == "logpopdensty" ){
+    demos.part$population.desnity = log(demos.part$population.density)
 }
 
 
