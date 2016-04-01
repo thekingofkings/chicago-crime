@@ -292,7 +292,7 @@ if (args[5] == "logpop") {
 
 
 if (args[9] == "logpopdensty" ){
-    demos.part$population.desnity = log(demos.part$population.density)
+    demos.part$population.density = log(demos.part$population.density)
 }
 
 
