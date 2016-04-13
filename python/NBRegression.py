@@ -998,10 +998,10 @@ def coefficients_pvalue(lehdType="total", crimeType='total'):
 
     for sociFlag in ["useLEHD", "noLEHD"][0:1]:
         for geoFlag in ["useGeo", "noGeo"][0:1]:
-            for sn in socialNorm[:1]:
-                for ep in ["exposure", "noexposure"]:
+            for sn in socialNorm[0:1]:
+                for ep in ["exposure", "noexposure"][0:1]:
                     for logpop in ["logpop", "pop"][0:1]:
-                        for logpopden in ["logpopdensty", "popdensty"]:
+                        for logpopden in ["logpopdensty", "popdensty"][0:1]:
                             subProcessPool.apply_async(subPworker, (lehdType, crimeType, sn, ep, logpop, sociFlag, geoFlag, itersN, logpopden))
                             #subprocess.Popen(['Rscript', 'pvalue-evaluation.R', lehdType+"lehd", crimeType+"crime", sn, ep, logpop])
     subProcessPool.close()
@@ -1010,10 +1010,17 @@ def coefficients_pvalue(lehdType="total", crimeType='total'):
 
 
 def subPworker(lehdType, crimeType, sn, ep, logpop, sociFlag, geoFlag, itersN, logpopden):
-        print "Start worker with", sn, ep, logpop, sociFlag, geoFlag, itersN, logpopden
-        p = subprocess.Popen(['Rscript', 'pvalue-evaluation.R', lehdType+"lehd", crimeType+"crime", sn, ep, logpop, sociFlag, geoFlag, itersN, logpopden])
-        print p.pid, "is running"
-        p.wait()
+    print "Start worker with", sn, ep, logpop, sociFlag, geoFlag, itersN, logpopden
+    import platform
+    if platform.system() == "Windows":
+        p = subprocess.Popen(['Rscript', 'pvalue-evaluation.R', lehdType+"lehd", crimeType+"crime", 
+                          sn, ep, logpop, sociFlag, geoFlag, itersN, logpopden], shell=True)
+    elif platform.system() == "Linux":
+        p = subprocess.Popen(['Rscript', 'pvalue-evaluation.R', lehdType+"lehd", crimeType+"crime", 
+                          sn, ep, logpop, sociFlag, geoFlag, itersN, logpopden])
+        
+    print p.pid, "is running"
+    p.wait()
         
 
 
