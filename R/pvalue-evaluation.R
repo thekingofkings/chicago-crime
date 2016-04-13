@@ -106,7 +106,7 @@ leaveOneOut <- function(demos, ca, w2, Y, coeff=FALSE, normalize=FALSE, socialno
         stopifnot( all(is.finite(as.matrix(dat))) )
         mod <- tryCatch( {
             if (exposure == "exposure") {
-                mod <- glmmadmb(y ~ . - total.population + offset(total.population), data=dat, family="nbinom", verbose=FALSE)
+                mod <- glmmadmb(y ~ .  + offset(total.population), data=dat, family="nbinom", verbose=FALSE)
             } else {
                 mod <- glmmadmb(y ~ ., data=dat, family="nbinom", verbose=FALSE)
             }
@@ -232,7 +232,7 @@ leaveOneOut.PermuteLag <- function(demos, ca, w2, Y, normalize=FALSE, socialnorm
 
             mod <- tryCatch( {
                 if (exposure == "exposure") {
-                    mod <- glmmadmb(y ~ . - total.population + offset(total.population), data=dat, family="nbinom", verbose=FALSE)
+                    mod <- glmmadmb(y ~ . + offset(total.population), data=dat, family="nbinom", verbose=FALSE)
                 } else {
                     mod <- glmmadmb(y ~ ., data=dat, family="nbinom", verbose=FALSE)
                 }
@@ -304,18 +304,21 @@ SPATIALLAG <- if (args[7] == "useGeo") TRUE else FALSE
 normalize <- TRUE
 sn <- args[3]
 
-
-sink(z, append=TRUE, type="output", split=FALSE)
 cat(args, "\n")
+sink(z, append=TRUE, type="output", split=FALSE)
 mae.org <- leaveOneOut(demos.part, ca, w2, Y, coeff=TRUE, normalize=normalize, socialnorm=sn, exposure=args[4], SOCIALLAG=SOCIALLAG, SPATIALLAG=SPATIALLAG)
 cat(mae.org, "\n")
 itersN <- strtoi(args[8])
 
 
+pvalues <- c()
+
+
 # permute demographics
 for (i in 1:ncol(demos.part)) {
     
-    cat(colnames(demos.part)[i], ' ')
+    featureName <- colnames(demos.part)[i]
+    cat(featureName, ' ')
     cnt <- 0
     
     for (j in 1:itersN) {
@@ -323,14 +326,14 @@ for (i in 1:ncol(demos.part)) {
         # permute features
         demos.copy[,i] <- sample( demos.part[,i] )
         mae <- leaveOneOut(demos.copy, ca, w2, Y, normalize=normalize, socialnorm=sn, exposure=args[4], SOCIALLAG=SOCIALLAG, SPATIALLAG=SPATIALLAG)
-		if (j %% (itersN %/% 5)  == 0) {
-			cat("-->", mae, "\n")
-		}
+        if (j %% (itersN %/% 5)  == 0) {
+            cat("-->", mae, "\n")
+        }
         if (mae.org > mae) {
             cnt = cnt + 1
         }
     }
-    cat(cnt / itersN, '\n')
+    pvalues$featureName <- cnt/itersN
 }
 
 
@@ -339,30 +342,40 @@ if (SOCIALLAG || SPATIALLAG) {
     # permute lag
     cnt.social = 0
     cnt.spatial = 0
-    for (j in 1:itersN) {
-        mae = leaveOneOut.PermuteLag(demos.part, ca, w2, Y, normalize, socialnorm=sn, exposure=args[4], SOCIALLAG=SOCIALLAG, SPATIALLAG=SPATIALLAG)
-	if (j %% (itersN %/% 5) == 0) {
-            cat("-->", mae, "\n")
+	for (j in 1:itersN) {
+		mae = leaveOneOut.PermuteLag(demos.part, ca, w2, Y, normalize, socialnorm=sn, exposure=args[4], SOCIALLAG=SOCIALLAG, SPATIALLAG=SPATIALLAG)
+		if (j %% (itersN %/% 5) == 0) {
+			cat("-->", mae, "\n")
+		}
+		if (SOCIALLAG && mae.org > mae[1]) { # first one is social lag
+			cnt.social = cnt.social + 1
+		}
+		if (!SOCIALLAG) {
+			if (SPATIALLAG && mae.org > mae[1]) {
+				cnt.spatial = cnt.spatial + 1
+			}
+		} else {
+			if (SPATIALLAG && mae.org > mae[2]) {
+				cnt.spatial = cnt.spatial + 1
+			}
+		}
 	}
-        if (SOCIALLAG && mae.org > mae[1]) { # first one is social lag
-            cnt.social = cnt.social + 1
-        }
-        if (!SOCIALLAG) {
-            if (SPATIALLAG && mae.org > mae[1]) {
-                cnt.spatial = cnt.spatial + 1
-            }
-        } else {
-            if (SPATIALLAG && mae.org > mae[2]) {
-                cnt.spatial = cnt.spatial + 1
-            }
-        }
-    }
 
-    if (SOCIALLAG) 
-        cat("social.lag ", cnt.social / itersN, "\n")
+	if (SOCIALLAG) {
+		pvalues <- c(pvalues, social.lag=cnt.social / itersN)
+		cat("social.lag ", cnt.social / itersN, "\n")
+	}
+	
 
-    if (SPATIALLAG)
-        cat("spatial.lag", cnt.spatial / itersN, "\n")
+	if (SPATIALLAG) {
+		pvalues <- c(pvalues, spatial.lag=cnt.spatial / itersN)
+		cat("spatial.lag", cnt.spatial / itersN, "\n")
+	}
 }
+
+cat(names(unlist(pvalues)), "\n")
+cat(unlist(pvalues), "\n")
+
+
 sink()
 
