@@ -204,7 +204,7 @@ def generate_transition_SocialLag(year = 2010, lehd_type=0, region='ca', leaveOu
         sW = np.sum(sW)
         W = W / sW
     
-        
+    # by default, the output is the out-flow count matrix
     return W
 
 

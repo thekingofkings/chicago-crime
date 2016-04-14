@@ -60,6 +60,7 @@ def getTaxiFlow(leaveOut = -1, normalization="bydestination", gridLevel='ca'):
         s = s / fsum
         assert s.sum() == n and abs(s.sum(axis=0)[23] - 1) <= 0.000000001
     elif normalization == 'none':
+        # by default, the return value is out-flow count matrix
         pass
     
     

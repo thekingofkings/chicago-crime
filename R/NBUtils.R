@@ -29,6 +29,9 @@ spatialWeight <- function( ca, leaveOneOut = -1 ) {
 
 
 # one run of the leave-one-out evaluation
+############################
+# by default the w2 is out-flow matrix
+############################
 leaveOneOut <- function(demos, ca, w2, Y, coeff=FALSE, normalize=FALSE, socialnorm="bydestination", exposure="exposure", SOCIALLAG=TRUE, SPATIALLAG=TRUE) {
     N <- length(Y)
     # leave one out evaluation
@@ -38,6 +41,7 @@ leaveOneOut <- function(demos, ca, w2, Y, coeff=FALSE, normalize=FALSE, socialno
     }
 
     w1 <- spatialWeight(ca)
+
     for ( i in 1:N ) {
         F <- demos[-i, , drop=FALSE]
         y <- Y[-i]   # demos$poverty.index[-i] #
@@ -47,20 +51,7 @@ leaveOneOut <- function(demos, ca, w2, Y, coeff=FALSE, normalize=FALSE, socialno
             # training set
             sco <- w2[-i, -i]
 
-            if (socialnorm == "bysource") {
-                cs <- colSums(sco)
-                sco <- sweep(sco, 2, cs, "/")
-                stopifnot( sco[4,4] == 0, nrow(sco)==N-1, ncol(sco)==N-1, sum(sco[,3]) == 1)
-            } else if (socialnorm == "bydestination") {
-                rs <- rowSums(sco)
-                sco <- sweep(sco, 1, rs, "/")
-                stopifnot( sco[4,4] == 0, nrow(sco)==N-1, ncol(sco)==N-1, abs(1-sum(sco[3,])) <= 0.0000001)
-            } else if (socialnorm == 'bypair') {
-                sco <- sco + t(sco)
-                s <- sum(sco)
-                sco <- sco / s
-                stopifnot( sco[4, 4] == 0, nrow(sco)==N-1, ncol(sco)==N-1, sum(sco) == 1)
-            }
+            soc <- normalize.social.lag(sco, socialnorm)
 
             F[,'social.lag'] = as.vector(sco %*% y)
 
@@ -148,7 +139,9 @@ leaveOneOut <- function(demos, ca, w2, Y, coeff=FALSE, normalize=FALSE, socialno
 
 
 
-
+############################
+# by default the w2 is out-flow matrix
+############################
 leaveOneOut.PermuteLag <- function(demos, ca, w2, Y, normalize=FALSE, socialnorm="bydestination", exposure="exposure",  SOCIALLAG=TRUE, SPATIALLAG=TRUE) {
     N <- length(Y)
     toPermute <- Y # demos$poverty.index
@@ -192,18 +185,8 @@ leaveOneOut.PermuteLag <- function(demos, ca, w2, Y, normalize=FALSE, socialnorm
                 # training set
                 sco <- w2[-i, -i]
 
-                if (socialnorm == "bysource") {
-                    cs <- colSums(sco)
-                    sco <- sweep(sco, 2, cs, "/")
-                } else if (socialnorm == "bydestination") {
-                    rs <- rowSums(sco)
-                    sco <- sweep(sco, 1, rs, "/")
-                } else if (socialnorm == 'bypair') {
-                    sco <- sco + t(sco)
-                    s <- sum(sco)
-                    sco <- sco / s
-                    stopifnot( sco[4, 4] == 0, nrow(sco)==N-1, ncol(sco)==N-1, sum(sco)== 1)
-                }
+                sco <- normalize.social.lag(sco, socialnorm)
+                
                 if (lag == "social") {
                     F[,'social.lag'] = as.vector(sco %*% y[-i])
                 } else {
@@ -263,3 +246,27 @@ leaveOneOut.PermuteLag <- function(demos, ca, w2, Y, normalize=FALSE, socialnorm
     return(mae)
 }   
 
+
+
+
+normalize.social.lag <- function( sco, socialnorm="bysource" ) {
+    N <- nrow(sco)
+    stopifnot( N == ncol(sco) )
+    if (socialnorm == "bysource") {
+        rs <- rowSums(sco)
+        sco <- sweep(sco, 1, rs, "/")
+        stopifnot( sco[4,4] == 0, nrow(sco)==N, ncol(sco)==N, abs(sum(sco[3,])-1) <= 0.0000001)
+    } else if (socialnorm == "bydestination") {
+        sco <- t(sco)
+        rs <- rowSums(sco)
+        sco <- sweep(sco, 1, rs, "/")
+        stopifnot( sco[4,4] == 0, nrow(sco)==N, ncol(sco)==N, abs(1-sum(sco[3,])) <= 0.0000001)
+    } else if (socialnorm == 'bypair') {
+        sco <- sco + t(sco)
+        s <- sum(sco)
+        sco <- sco / s
+        stopifnot( sco[4, 4] == 0, nrow(sco)==N, ncol(sco)==N, sum(sco) == 1)
+    }
+
+    return (sco)
+}
