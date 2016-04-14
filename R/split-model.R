@@ -14,7 +14,8 @@ sink(z, append=TRUE, type="output", split=FALSE)
 ca <- readShapeSpatial("../data/ChiCA_gps/ChiCaGPS")
 
 
-DIVISION <- 41.831096
+# 41.861096  -- South of this is a better model
+DIVISION <- 41.921096
 
 caN <- ca[coordinates(ca)[,2] > DIVISION, drop=FALSE]
 caS <- ca[coordinates(ca)[,2] <= DIVISION, drop=FALSE]
@@ -48,13 +49,16 @@ Y <- Y / demos$total.population * 10000
 # demos.part$total.population = log(demos.part$total.population)
 
 
+useLEHD = FALSE
+useGEO = FALSE
+
 # north Chicago
-mae.org <- leaveOneOut(demos.part[idN,], caN, w2[idN, idN], Y[idN], coeff=TRUE, normalize=TRUE, socialnorm="bydestination", exposure="noexposure", SOCIALLAG=TRUE, SPATIALLAG=TRUE)
+mae.org <- leaveOneOut(demos.part[idN,], caN, w2[idN, idN], Y[idN], coeff=TRUE, normalize=TRUE, socialnorm="bydestination", exposure="noexposure", SOCIALLAG=useLEHD, SPATIALLAG=useGEO)
 cat(mean(mae.org), "\n")
 
 
 # south Chicago
-mae.org2 <- leaveOneOut(demos.part[idS,], caS, w2[idS, idS], Y[idS], coeff=TRUE, normalize=TRUE, socialnorm="bydestination", exposure="noexposure", SOCIALLAG=TRUE, SPATIALLAG=TRUE)
+mae.org2 <- leaveOneOut(demos.part[idS,], caS, w2[idS, idS], Y[idS], coeff=TRUE, normalize=TRUE, socialnorm="bydestination", exposure="noexposure", SOCIALLAG=useLEHD, SPATIALLAG=useGEO)
 cat(mean(mae.org2), "\n")
 
 
@@ -63,7 +67,7 @@ cat("overall MAE", mean( c(mae.org, mae.org2) ), "\n")
 
 
 # One model
-mae.org3 <- leaveOneOut(demos.part, ca, w2, Y, coeff=TRUE, normalize=TRUE, socialnorm="bydestination", exposure="noexposure", SOCIALLAG=TRUE, SPATIALLAG=TRUE)
+mae.org3 <- leaveOneOut(demos.part, ca, w2, Y, coeff=TRUE, normalize=TRUE, socialnorm="bydestination", exposure="noexposure", SOCIALLAG=useLEHD, SPATIALLAG=useGEO)
 cat(mean(mae.org3[idN]), mean(mae.org3[idS]), "\n", mean(mae.org3), "\n")
 
 

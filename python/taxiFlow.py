@@ -38,25 +38,31 @@ def getTaxiFlow(leaveOut = -1, normalization="bydestination", gridLevel='ca'):
     elif gridLevel == 'tract':
         s = np.loadtxt("TF_tract.csv", delimiter=",")
     n = s.shape[0]
-    s = np.transpose(s)
+    
     for i in range(n):
         s[i,i] = 0
-        
-    if normalization == 'bydestination':
-        fsum = np.sum(s, axis=1, keepdims=True)
-        assert fsum.shape == (n,1)
-        s = s / fsum
-        assert s.sum() == 77 and s.sum(axis=1)[9] - 1 <= 0.000000002
-    elif normalization == 'bysource':
-        fsum = np.sum(s, axis=0)
-        s = s / fsum
-        assert s.sum() == 77 and s.sum(axis=0)[23] - 1 <= 0.000000002
-    elif normalization == 'none':
-        pass
     
     if leaveOut > 0:
         s = np.delete(s, leaveOut -1, 0)
         s = np.delete(s, leaveOut -1, 1)
+        
+    n = s.shape[0]
+        
+    assert s.dtype == "float64"
+    if normalization == 'bydestination':
+        s = np.transpose(s)
+        fsum = np.sum(s, axis=1, keepdims=True)
+        assert fsum.shape == (n,1)
+        s = s / fsum
+        assert s.sum() == n and abs(s.sum(axis=1)[9] - 1) <= 0.000000001
+    elif normalization == 'bysource':
+        fsum = np.sum(s, axis=1, keepdims=True)
+        s = s / fsum
+        assert s.sum() == n and abs(s.sum(axis=0)[23] - 1) <= 0.000000001
+    elif normalization == 'none':
+        pass
+    
+    
     return s
 
 
@@ -117,4 +123,4 @@ def generateTaxiFlow(gridLevel='ca'):
 if __name__ == '__main__':
     
 #    generateTaxiFlow()
-    s = getTaxiFlow(normalization="bydestination")
+    s = getTaxiFlow(leaveOut=2, normalization="bydestination")

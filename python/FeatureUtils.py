@@ -181,17 +181,21 @@ def generate_transition_SocialLag(year = 2010, lehd_type=0, region='ca', leaveOu
             W[ordkey.index(srcid)] = np.zeros( (1,len(ts)) )
             
     
-    W = np.transpose(W)
+    
     # update diagonal as 0
     for i in range(len(W)):
         W[i,i] = 0
     # first make all self-factor 0
+    assert W.dtype == "float64"
         
     # normalization section
     if normalization == 'source':
-        sW = np.sum(W, axis=0)
+        sW = np.sum(W, axis=1, keepdims=True)
         W = W / sW
+        assert abs( np.sum(W[1,]) - 1 ) < 0.0000000001 and W.dtype == "float64"
     elif normalization == 'destination':
+        # use in-flow (therefore transpose)
+        W = np.transpose(W)
         sW = np.sum(W, axis=1)
         sW = sW.reshape((len(sW),1))
         W = W / sW
@@ -393,7 +397,7 @@ if __name__ == '__main__':
     
     
     t = generate_transition_SocialLag(year = 2010, lehd_type=0, region='ca', 
-                                      leaveOut=-1, normalization='pair')
+                                      leaveOut=-1, normalization='source')
 #    generateDotFile(t, 0.08, 'sociallag')
     
 #    h = retrieve_health_data()
