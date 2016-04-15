@@ -49,7 +49,7 @@ Y <- Y$V1
 
 
 if (args[5] == "logpop") {
-    demos.part$total.population = log(demos.part$total.population)    
+    demos.part$total.population = log(demos.part$total.population / 1000) 
 }
 
 

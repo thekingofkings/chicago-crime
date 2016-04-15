@@ -58,7 +58,7 @@ normalize.social.lag <- function( sco, socialnorm="bysource" ) {
 learnNB <- function( dat, exposure ) {
     mod <- tryCatch( {
         if (exposure == "exposure") {
-            mod <- glmmadmb(y ~ . + offset(total.population), data=dat, family="nbinom", verbose=FALSE)
+            mod <- glmmadmb(y ~ . - total.population + offset(total.population), data=dat, family="nbinom", verbose=FALSE)
         } else {
             mod <- glmmadmb(y ~ ., data=dat, family="nbinom", verbose=FALSE)
         }
@@ -90,7 +90,7 @@ leaveOneOut <- function(demos, ca, w2, Y, coeff=FALSE, normalize=FALSE, socialno
     errors <- foreach ( i = 1:N, .combine="cbind", .export=c("normalize.social.lag", "spatialWeight", "learnNB"), 
 					   .packages=c("sp", "spdep", "glmmADMB") ) %dopar%  {
         F <- demos[-i, , drop=FALSE]
-        y <- Y[-i]   # demos$poverty.index[-i] #
+        y <- Y[-i] / F$total.population   # demos$poverty.index[-i] #
         test.dn <- demos[i, , drop=FALSE]
         
         if (SOCIALLAG) {
@@ -181,7 +181,7 @@ leaveOneOut <- function(demos, ca, w2, Y, coeff=FALSE, normalize=FALSE, socialno
 ############################
 leaveOneOut.PermuteLag <- function(demos, ca, w2, Y, normalize=FALSE, socialnorm="bydestination", exposure="exposure",  SOCIALLAG=TRUE, SPATIALLAG=TRUE) {
     N <- length(Y)
-    toPermute <- Y # demos$poverty.index
+    toPermute <- Y / demos$total.population # demos$poverty.index
     # permute lag matix is equivalent to permute Y
     y = sample(toPermute)
     mae = c()
