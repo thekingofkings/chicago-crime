@@ -396,8 +396,10 @@ if __name__ == '__main__':
 #    generateDotFile(s, 5000)
     
     
-    t = generate_transition_SocialLag(year = 2010, lehd_type=0, region='ca', 
-                                      leaveOut=-1, normalization='source')
+    for year in range(2002, 2014):
+        t = generate_transition_SocialLag(year=year, lehd_type=0, region='ca', 
+                                      leaveOut=-1, normalization='none')
+        np.savetxt("{0}-social-row-matrix.csv".format(year), t, delimiter=",")
 #    generateDotFile(t, 0.08, 'sociallag')
     
 #    h = retrieve_health_data()

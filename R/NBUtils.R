@@ -3,6 +3,8 @@
 
 library(glmmADMB)
 library(spdep)
+library(foreach)
+
 
 
 # calculate contiguous spatial matrix
@@ -25,6 +27,30 @@ spatialWeight <- function( ca, leaveOneOut = -1 ) {
 
 
 
+normalize.social.lag <- function( sco, socialnorm="bysource" ) {
+    N <- nrow(sco)
+    stopifnot( N == ncol(sco) )
+    if (socialnorm == "bysource") {
+        rs <- rowSums(sco)
+        sco <- sweep(sco, 1, rs, "/")
+        stopifnot( sco[4,4] == 0, nrow(sco)==N, ncol(sco)==N, abs(sum(sco[3,])-1) <= 0.0000001)
+    } else if (socialnorm == "bydestination") {
+        sco <- t(sco)
+        rs <- rowSums(sco)
+        sco <- sweep(sco, 1, rs, "/")
+        stopifnot( sco[4,4] == 0, nrow(sco)==N, ncol(sco)==N, abs(1-sum(sco[3,])) <= 0.0000001)
+    } else if (socialnorm == 'bypair') {
+        sco <- sco + t(sco)
+        s <- sum(sco)
+        sco <- sco / s
+        stopifnot( sco[4, 4] == 0, nrow(sco)==N, ncol(sco)==N, sum(sco) == 1)
+    }
+
+    return (sco)
+}
+
+
+
 
 
 
@@ -35,14 +61,10 @@ spatialWeight <- function( ca, leaveOneOut = -1 ) {
 leaveOneOut <- function(demos, ca, w2, Y, coeff=FALSE, normalize=FALSE, socialnorm="bydestination", exposure="exposure", SOCIALLAG=TRUE, SPATIALLAG=TRUE) {
     N <- length(Y)
     # leave one out evaluation
-    errors = c()
-    if (coeff) {
-        coeffs = vector("double")
-    }
 
     w1 <- spatialWeight(ca)
 
-    for ( i in 1:N ) {
+    errors <- foreach ( i = 1:N, .combine="cbind", .export=c("normalize.social.lag", "spatialWeight"), .packages=c("sp", "spdep", "glmmADMB") ) %dopar%  {
         F <- demos[-i, , drop=FALSE]
         y <- Y[-i]   # demos$poverty.index[-i] #
         test.dn <- demos[i, , drop=FALSE]
@@ -106,27 +128,26 @@ leaveOneOut <- function(demos, ca, w2, Y, coeff=FALSE, normalize=FALSE, socialno
 
         if (inherits(mod, "error")) {
             warning("error in glmmadbm fitting - skip this iteration\n")
-            next
+            return(NULL)
         }
         
-        if (coeff) {
-            coef_iter <- as.vector(mod$b)
-            if (length(coeffs) == 0) {
-                coeffs <- vector("double", length(coef_iter))
-            }
-            coeffs <- coeffs + coef_iter
-            stopifnot( length(coeffs) == length(coef_iter) )
-        }
 
         
         ybar <- predict(mod, newdata=test.dn, type=c('response'))
-        errors <- c(errors, abs(ybar - Y[i]))
+        if (coeff) {
+            return ( c(abs(ybar - Y[i]), as.vector(mod$b)) )
+        }
+        else {
+            return(abs(ybar - Y[i]))
+        }
     }
+    # end of anonymous function
 
     if (coeff) {
-        cat("Coefficients\n", names(mod$b), "\n")
-        cat(coeffs / N, "\n")
-        return (errors)
+        cat("Coefficients\n", rownames(errors)[-1], "\n")
+        cat( nrow(errors), ncol(errors), "\n")
+        cat(rowSums(errors)[-1]  / N, "\n")
+        return (mean(errors[1,]))
     }
 
     return(mean(errors))
@@ -160,8 +181,7 @@ leaveOneOut.PermuteLag <- function(demos, ca, w2, Y, normalize=FALSE, socialnorm
     # control which lags to use
     for (lag in lags) {
         # leave one out evaluation
-        errors = c()
-        for ( i in 1:N ) {
+        errors <- foreach ( i=1:N, .combine="cbind", .export=c("normalize.social.lag", "spatialWeight"), .packages=c("sp", "spdep", "glmmADMB") ) %dopar%  {
             F <- demos[-i, , drop=FALSE]
             test.dn <- demos[i, , drop=FALSE]
 
@@ -233,13 +253,16 @@ leaveOneOut.PermuteLag <- function(demos, ca, w2, Y, normalize=FALSE, socialnorm
 
             if (inherits(mod, "error")) {
                  warning("error in glmmadbm fitting - skip this iteration\n")
-                 next
+                 return(NULL)
              }
 
             
             ybar <- predict(mod, newdata=test.dn, type=c('response'))
-            errors <- c(errors, abs(ybar - Y[i]))
+            return(abs(ybar - Y[i]))
         }
+        # end of anonymous function
+
+        
         mae = c(mae, mean(errors))
     }
 
@@ -248,25 +271,3 @@ leaveOneOut.PermuteLag <- function(demos, ca, w2, Y, normalize=FALSE, socialnorm
 
 
 
-
-normalize.social.lag <- function( sco, socialnorm="bysource" ) {
-    N <- nrow(sco)
-    stopifnot( N == ncol(sco) )
-    if (socialnorm == "bysource") {
-        rs <- rowSums(sco)
-        sco <- sweep(sco, 1, rs, "/")
-        stopifnot( sco[4,4] == 0, nrow(sco)==N, ncol(sco)==N, abs(sum(sco[3,])-1) <= 0.0000001)
-    } else if (socialnorm == "bydestination") {
-        sco <- t(sco)
-        rs <- rowSums(sco)
-        sco <- sweep(sco, 1, rs, "/")
-        stopifnot( sco[4,4] == 0, nrow(sco)==N, ncol(sco)==N, abs(1-sum(sco[3,])) <= 0.0000001)
-    } else if (socialnorm == 'bypair') {
-        sco <- sco + t(sco)
-        s <- sum(sco)
-        sco <- sco / s
-        stopifnot( sco[4, 4] == 0, nrow(sco)==N, ncol(sco)==N, sum(sco) == 1)
-    }
-
-    return (sco)
-}

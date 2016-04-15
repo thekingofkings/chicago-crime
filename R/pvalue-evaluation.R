@@ -2,6 +2,10 @@ library(MASS)
 library(maptools)
 library(sp)
 library(spdep)
+library(doParallel)
+
+cl <- makeCluster(4)
+registerDoParallel(cl)
 
 
 source("NBUtils.R")
@@ -72,7 +76,7 @@ itersN <- strtoi(args[8])
 pvalues <- c()
 
 
-# permute demographics
+                                        # permute demographics
 for (i in 1:ncol(demos.part)) {
     
     featureName <- colnames(demos.part)[i]
@@ -81,7 +85,7 @@ for (i in 1:ncol(demos.part)) {
     
     for (j in 1:itersN) {
         demos.copy <- demos.part
-        # permute features
+                                        # permute features
         demos.copy[,i] <- sample( demos.part[,i] )
         mae <- leaveOneOut(demos.copy, ca, w2, Y, normalize=normalize, socialnorm=sn, exposure=args[4], SOCIALLAG=SOCIALLAG, SPATIALLAG=SPATIALLAG)
         if (j %% (itersN %/% 5)  == 0) {
@@ -91,44 +95,44 @@ for (i in 1:ncol(demos.part)) {
             cnt = cnt + 1
         }
     }
-    pvalues$featureName <- cnt/itersN
+    pvalues[[featureName]] <- cnt/itersN
 }
 
 
 
 if (SOCIALLAG || SPATIALLAG) {
-    # permute lag
+                                        # permute lag
     cnt.social = 0
     cnt.spatial = 0
-	for (j in 1:itersN) {
-		mae = leaveOneOut.PermuteLag(demos.part, ca, w2, Y, normalize, socialnorm=sn, exposure=args[4], SOCIALLAG=SOCIALLAG, SPATIALLAG=SPATIALLAG)
-		if (j %% (itersN %/% 5) == 0) {
-			cat("-->", mae, "\n")
-		}
-		if (SOCIALLAG && mae.org > mae[1]) { # first one is social lag
-			cnt.social = cnt.social + 1
-		}
-		if (!SOCIALLAG) {
-			if (SPATIALLAG && mae.org > mae[1]) {
-				cnt.spatial = cnt.spatial + 1
-			}
-		} else {
-			if (SPATIALLAG && mae.org > mae[2]) {
-				cnt.spatial = cnt.spatial + 1
-			}
-		}
-	}
+    for (j in 1:itersN) {
+        mae = leaveOneOut.PermuteLag(demos.part, ca, w2, Y, normalize, socialnorm=sn, exposure=args[4], SOCIALLAG=SOCIALLAG, SPATIALLAG=SPATIALLAG)
+        if (j %% (itersN %/% 5) == 0) {
+            cat("-->", mae, "\n")
+        }
+        if (SOCIALLAG && mae.org > mae[1]) { # first one is social lag
+            cnt.social = cnt.social + 1
+        }
+        if (!SOCIALLAG) {
+            if (SPATIALLAG && mae.org > mae[1]) {
+                cnt.spatial = cnt.spatial + 1
+            }
+        } else {
+            if (SPATIALLAG && mae.org > mae[2]) {
+                cnt.spatial = cnt.spatial + 1
+            }
+        }
+    }
 
-	if (SOCIALLAG) {
-		pvalues <- c(pvalues, social.lag=cnt.social / itersN)
-		cat("social.lag ", cnt.social / itersN, "\n")
-	}
-	
+    if (SOCIALLAG) {
+        pvalues <- c(pvalues, social.lag=cnt.social / itersN)
+        cat("social.lag ", cnt.social / itersN, "\n")
+    }
+    
 
-	if (SPATIALLAG) {
-		pvalues <- c(pvalues, spatial.lag=cnt.spatial / itersN)
-		cat("spatial.lag", cnt.spatial / itersN, "\n")
-	}
+    if (SPATIALLAG) {
+        pvalues <- c(pvalues, spatial.lag=cnt.spatial / itersN)
+        cat("spatial.lag", cnt.spatial / itersN, "\n")
+    }
 }
 
 cat(names(unlist(pvalues)), "\n")
@@ -137,3 +141,4 @@ cat(unlist(pvalues), "\n")
 
 sink()
 
+stopCluster(cl)
