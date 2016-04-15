@@ -61,6 +61,14 @@ normalize.social.lag <- function( sco, socialnorm="bysource" ) {
 leaveOneOut <- function(demos, ca, w2, Y, coeff=FALSE, normalize=FALSE, socialnorm="bydestination", exposure="exposure", SOCIALLAG=TRUE, SPATIALLAG=TRUE) {
     N <- length(Y)
     # leave one out evaluation
+    if (coeff) {
+        cat("Coefficients\n", "(intercepts)", names(demos), "")
+        if (SOCIALLAG)
+            cat("social.lag ")
+        if (SPATIALLAG)
+            cat("spatial.lag ")
+        cat("\n")
+    }
 
     w1 <- spatialWeight(ca)
 
@@ -131,7 +139,6 @@ leaveOneOut <- function(demos, ca, w2, Y, coeff=FALSE, normalize=FALSE, socialno
             return(NULL)
         }
         
-
         
         ybar <- predict(mod, newdata=test.dn, type=c('response'))
         if (coeff) {
@@ -144,8 +151,6 @@ leaveOneOut <- function(demos, ca, w2, Y, coeff=FALSE, normalize=FALSE, socialno
     # end of anonymous function
 
     if (coeff) {
-        cat("Coefficients\n", rownames(errors)[-1], "\n")
-        cat( nrow(errors), ncol(errors), "\n")
         cat(rowSums(errors)[-1]  / N, "\n")
         return (mean(errors[1,]))
     }
