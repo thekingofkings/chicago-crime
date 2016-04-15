@@ -1,4 +1,5 @@
-# Implement some utility function for NB regression with glmmADMB
+
+                                        # Implement some utility function for NB regression with glmmADMB
 
 
 library(glmmADMB)
@@ -43,7 +44,7 @@ normalize.social.lag <- function( sco, socialnorm="bysource" ) {
         sco <- sco + t(sco)
         s <- sum(sco)
         sco <- sco / s
-        stopifnot( sco[4, 4] == 0, nrow(sco)==N, ncol(sco)==N, sum(sco) == 1)
+        stopifnot( sco[4, 4] == 0, nrow(sco)==N, ncol(sco)==N, abs(sum(sco) - 1) <= 0.00000001)
     }
 
     return (sco)
@@ -51,6 +52,20 @@ normalize.social.lag <- function( sco, socialnorm="bysource" ) {
 
 
 
+
+
+
+learnNB <- function( dat, exposure ) {
+    mod <- tryCatch( {
+        if (exposure == "exposure") {
+            mod <- glmmadmb(y ~ . + offset(total.population), data=dat, family="nbinom", verbose=FALSE)
+        } else {
+            mod <- glmmadmb(y ~ ., data=dat, family="nbinom", verbose=FALSE)
+        }
+        mod
+    }, error=function(e) e)
+    return (mod)
+}
 
 
 
@@ -72,7 +87,8 @@ leaveOneOut <- function(demos, ca, w2, Y, coeff=FALSE, normalize=FALSE, socialno
 
     w1 <- spatialWeight(ca)
 
-    errors <- foreach ( i = 1:N, .combine="cbind", .export=c("normalize.social.lag", "spatialWeight"), .packages=c("sp", "spdep", "glmmADMB") ) %dopar%  {
+    errors <- foreach ( i = 1:N, .combine="cbind", .export=c("normalize.social.lag", "spatialWeight", "learnNB"), 
+					   .packages=c("sp", "spdep", "glmmADMB") ) %dopar%  {
         F <- demos[-i, , drop=FALSE]
         y <- Y[-i]   # demos$poverty.index[-i] #
         test.dn <- demos[i, , drop=FALSE]
@@ -81,15 +97,16 @@ leaveOneOut <- function(demos, ca, w2, Y, coeff=FALSE, normalize=FALSE, socialno
             # training set
             sco <- w2[-i, -i]
 
-            soc <- normalize.social.lag(sco, socialnorm)
+            sco <- normalize.social.lag(sco, socialnorm)
 
             F[,'social.lag'] = as.vector(sco %*% y)
 
             # testing point i
             if (socialnorm == "bysource") {
-                social.lag <- (w2[i,-i] / cs) %*% y
+                social.lag <- w2[i,-i]  %*% y / sum(w2[i,-i]) 
             } else if (socialnorm == "bydestination") {
-                social.lag <- w2[i,-i]  %*% y / sum(w2[i,-i])
+				w2h <- t(w2)
+                social.lag <- w2h[i,-i]  %*% y / sum(w2h[i,-i])
             } else if (socialnorm == "bypair") {
                 social.lag <- (w2[i,-i] / s) %*% y
             } else {
@@ -125,14 +142,8 @@ leaveOneOut <- function(demos, ca, w2, Y, coeff=FALSE, normalize=FALSE, socialno
         names(dat)[1] <- "y"
         
         stopifnot( all(is.finite(as.matrix(dat))) )
-        mod <- tryCatch( {
-            if (exposure == "exposure") {
-                mod <- glmmadmb(y ~ .  + offset(total.population), data=dat, family="nbinom", verbose=FALSE)
-            } else {
-                mod <- glmmadmb(y ~ ., data=dat, family="nbinom", verbose=FALSE)
-            }
-            mod
-        }, error=function(e) e)
+
+		mod <- learnNB(dat, exposure)
 
         if (inherits(mod, "error")) {
             warning("error in glmmadbm fitting - skip this iteration\n")
@@ -186,7 +197,9 @@ leaveOneOut.PermuteLag <- function(demos, ca, w2, Y, normalize=FALSE, socialnorm
     # control which lags to use
     for (lag in lags) {
         # leave one out evaluation
-        errors <- foreach ( i=1:N, .combine="cbind", .export=c("normalize.social.lag", "spatialWeight"), .packages=c("sp", "spdep", "glmmADMB") ) %dopar%  {
+        errors <- foreach ( i=1:N, .combine="cbind", .export=c("normalize.social.lag", "spatialWeight",
+															   "learnNB"), 
+						   .packages=c("sp", "spdep", "glmmADMB") ) %dopar%  {
             F <- demos[-i, , drop=FALSE]
             test.dn <- demos[i, , drop=FALSE]
 
@@ -220,9 +233,10 @@ leaveOneOut.PermuteLag <- function(demos, ca, w2, Y, normalize=FALSE, socialnorm
 
                 # testing data at point i
                 if (socialnorm == "bysource") {
-                    social.lag <- (w2[i,-i] / cs) %*% y[-i]
+                    social.lag <- w2[i,-i] %*% y[-i] / sum(w2[i,-i])
                 } else if (socialnorm == "bydestination") {
-                    social.lag <- w2[i,-i]  %*% y[-i] / sum(w2[i,-i])
+					w2h <- t(w2)
+                    social.lag <- w2h[i,-i] %*% y[-i] / sum(w2h[i,-i])
                 } else if (socialnorm == "bypair") {
                     social.lag <- (w2[i,-i] / s) %*% y[-1]
                 } else {
@@ -247,14 +261,8 @@ leaveOneOut.PermuteLag <- function(demos, ca, w2, Y, normalize=FALSE, socialnorm
             dat <- data.frame(Y[-i], F)
             names(dat)[1] <- "y"
 
-            mod <- tryCatch( {
-                if (exposure == "exposure") {
-                    mod <- glmmadmb(y ~ . + offset(total.population), data=dat, family="nbinom", verbose=FALSE)
-                } else {
-                    mod <- glmmadmb(y ~ ., data=dat, family="nbinom", verbose=FALSE)
-                }
-                mod
-            }, error=function(e) e)
+
+			mod <- learnNB( dat, exposure )
 
             if (inherits(mod, "error")) {
                  warning("error in glmmadbm fitting - skip this iteration\n")
@@ -273,6 +281,5 @@ leaveOneOut.PermuteLag <- function(demos, ca, w2, Y, normalize=FALSE, socialnorm
 
     return(mae)
 }   
-
 
 

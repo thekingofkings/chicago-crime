@@ -994,11 +994,11 @@ def coefficients_pvalue(lehdType="total", crimeType='total'):
     os.chdir("../R")
     from multiprocessing import Pool, cpu_count
     subProcessPool = Pool(cpu_count() / 2)
-    itersN = "10"
+    itersN = "50"
 
     for sociFlag in ["useLEHD", "noLEHD"][0:1]:
         for geoFlag in ["useGeo", "noGeo"][0:1]:
-            for sn in socialNorm[0:1]:
+            for sn in socialNorm[1:2]:
                 for ep in ["exposure", "noexposure"][0:1]:
                     for logpop in ["logpop", "pop"][0:1]:
                         for logpopden in ["logpopdensty", "popdensty"]:
