@@ -23,9 +23,10 @@ w1 <- spatialWeight(ca)
 
 demos <- read.table('pvalue-demo.csv', header=TRUE, sep=",")
 focusColumn <- names(demos) %in% c("total.population", "population.density",
-                                   "poverty.index", "residential.stability",
+                                   "disadvantage.index", "residential.stability",
                                    "ethnic.diversity")
 demos.part <- demos[focusColumn]
+stopifnot( ncol(demos.part) == 5 )
 cat("Selected Demographics features:\n", names(demos.part), "\n")
 
 
