@@ -68,7 +68,8 @@ sn <- args[3]
 
 cat(args, "\n")
 sink(z, append=TRUE, type="output", split=FALSE)
-mae.org <- leaveOneOut(demos.part, ca, w2, Y, coeff=TRUE, normalize=normalize, socialnorm=sn, exposure=args[4], SOCIALLAG=SOCIALLAG, SPATIALLAG=SPATIALLAG)
+errors <- leaveOneOut(demos.part, ca, w2, Y, coeff=TRUE, normalize=normalize, socialnorm=sn, exposure=args[4], SOCIALLAG=SOCIALLAG, SPATIALLAG=SPATIALLAG)
+mae.org <- mean(errors)
 cat(mae.org, "\n")
 itersN <- strtoi(args[8])
 

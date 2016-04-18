@@ -1,11 +1,20 @@
+# This model train two separate models, which is not fair to compare
+
+
+
 # split the Chicago into north and south and train two models
 
 
 library(maptools)
 library(sp)
+library(doParallel)
+cl <- makeCluster(4)
+registerDoParallel(cl)
+
+source("NBUtilsSplit.R")
 
 
-source("NBUtils.R")
+
 
 z <- file("split-north-south-chicago.out", open="wa")
 sink(z, append=TRUE, type="output", split=FALSE)
@@ -49,34 +58,54 @@ Y <- Y / demos$total.population * 10000
 # demos.part$total.population = log(demos.part$total.population)
 
 
-useLEHD = FALSE
-useGEO = FALSE
+cat("====================== split data and split model ==================\n")
+
+sn = "bysource"
+exp = "noexposure"
+useLEHD = TRUE
+useGEO = TRUE
+
+
 
 # north Chicago
-mae.org <- leaveOneOut(demos.part[idN,], caN, w2[idN, idN], Y[idN], coeff=TRUE, normalize=TRUE, socialnorm="bydestination", exposure="noexposure", SOCIALLAG=useLEHD, SPATIALLAG=useGEO)
-cat(mean(mae.org), "\n")
+mae.org <- leaveOneOut(demos.part[idN,], caN, w2[idN, idN], Y[idN], coeff=TRUE, normalize=TRUE, socialnorm=sn, exposure=exp, SOCIALLAG=useLEHD, SPATIALLAG=useGEO)
+cat("North:", mean(mae.org), "\n")
 
 
 # south Chicago
-mae.org2 <- leaveOneOut(demos.part[idS,], caS, w2[idS, idS], Y[idS], coeff=TRUE, normalize=TRUE, socialnorm="bydestination", exposure="noexposure", SOCIALLAG=useLEHD, SPATIALLAG=useGEO)
-cat(mean(mae.org2), "\n")
+mae.org2 <- leaveOneOut(demos.part[idS,], caS, w2[idS, idS], Y[idS], coeff=TRUE, normalize=TRUE, socialnorm=sn, exposure=exp, SOCIALLAG=useLEHD, SPATIALLAG=useGEO)
+cat("South:", mean(mae.org2), "\n")
 
 
-cat("overall MAE", mean( c(mae.org, mae.org2) ), "\n")
+cat("Overall:", mean( c(mae.org, mae.org2) ), "\n")
 
 
 
 # One model
-mae.org3 <- leaveOneOut(demos.part, ca, w2, Y, coeff=TRUE, normalize=TRUE, socialnorm="bydestination", exposure="noexposure", SOCIALLAG=useLEHD, SPATIALLAG=useGEO)
-cat(mean(mae.org3[idN]), mean(mae.org3[idS]), "\n", mean(mae.org3), "\n")
+mae.org3 <- leaveOneOut(demos.part, ca, w2, Y, coeff=TRUE, normalize=TRUE, socialnorm=sn, exposure=exp, SOCIALLAG=useLEHD, SPATIALLAG=useGEO)
+cat("One model\nNorth:", mean(mae.org3[idN]), "\nSouth:", mean(mae.org3[idS]), "\nOverall:", mean(mae.org3), "\n")
 
 
 
 plot(mae.org3)
 points(1:length(mae.org), mae.org, pch=2, col='red')
 points(  (length(mae.org)+1) :length(mae.org3), mae.org2, pch=2, col='blue')
+
+
+
+
+
+
+
+cat("\n====================== NOT split data but split model ==================\n")
+
+mae.org4 <- leaveOneOut.split(demos.part, ca, w2, Y, idN, idS, socialnorm=sn, exposure=exp)
+
+cat("North:", mean(mae.org4[idN]), "\nSouth:", mean(mae.org4[idS]), "\n")
+cat("Overall:", mean(mae.org4), "\n")
+
+
 sink()
 
 
-
-
+stopCluster(cl)

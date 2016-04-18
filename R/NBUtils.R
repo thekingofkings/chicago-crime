@@ -1,5 +1,5 @@
 
-                                        # Implement some utility function for NB regression with glmmADMB
+# Implement some utility function for NB regression with glmmADMB
 
 
 library(glmmADMB)
@@ -105,7 +105,7 @@ leaveOneOut <- function(demos, ca, w2, Y, coeff=FALSE, normalize=FALSE, socialno
             if (socialnorm == "bysource") {
                 social.lag <- w2[i,-i]  %*% y / sum(w2[i,-i]) 
             } else if (socialnorm == "bydestination") {
-				w2h <- t(w2)
+                w2h <- t(w2)
                 social.lag <- w2h[i,-i]  %*% y / sum(w2h[i,-i])
             } else if (socialnorm == "bypair") {
                 social.lag <- (w2[i,-i] / s) %*% y
@@ -118,6 +118,7 @@ leaveOneOut <- function(demos, ca, w2, Y, coeff=FALSE, normalize=FALSE, socialno
 
         if (SPATIALLAG) {
             # training set
+            stopifnot(rownames(w2) != NULL)
             dropCA <- rownames(w2[i, ,drop=FALSE])
             spt <- spatialWeight(ca, as.numeric(dropCA) )
             F[,'spatial.lag'] = as.vector(spt %*% y)
@@ -143,7 +144,7 @@ leaveOneOut <- function(demos, ca, w2, Y, coeff=FALSE, normalize=FALSE, socialno
         
         stopifnot( all(is.finite(as.matrix(dat))) )
 
-		mod <- learnNB(dat, exposure)
+        mod <- learnNB(dat, exposure)
 
         if (inherits(mod, "error")) {
             warning("error in glmmadbm fitting - skip this iteration\n")
@@ -163,7 +164,7 @@ leaveOneOut <- function(demos, ca, w2, Y, coeff=FALSE, normalize=FALSE, socialno
 
     if (coeff) {
         cat(rowSums(errors)[-1]  / N, "\n")
-        return (mean(errors[1,]))
+        return (errors[1,])
     }
 
     return(mean(errors))
