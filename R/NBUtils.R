@@ -73,15 +73,24 @@ learnNB <- function( dat, exposure ) {
 ############################
 # by default the w2 is out-flow matrix
 ############################
-leaveOneOut <- function(demos, ca, w2, Y, coeff=FALSE, normalize=FALSE, socialnorm="bydestination", exposure="exposure", SOCIALLAG=TRUE, SPATIALLAG=TRUE) {
+leaveOneOut <- function(demos, ca, w2, Y, coeff=FALSE, normalize=FALSE, socialnorm="bydestination", exposure="exposure", lagstr="1111") {
     N <- length(Y)
+    lags <- unlist(strsplit(lagstr, split=""))
+    cat(lags,"\n")
     # leave one out evaluation
     if (coeff) {
-        cat("Coefficients\n", "(intercepts)", names(demos), "")
-        if (SOCIALLAG)
+        if (exposure == "exposure")
+            cat("Coefficients\n", "(intercepts)", names(demos[! c("total.population")]), "")
+        else
+            cat("Coefficients\n", "(intercepts)", names(demos), "")
+        if (lags[1] == "1")
             cat("social.lag ")
-        if (SPATIALLAG)
+        if (lags[2] == "1")
             cat("spatial.lag ")
+        if (lags[3] == "1")
+            cat("social.lag.disadv")
+        if (lags[4] == "1")
+            cat("spatial.lag.disadv")
         cat("\n")
     }
 
@@ -90,41 +99,61 @@ leaveOneOut <- function(demos, ca, w2, Y, coeff=FALSE, normalize=FALSE, socialno
     errors <- foreach ( i = 1:N, .combine="cbind", .export=c("normalize.social.lag", "spatialWeight", "learnNB"), 
 					   .packages=c("sp", "spdep", "glmmADMB") ) %dopar%  {
         F <- demos[-i, , drop=FALSE]
-        y <- Y[-i] / F$total.population   # demos$poverty.index[-i] #
+        y <- Y[-i]
+        y2 <- F$disadvantage.index # demos$poverty.index[-i] #
         test.dn <- demos[i, , drop=FALSE]
-        
-        if (SOCIALLAG) {
+
+        # social lag
+        if (lags[1] == "1" || lags[3] == "1") {
             # training set
             sco <- w2[-i, -i]
 
             sco <- normalize.social.lag(sco, socialnorm)
 
-            F[,'social.lag'] = as.vector(sco %*% y)
+            if (lags[1] == "1")
+                F[,'social.lag'] = as.vector(sco %*% y)
+            if (lags[3] == "1")
+                F[,'social.lag.disadv'] = as.vector(sco %*% y2)
 
             # testing point i
             if (socialnorm == "bysource") {
-                social.lag <- w2[i,-i]  %*% y / sum(w2[i,-i]) 
+                social.lag <- w2[i,-i]  %*% y / sum(w2[i,-i])
+                sl.disadv <- w2[i, -i] %*% y2 / sum(w2[i,-i])
             } else if (socialnorm == "bydestination") {
                 w2h <- t(w2)
                 social.lag <- w2h[i,-i]  %*% y / sum(w2h[i,-i])
+                sl.disadv <- w2h[i, -i] %*% y2 / sum(w2h[i,-i])
             } else if (socialnorm == "bypair") {
                 social.lag <- (w2[i,-i] / s) %*% y
+                sl.disadv <- (w2[i,-i] / s) %*% y2
             } else {
                 social.lag <- w2[i,-i] %*% y
+                sl.disadv <- w2[i,-i] %*% y2
             }
             stopifnot( length(social.lag) == 1)
-            test.dn['social.lag'] = social.lag
+            if (lags[1] == "1")
+                test.dn['social.lag'] = social.lag
+            if (lags[3] == "1")
+                test.dn['social.lag.disadv'] = sl.disadv
         }
 
-        if (SPATIALLAG) {
+        # spatial lag
+        if (lags[2] == "1" || lags[4] == "1") {
             # training set
             stopifnot(rownames(w2) != NULL)
             dropCA <- rownames(w2[i, ,drop=FALSE])
             spt <- spatialWeight(ca, as.numeric(dropCA) )
-            F[,'spatial.lag'] = as.vector(spt %*% y)
+            if (lags[2] == "1")
+                F[,'spatial.lag'] = as.vector(spt %*% y)
+            if (lags[4] == "1")
+                F[,'spatial.lag.disadv'] = as.vector(spt %*% y2)
             # testing point i
             spatial.lag <- w1[i,-i] %*% y
-            test.dn['spatial.lag'] <- spatial.lag
+            spl.disadv <- w1[i,-i] %*% y2
+            if (lags[2] == "1")
+                test.dn['spatial.lag'] <- spatial.lag
+            if (lags[4] == "1")
+                test.dn['spatial.lag.disadv'] <- spl.disadv
         }
         
 

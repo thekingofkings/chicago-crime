@@ -37,7 +37,7 @@ idS <- sort(as.numeric(levels(ca$AREA_NUMBE)[caS$AREA_NUMBE]))
 
 demos <- read.table('pvalue-demo.csv', header=TRUE, sep=",")
 focusColumn <- names(demos) %in% c("total.population", "population.density",
-                                   "poverty.index", "residential.stability",
+                                   "disadvantage.index", "residential.stability",
                                    "ethnic.diversity")
 demos.part <- demos[focusColumn]
 cat("Selected Demographics features:\n", names(demos.part), "\n")
@@ -60,20 +60,19 @@ Y <- Y / demos$total.population * 10000
 
 cat("====================== split data and split model ==================\n")
 
-sn = "bysource"
-exp = "noexposure"
-useLEHD = TRUE
-useGEO = TRUE
+sn <- "bysource"
+exp <- "noexposure"
+uselag <- "1100"
 
 
 
 # north Chicago
-mae.org <- leaveOneOut(demos.part[idN,], caN, w2[idN, idN], Y[idN], coeff=TRUE, normalize=TRUE, socialnorm=sn, exposure=exp, SOCIALLAG=useLEHD, SPATIALLAG=useGEO)
+mae.org <- leaveOneOut(demos.part[idN,], caN, w2[idN, idN], Y[idN], coeff=TRUE, normalize=TRUE, socialnorm=sn, exposure=exp, lagstr=uselag)
 cat("North:", mean(mae.org), "\n")
 
 
 # south Chicago
-mae.org2 <- leaveOneOut(demos.part[idS,], caS, w2[idS, idS], Y[idS], coeff=TRUE, normalize=TRUE, socialnorm=sn, exposure=exp, SOCIALLAG=useLEHD, SPATIALLAG=useGEO)
+mae.org2 <- leaveOneOut(demos.part[idS,], caS, w2[idS, idS], Y[idS], coeff=TRUE, normalize=TRUE, socialnorm=sn, exposure=exp, lagstr=uselag)
 cat("South:", mean(mae.org2), "\n")
 
 
@@ -82,7 +81,7 @@ cat("Overall:", mean( c(mae.org, mae.org2) ), "\n")
 
 
 # One model
-mae.org3 <- leaveOneOut(demos.part, ca, w2, Y, coeff=TRUE, normalize=TRUE, socialnorm=sn, exposure=exp, SOCIALLAG=useLEHD, SPATIALLAG=useGEO)
+mae.org3 <- leaveOneOut(demos.part, ca, w2, Y, coeff=TRUE, normalize=TRUE, socialnorm=sn, exposure=exp, lagstr=uselag)
 cat("One model\nNorth:", mean(mae.org3[idN]), "\nSouth:", mean(mae.org3[idS]), "\nOverall:", mean(mae.org3), "\n")
 
 
