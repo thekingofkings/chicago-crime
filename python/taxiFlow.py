@@ -47,22 +47,26 @@ def getTaxiFlow(leaveOut = -1, normalization="bydestination", gridLevel='ca'):
         s = np.delete(s, leaveOut -1, 1)
         
     n = s.shape[0]
-        
-    assert s.dtype == "float64"
-    if normalization == 'bydestination':
-        s = np.transpose(s)
-        fsum = np.sum(s, axis=1, keepdims=True)
-        assert fsum.shape == (n,1)
-        s = s / fsum
-        assert s.sum() == n and abs(s.sum(axis=1)[9] - 1) <= 0.000000001
-    elif normalization == 'bysource':
-        fsum = np.sum(s, axis=1, keepdims=True)
-        s = s / fsum
-        assert s.sum() == n and abs(s.sum(axis=0)[23] - 1) <= 0.000000001
-    elif normalization == 'none':
-        # by default, the return value is out-flow count matrix
-        pass
     
+    try:
+        assert s.dtype == "float64"
+        if normalization == 'bydestination':
+            s = np.transpose(s)
+            fsum = np.sum(s, axis=1, keepdims=True)
+            fsum[fsum==0] = 1   # get rid of divide by 0
+            assert fsum.shape == (n,1)
+            s = s / fsum
+            assert s.sum() == n and abs(s.sum(axis=1)[9] - 1) <= 0.000000001
+        elif normalization == 'bysource':
+            fsum = np.sum(s, axis=1, keepdims=True)
+            fsum[fsum==0] = 1   # get rid of divide by 0
+            s = s / fsum
+            assert fsum.shape == (n,1) and abs(s.sum(axis=1)[23] - 1) <= 0.000000001
+        elif normalization == 'none':
+            # by default, the return value is out-flow count matrix
+            pass
+    except AssertionError:
+        print s.sum(), n
     
     return s
 

@@ -23,7 +23,7 @@ here = os.path.dirname(os.path.abspath(__file__))
 
 
 
-def generate_corina_features(region='ca'):
+def generate_corina_features(region='ca', leaveOut=-1):
     """
     Generate the features recommended by Corina.
     
@@ -47,6 +47,9 @@ def generate_corina_features(region='ca'):
         for i, row in enumerate(c):
             for j, k in enumerate( hidx ):
                 C[i][j] = float(row[k])
+                
+        if leaveOut > 0:
+            C = np.delete(C, leaveOut-1, 0)
     
         return  fields_dsp, C
     elif region == 'tract':

@@ -72,17 +72,17 @@ def dynamicLR(features, Y, S, eta = 1):
     er = dynamicLR_error(W, features, Y, S, eta)
     
     while (abs(er_prev - er) / er > 0.0001 ):
-        print er
+#        print er
         # update W
         for i in range(N):
             W[i,] = update_wi(features[i,], S[i,], Y[i], W, i, eta)
         er_prev = er
         er = dynamicLR_error(W, features, Y, S, eta)
     
-    print "dynamic LR training finished"
+#    print "dynamic LR training finished"
     
-    plt.matshow(W)
-    return W[0:N,]
+#    plt.matshow(W)
+    return W
 
 
 
@@ -120,32 +120,69 @@ from FeatureUtils import *
 
 
 
-if __name__ == '__main__':
-    poi_dist = getFourSquareCount()
-    F_taxi = getTaxiFlow(normalization="bydestination")
-    W2 = generate_geographical_SpatialLag_ca()
+def prepare_features(features=["poi", "taxi", "demos", "spatiallag"], leaveOneOut=-1):
+    
     Y = retrieve_crime_count(year=2013)
+    if leaveOneOut > 0:
+        Y = np.delete(Y, leaveOneOut-1, 0)
     
+    if "poi" in features:
+        poi_dist = getFourSquareCount(leaveOut=leaveOneOut)
     
-    C = generate_corina_features()
-    demos = ['total population', 'population density', 'disadvantage index', 
-             'residential stability', 'ethnic diversity']
-    demos_idx = [C[0].index(ele) for ele in demos]
-    D = C[1][:,demos_idx]
-    
-    
-    popul = C[1][:,0].reshape(C[1].shape[0],1)
-    Y = np.divide(Y, popul) * 10000
-    
-     
+    if "taxi" in features:
+        F_taxi = getTaxiFlow(leaveOut=leaveOneOut, normalization="bysource")
+
+    if "demos" in features:
+        C = generate_corina_features(leaveOut=leaveOneOut)
+        demos = ['total population', 'population density', 'disadvantage index', 
+                 'residential stability', 'ethnic diversity']
+        demos_idx = [C[0].index(ele) for ele in demos]
+        D = C[1][:,demos_idx]
+        
+        popul = C[1][:,0].reshape(C[1].shape[0],1)
+        Y = np.divide(Y, popul) * 10000
+        
+    if "spatiallag" in features:
+        W2 = generate_geographical_SpatialLag_ca(leaveOut=leaveOneOut)
+        
     f2 = np.dot(W2, Y)
     ftaxi = np.dot(F_taxi, Y)
     
     f = np.ones(f2.shape)
     f = np.concatenate( (f, D, f2, ftaxi, poi_dist), axis=1 )
     
-    S = np.ones(W2.shape)
-    #S[W2 > 0] = 1
+    S = np.zeros(W2.shape)
+    S[W2 > 0] = 1
+#    S = np.ones(W2.shape)
+    
+    return Y, f, S
+        
+
+if __name__ == '__main__':
     
     
-    r = dynamicLR(f, Y, S, 1)
+    Y, f, S = prepare_features()
+    err1 = []
+    err2 = []
+    
+    for i in range(len(Y)):
+        
+        Yp, fp, Sp = prepare_features(leaveOneOut=i+1)
+        W = dynamicLR(fp, Yp, Sp, 1)
+        
+        Si = S[i,]
+        Si = np.delete(Si, i)
+        Si = np.append(Si, 1)
+        wi = np.dot(Si, W) / sum(Si)
+        
+        
+        ybar = np.dot(wi, f[i,])
+        err1.append( abs(Y[i] - ybar) )
+        
+        mod = linearRegression(fp, Yp)
+        ybar2 = mod.predict(f[i,])
+        err2.append( abs(Y[i] - ybar2) )
+        
+        print i, Y[i,0], ybar, ybar2[0], sum(err1)[0], sum(err2)[0]
+        
+    print np.mean(err1), np.mean(err2)
