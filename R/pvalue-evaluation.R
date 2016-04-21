@@ -11,7 +11,7 @@ registerDoParallel(cl)
 source("NBUtils.R")
 
 args <- commandArgs(trailingOnly = TRUE)
-z = file(paste("glmmadmb-", args[1], args[2], args[3], args[4], args[5], args[6], args[7], args[8], args[9], ".out", sep="-"), open="wa")
+z = file(paste("glmmadmb-", args[1], args[2], args[3], args[4], args[5], args[6], args[7], args[8], ".out", sep="-"), open="wa")
 
 
 
@@ -54,13 +54,12 @@ if (args[5] == "logpop") {
 }
 
 
-if (args[9] == "logpopdensty" ){
+if (args[8] == "logpopdensty" ){
     demos.part$population.density = log(demos.part$population.density)
 }
 
 
-SOCIALLAG <- if (args[6] == "useLEHD") TRUE else FALSE
-SPATIALLAG <- if (args[7] == "useGeo") TRUE else FALSE
+lags <- args[6]
 
 
 
@@ -69,10 +68,10 @@ sn <- args[3]
 
 cat(args, "\n")
 sink(z, append=TRUE, type="output", split=FALSE)
-errors <- leaveOneOut(demos.part, ca, w2, Y, coeff=TRUE, normalize=normalize, socialnorm=sn, exposure=args[4], SOCIALLAG=SOCIALLAG, SPATIALLAG=SPATIALLAG)
+errors <- leaveOneOut(demos.part, ca, w2, Y, coeff=TRUE, normalize=normalize, socialnorm=sn, exposure=args[4], lagstr=lags)
 mae.org <- mean(errors)
 cat(mae.org, "\n")
-itersN <- strtoi(args[8])
+itersN <- strtoi(args[7])
 
 
 pvalues <- c()
@@ -89,7 +88,7 @@ for (i in 1:ncol(demos.part)) {
         demos.copy <- demos.part
                                         # permute features
         demos.copy[,i] <- sample( demos.part[,i] )
-        mae <- leaveOneOut(demos.copy, ca, w2, Y, normalize=normalize, socialnorm=sn, exposure=args[4], SOCIALLAG=SOCIALLAG, SPATIALLAG=SPATIALLAG)
+        mae <- leaveOneOut(demos.copy, ca, w2, Y, normalize=normalize, socialnorm=sn, exposure=args[4], lagstr=lags)
         if (j %% (itersN %/% 5)  == 0) {
             cat("-->", mae, "\n")
         }
@@ -107,7 +106,7 @@ if (SOCIALLAG || SPATIALLAG) {
     cnt.social = 0
     cnt.spatial = 0
     for (j in 1:itersN) {
-        mae = leaveOneOut.PermuteLag(demos.part, ca, w2, Y, normalize, socialnorm=sn, exposure=args[4], SOCIALLAG=SOCIALLAG, SPATIALLAG=SPATIALLAG)
+        mae = leaveOneOut.PermuteLag(demos.part, ca, w2, Y, normalize, socialnorm=sn, exposure=args[4], lagstr=lags)
         if (j %% (itersN %/% 5) == 0) {
             cat("-->", mae, "\n")
         }

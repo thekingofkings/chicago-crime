@@ -31,6 +31,7 @@ factor into separate file FeatureUtils
 from FeatureUtils import *
 import warnings
 warnings.filterwarnings('ignore')
+from NegBinStatModel import negativeBinomialRegression
 
 
 """
@@ -881,28 +882,27 @@ def coefficients_pvalue(lehdType="total", crimeType='total'):
     subProcessPool = Pool(cpu_count() / 2)
     itersN = "50"
 
-    for sociFlag in ["useLEHD", "noLEHD"][0:1]:
-        for geoFlag in ["useGeo", "noGeo"][0:1]:
-            for sn in socialNorm[1:2]:
-                for ep in ["exposure", "noexposure"][0:1]:
-                    for logpop in ["logpop", "pop"][0:1]:
-                        for logpopden in ["logpopdensty", "popdensty"][0:1]:
-                            subProcessPool.apply_async(subPworker, (lehdType, crimeType, sn, ep, logpop, sociFlag, geoFlag, itersN, logpopden))
-                            #subprocess.Popen(['Rscript', 'pvalue-evaluation.R', lehdType+"lehd", crimeType+"crime", sn, ep, logpop])
+    lagsFlag = "1100"
+    for sn in socialNorm[1:2]:
+        for ep in ["exposure", "noexposure"][0:1]:
+            for logpop in ["logpop", "pop"][0:1]:
+                for logpopden in ["logpopdensty", "popdensty"][0:1]:
+                    subProcessPool.apply_async(subPworker, (lehdType, crimeType, sn, ep, logpop, lagsFlag, itersN, logpopden))
+                    #subprocess.Popen(['Rscript', 'pvalue-evaluation.R', lehdType+"lehd", crimeType+"crime", sn, ep, logpop])
     subProcessPool.close()
     subProcessPool.join()
     
 
 
-def subPworker(lehdType, crimeType, sn, ep, logpop, sociFlag, geoFlag, itersN, logpopden):
-    print "Start worker with", sn, ep, logpop, sociFlag, geoFlag, itersN, logpopden
+def subPworker(lehdType, crimeType, sn, ep, logpop, lagsFlag, itersN, logpopden):
+    print "Start worker with", sn, ep, logpop, lagsFlag, itersN, logpopden
     import platform
     if platform.system() == "Windows":
         p = subprocess.Popen(['Rscript', 'pvalue-evaluation.R', lehdType+"lehd", crimeType+"crime", 
-                          sn, ep, logpop, sociFlag, geoFlag, itersN, logpopden], shell=True)
+                          sn, ep, logpop, lagsFlag, itersN, logpopden], shell=True)
     elif platform.system() == "Linux":
         p = subprocess.Popen(['Rscript', 'pvalue-evaluation.R', lehdType+"lehd", crimeType+"crime", 
-                          sn, ep, logpop, sociFlag, geoFlag, itersN, logpopden])
+                          sn, ep, logpop, lagsFlag, itersN, logpopden])
         
     print p.pid, "is running"
     p.wait()

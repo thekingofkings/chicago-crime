@@ -209,73 +209,116 @@ leaveOneOut <- function(demos, ca, w2, Y, coeff=FALSE, normalize=FALSE, socialno
 ############################
 # by default the w2 is out-flow matrix
 ############################
-leaveOneOut.PermuteLag <- function(demos, ca, w2, Y, normalize=FALSE, socialnorm="bydestination", exposure="exposure",  SOCIALLAG=TRUE, SPATIALLAG=TRUE) {
+leaveOneOut.PermuteLag <- function(demos, ca, w2, Y, normalize=FALSE, socialnorm="bydestination", exposure="exposure",  lagstr="1111") {
     N <- length(Y)
-    toPermute <- Y / demos$total.population # demos$poverty.index
+    lags.flg <- unlist(strsplit(lagstr, split=""))
     # permute lag matix is equivalent to permute Y
-    y = sample(toPermute)
+    y.p <- sample(Y)
+    disadv <- demos$disadvantage.index
+    disadv.p <- sample(toPermute2) 
+    
+    
     mae = c()
     w1 <- spatialWeight(ca)
 
     lags <- c()
-    if (SOCIALLAG) {
+    if (lags.flg[1] == "1") {
         lags <- c(lags, "social")
     }
-    if (SPATIALLAG) {
+    if (lags.flg[2] == "1") {
         lags <- c(lags, "spatial")
+    }
+    if (lags.flg[3] == "1") {
+        lags <- c(lags, "social.disadv")
+    }
+    if (lags.flg[4] == "1") {
+        lags <- c(lags, "spatial.disadv")
     }
     # control which lags to use
     for (lag in lags) {
         # leave one out evaluation
-        errors <- foreach ( i=1:N, .combine="cbind", .export=c("normalize.social.lag", "spatialWeight",
-															   "learnNB"), 
+        errors <- foreach ( i=1:N, .combine="cbind", .export=c("normalize.social.lag", "spatialWeight", "learnNB"), 
 						   .packages=c("sp", "spdep", "glmmADMB") ) %dopar%  {
             F <- demos[-i, , drop=FALSE]
             test.dn <- demos[i, , drop=FALSE]
 
-            if (SPATIALLAG) {
+            if (lags[2] == "1" || lags[4] == "1") {
                 # training set
                 dropCA <- rownames(w2[i, ,drop=FALSE])
                 spt <- spatialWeight(ca, as.numeric(dropCA) )
 
-                if (lag == "social") {
-                    F[,'spatial.lag'] = as.vector(spt %*% toPermute[-i])
+                if (lag == "spatial") { # spatial lag should be permuted
+                    F[,'spatial.lag'] <- as.vector(spt %*% y.p[-i])
+                    test.dn['spatial.lag'] <- w1[i,-i] %*% y.p[-i]
                 } else {
-                    F[,'spatial.lag'] = as.vector(spt %*% y[-i])
+                    if (lags.flag[2] == "1") { # spatial lag is included but not permuted
+                        F[,'spatial.lag'] <- as.vector(spt %*% Y[-i])
+                        test.dn['spatial.lag'] <- w1[i,-i] %*% Y[-i]
+                    }
                 }
 
-                # testing data at point i
-                spatial.lag <- w1[i,-i] %*% y[-i]
-                test.dn['spatial.lag'] <- spatial.lag
+                if (lag == "spatial.disadv") {
+                    F[,'spatial.lag.disadv'] <- as.vector(spt %*% disadv.p[-i])
+                    test.dn['spatial.lag.disadv'] <- w1[i, -i] %*% disadv.p[-i]
+                } else {
+                    if (lags.flag[4] == "1") {
+                        F[,'spatial.lag.disadv'] <- as.vector(spt %*% disadv[-i])
+                        test.dn['spatial.lag.disadv'] <- w1[i, -i] %*% disadv[-i]
+                    }
+                }                
             }
 
-            if (SOCIALLAG) {
+            if (lags[1] == "1" || lags[3] == "1") {
                 # training set
                 sco <- w2[-i, -i]
 
                 sco <- normalize.social.lag(sco, socialnorm)
+                # set all zeros y1 and y2
+                y1 <- numeric(length(Y[-i]))
+                y2 <- numeric(length(Y[-i]))
                 
                 if (lag == "social") {
-                    F[,'social.lag'] = as.vector(sco %*% y[-i])
+                    F[,'social.lag'] <- as.vector(sco %*% y.p[-i])
+                    y1 <- y.p[-i]
                 } else {
-                    F[,'social.lag'] = as.vector(sco %*% toPermute[-i])
+                    if (lags.flag[1] == "1") {
+                        F[,'social.lag'] = as.vector(sco %*% Y[-i])
+                        y1 <- Y[-i]
+                    }
+                }
+
+                if (lag == "social.disadv"){
+                    F[,'social.lag.disadv'] <- as.vector(sco %*% disadv.p[-i])
+                    y2 <- disadv.p[-i]
+                } else {
+                    if (lags.flag[4] == "1") {
+                        F[,'social.lag.disadv'] <- as.vector(sco %*% disadv[-i])
+                        y2 <- disadv[-i]
+                    }
                 }
 
                 # testing data at point i
                 if (socialnorm == "bysource") {
-                    social.lag <- w2[i,-i] %*% y[-i] / sum(w2[i,-i])
+                    social.lag <- w2[i,-i] %*% y1 / sum(w2[i,-i])
+                    sol.dis <- w2[i,-i] %*% y2 / sum(w2[i,-i])
                 } else if (socialnorm == "bydestination") {
-					w2h <- t(w2)
-                    social.lag <- w2h[i,-i] %*% y[-i] / sum(w2h[i,-i])
+                    w2h <- t(w2)
+                    social.lag <- w2h[i,-i] %*% y1 / sum(w2h[i,-i])
+                    sol.dis <- w2h[i,-i] %*% y2 / sum(w2h[i,-i])
                 } else if (socialnorm == "bypair") {
                     social.lag <- (w2[i,-i] / s) %*% y[-1]
                 } else {
-                    social.lag <- w2[i,-i] %*% y[-i]
+                    social.lag <- w2[i,-i] %*% y1
+                    sol.dis <- w2[i,-i] %*% y2
                 }
                 stopifnot( length(social.lag) == 1)
-                test.dn['social.lag'] = social.lag
+                if (lags.flag[1] == "1")
+                    test.dn['social.lag'] <- social.lag
+                if (lags.flag[3] == "1")
+                    test.dn['social.lag.disadv'] <- sol.dis
             }
             
+           
 
             
 
@@ -292,7 +335,7 @@ leaveOneOut.PermuteLag <- function(demos, ca, w2, Y, normalize=FALSE, socialnorm
             names(dat)[1] <- "y"
 
 
-			mod <- learnNB( dat, exposure )
+            mod <- learnNB( dat, exposure )
 
             if (inherits(mod, "error")) {
                  warning("error in glmmadbm fitting - skip this iteration\n")
