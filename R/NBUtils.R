@@ -76,11 +76,11 @@ learnNB <- function( dat, exposure ) {
 leaveOneOut <- function(demos, ca, w2, Y, coeff=FALSE, normalize=FALSE, socialnorm="bydestination", exposure="exposure", lagstr="1111") {
     N <- length(Y)
     lags <- unlist(strsplit(lagstr, split=""))
-    cat(lags,"\n")
+    cat(lagstr,"\n")
     # leave one out evaluation
     if (coeff) {
         if (exposure == "exposure")
-            cat("Coefficients\n", "(intercepts)", names(demos[! c("total.population")]), "")
+            cat("Coefficients\n", "(intercepts)", names(demos[, ! c(colnames(demos) %in% "total.population")]), "")
         else
             cat("Coefficients\n", "(intercepts)", names(demos), "")
         if (lags[1] == "1")
