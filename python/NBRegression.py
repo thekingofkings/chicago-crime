@@ -832,7 +832,7 @@ def NB_coefficients(year=2010):
 
 
 
-def coefficients_pvalue(lehdType="total", crimeType='total'):
+def coefficients_pvalue(lehdType="total", crimeType='total', year=2010):
     """Return the pvalue of Negative Binomial model coefficients.
     Permutation test + leave-one-out evaluation
     Retrieve leave-one-out error distribution. To determine the p-value
@@ -851,10 +851,10 @@ def coefficients_pvalue(lehdType="total", crimeType='total'):
     
     # the LEHD type
     if lehdType == "lowincome":
-        W2 = generate_transition_SocialLag(year=2010, lehd_type=4, region='ca',
+        W2 = generate_transition_SocialLag(year=year, lehd_type=4, region='ca',
                                        normalization='none')
     elif lehdType == "total":
-        W2 = generate_transition_SocialLag(year=2010, lehd_type=0, region='ca',
+        W2 = generate_transition_SocialLag(year=year, lehd_type=0, region='ca',
                                            normalization='none')
     elif lehdType == "taxi":
         W2 = getTaxiFlow(normalization="none")
@@ -864,9 +864,9 @@ def coefficients_pvalue(lehdType="total", crimeType='total'):
     violentCrime = ['HOMICIDE', 'CRIM SEXUAL ASSAULT', 'BATTERY', 'ROBBERY', 
                 'ARSON', 'DOMESTIC VIOLENCE', 'ASSAULT']
     if crimeType == 'total':
-        Y = retrieve_crime_count(year=2010, col=['total'], region='ca')
+        Y = retrieve_crime_count(year=year, col=['total'], region='ca')
     elif crimeType == 'violent':
-        Y = retrieve_crime_count(year=2010, col=violentCrime, region='ca')
+        Y = retrieve_crime_count(year=year, col=violentCrime, region='ca')
     
         
     demo.to_csv("../R/pvalue-demo.csv", index=False)
@@ -880,9 +880,9 @@ def coefficients_pvalue(lehdType="total", crimeType='total'):
     os.chdir("../R")
     from multiprocessing import Pool, cpu_count
     subProcessPool = Pool(cpu_count() / 2)
-    itersN = "50"
+    itersN = "10"
 
-    lagsFlag = "1100"
+    lagsFlag = "1111"
     for sn in socialNorm[1:2]:
         for ep in ["exposure", "noexposure"][0:1]:
             for logpop in ["logpop", "pop"][0:1]:

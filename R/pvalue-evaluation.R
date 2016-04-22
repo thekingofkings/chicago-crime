@@ -104,8 +104,10 @@ for (i in 1:ncol(demos.part)) {
 if (lags != "0000") {
     lags.flag <- unlist(strsplit(lags, split=""))
                                         # permute lag
-    cnt.social = 0
-    cnt.spatial = 0
+    cnt.social <- 0
+    cnt.spatial <- 0
+    cnt.social.disadv <- 0
+    cnt.spatial.disadv <- 0
     for (j in 1:itersN) {
         mae = leaveOneOut.PermuteLag(demos.part, ca, w2, Y, normalize, socialnorm=sn, exposure=args[4], lagstr=lags)
 
@@ -120,17 +122,36 @@ if (lags != "0000") {
         if (lags.flag[2] == "1" && mae.org > mae['spatial']) {
             cnt.spatial = cnt.spatial + 1
         }
+        
+        if (lags.flag[3] == "1" && mae.org > mae['social.disadv']) { # first one is social lag
+            cnt.social.disadv = cnt.social.disadv + 1
+        }
+
+        if (lags.flag[4] == "1" && mae.org > mae['spatial.disadv']) {
+            cnt.spatial.disadv = cnt.spatial.disadv + 1
+        }
     }
 
     if (lags.flag[1] == "1") {
         pvalues <- c(pvalues, social.lag=cnt.social / itersN)
-        cat("social.lag ", cnt.social / itersN, "\n")
+        cat("social.lag", cnt.social / itersN, "\n")
     }
     
 
     if (lags.flag[2] == "1") {
         pvalues <- c(pvalues, spatial.lag=cnt.spatial / itersN)
         cat("spatial.lag", cnt.spatial / itersN, "\n")
+    }
+
+    if (lags.flag[3] == "1") {
+        pvalues <- c(pvalues, social.lag.disadv=cnt.social.disadv / itersN)
+        cat("social.lag.disadv", cnt.social.disadv / itersN, "\n")
+    }
+    
+
+    if (lags.flag[4] == "1") {
+        pvalues <- c(pvalues, spatial.lag.disadv=cnt.spatial.disadv / itersN)
+        cat("spatial.lag.disadv", cnt.spatial.disadv / itersN, "\n")
     }
 }
 
