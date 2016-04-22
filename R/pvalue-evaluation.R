@@ -76,7 +76,7 @@ itersN <- strtoi(args[7])
 
 pvalues <- c()
 
-
+if (FALSE){
                                         # permute demographics
 for (i in 1:ncol(demos.part)) {
     
@@ -98,39 +98,37 @@ for (i in 1:ncol(demos.part)) {
     }
     pvalues[[featureName]] <- cnt/itersN
 }
+}
 
 
-
-if (SOCIALLAG || SPATIALLAG) {
+if (lags != "0000") {
+    lags.flag <- unlist(strsplit(lags, split=""))
                                         # permute lag
     cnt.social = 0
     cnt.spatial = 0
     for (j in 1:itersN) {
         mae = leaveOneOut.PermuteLag(demos.part, ca, w2, Y, normalize, socialnorm=sn, exposure=args[4], lagstr=lags)
+
         if (j %% (itersN %/% 5) == 0) {
             cat("-->", mae, "\n")
         }
-        if (SOCIALLAG && mae.org > mae[1]) { # first one is social lag
+        
+        if (lags.flag[1] == "1" && mae.org > mae['social']) { # first one is social lag
             cnt.social = cnt.social + 1
         }
-        if (!SOCIALLAG) {
-            if (SPATIALLAG && mae.org > mae[1]) {
-                cnt.spatial = cnt.spatial + 1
-            }
-        } else {
-            if (SPATIALLAG && mae.org > mae[2]) {
-                cnt.spatial = cnt.spatial + 1
-            }
+
+        if (lags.flag[2] == "1" && mae.org > mae['spatial']) {
+            cnt.spatial = cnt.spatial + 1
         }
     }
 
-    if (SOCIALLAG) {
+    if (lags.flag[1] == "1") {
         pvalues <- c(pvalues, social.lag=cnt.social / itersN)
         cat("social.lag ", cnt.social / itersN, "\n")
     }
     
 
-    if (SPATIALLAG) {
+    if (lags.flag[2] == "1") {
         pvalues <- c(pvalues, spatial.lag=cnt.spatial / itersN)
         cat("spatial.lag", cnt.spatial / itersN, "\n")
     }

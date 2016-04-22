@@ -76,7 +76,6 @@ learnNB <- function( dat, exposure ) {
 leaveOneOut <- function(demos, ca, w2, Y, coeff=FALSE, normalize=FALSE, socialnorm="bydestination", exposure="exposure", lagstr="1111") {
     N <- length(Y)
     lags <- unlist(strsplit(lagstr, split=""))
-    cat(lagstr,"\n")
     # leave one out evaluation
     if (coeff) {
         if (exposure == "exposure")
@@ -215,7 +214,7 @@ leaveOneOut.PermuteLag <- function(demos, ca, w2, Y, normalize=FALSE, socialnorm
     # permute lag matix is equivalent to permute Y
     y.p <- sample(Y)
     disadv <- demos$disadvantage.index
-    disadv.p <- sample(toPermute2) 
+    disadv.p <- sample(disadv) 
     
     
     mae = c()
@@ -242,33 +241,10 @@ leaveOneOut.PermuteLag <- function(demos, ca, w2, Y, normalize=FALSE, socialnorm
             F <- demos[-i, , drop=FALSE]
             test.dn <- demos[i, , drop=FALSE]
 
-            if (lags[2] == "1" || lags[4] == "1") {
-                # training set
-                dropCA <- rownames(w2[i, ,drop=FALSE])
-                spt <- spatialWeight(ca, as.numeric(dropCA) )
 
-                if (lag == "spatial") { # spatial lag should be permuted
-                    F[,'spatial.lag'] <- as.vector(spt %*% y.p[-i])
-                    test.dn['spatial.lag'] <- w1[i,-i] %*% y.p[-i]
-                } else {
-                    if (lags.flag[2] == "1") { # spatial lag is included but not permuted
-                        F[,'spatial.lag'] <- as.vector(spt %*% Y[-i])
-                        test.dn['spatial.lag'] <- w1[i,-i] %*% Y[-i]
-                    }
-                }
 
-                if (lag == "spatial.disadv") {
-                    F[,'spatial.lag.disadv'] <- as.vector(spt %*% disadv.p[-i])
-                    test.dn['spatial.lag.disadv'] <- w1[i, -i] %*% disadv.p[-i]
-                } else {
-                    if (lags.flag[4] == "1") {
-                        F[,'spatial.lag.disadv'] <- as.vector(spt %*% disadv[-i])
-                        test.dn['spatial.lag.disadv'] <- w1[i, -i] %*% disadv[-i]
-                    }
-                }                
-            }
-
-            if (lags[1] == "1" || lags[3] == "1") {
+            # social based lags
+            if (lags.flg[1] == "1" || lags.flg[3] == "1") {
                 # training set
                 sco <- w2[-i, -i]
 
@@ -281,7 +257,7 @@ leaveOneOut.PermuteLag <- function(demos, ca, w2, Y, normalize=FALSE, socialnorm
                     F[,'social.lag'] <- as.vector(sco %*% y.p[-i])
                     y1 <- y.p[-i]
                 } else {
-                    if (lags.flag[1] == "1") {
+                    if (lags.flg[1] == "1") {
                         F[,'social.lag'] = as.vector(sco %*% Y[-i])
                         y1 <- Y[-i]
                     }
@@ -291,7 +267,7 @@ leaveOneOut.PermuteLag <- function(demos, ca, w2, Y, normalize=FALSE, socialnorm
                     F[,'social.lag.disadv'] <- as.vector(sco %*% disadv.p[-i])
                     y2 <- disadv.p[-i]
                 } else {
-                    if (lags.flag[4] == "1") {
+                    if (lags.flg[4] == "1") {
                         F[,'social.lag.disadv'] <- as.vector(sco %*% disadv[-i])
                         y2 <- disadv[-i]
                     }
@@ -312,11 +288,41 @@ leaveOneOut.PermuteLag <- function(demos, ca, w2, Y, normalize=FALSE, socialnorm
                     sol.dis <- w2[i,-i] %*% y2
                 }
                 stopifnot( length(social.lag) == 1)
-                if (lags.flag[1] == "1")
+                if (lags.flg[1] == "1")
                     test.dn['social.lag'] <- social.lag
-                if (lags.flag[3] == "1")
+                if (lags.flg[3] == "1")
                     test.dn['social.lag.disadv'] <- sol.dis
             }
+
+
+
+            # spatial based lags
+            if (lags.flg[2] == "1" || lags.flg[4] == "1") {
+                # training set
+                dropCA <- rownames(w2[i, ,drop=FALSE])
+                spt <- spatialWeight(ca, as.numeric(dropCA) )
+
+                if (lag == "spatial") { # spatial lag should be permuted
+                    F[,'spatial.lag'] <- as.vector(spt %*% y.p[-i])
+                    test.dn['spatial.lag'] <- w1[i,-i] %*% y.p[-i]
+                } else {
+                    if (lags.flg[2] == "1") { # spatial lag is included but not permuted
+                        F[,'spatial.lag'] <- as.vector(spt %*% Y[-i])
+                        test.dn['spatial.lag'] <- w1[i,-i] %*% Y[-i]
+                    }
+                }
+
+                if (lag == "spatial.disadv") {
+                    F[,'spatial.lag.disadv'] <- as.vector(spt %*% disadv.p[-i])
+                    test.dn['spatial.lag.disadv'] <- w1[i, -i] %*% disadv.p[-i]
+                } else {
+                    if (lags.flg[4] == "1") {
+                        F[,'spatial.lag.disadv'] <- as.vector(spt %*% disadv[-i])
+                        test.dn['spatial.lag.disadv'] <- w1[i, -i] %*% disadv[-i]
+                    }
+                }                
+            }
+
             
            
 
@@ -348,8 +354,7 @@ leaveOneOut.PermuteLag <- function(demos, ca, w2, Y, normalize=FALSE, socialnorm
         }
         # end of anonymous function
 
-        
-        mae = c(mae, mean(errors))
+        mae[lag] <- mean(errors)
     }
 
     return(mae)
