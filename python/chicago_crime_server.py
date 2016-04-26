@@ -1,5 +1,5 @@
 from flask import Flask, request, jsonify, redirect
-from flask import render_template
+from flask import render_template, send_from_directory
 from NBRegression import *
 
 import os
@@ -20,6 +20,7 @@ features = ['density', 'disadvantage', 'ethnic', 'pctblack', 'pctship',
 @app.route('/')
 def input_parameter():
     return render_template('nb-parameter-setting.html')
+    
     
 
 @app.route('/set-parameter', methods=['GET'])    
@@ -104,7 +105,44 @@ def format_result(fname):
 
         
         
+        
+        
+@app.route('/nb-permute')
+def nb_permute():
+    return render_template('nb-permute.html')
+    
+    
+    
+@app.route('/new-permute')
+def new_permute():
+    
+    a =  request.args
+    year = int(a.get('year')) if a.get('year') != '' else '2010'
+    iters = a.get('iters') if a.get('iters') != '' else 10
+    lags = []
+    lags.append( "1" if "social-lag-crime" in a else "0" )
+    lags.append( "1" if "spatial-lag-crime" in a else "0" )
+    lags.append( "1" if "social-lag-disadv" in a else "0" )
+    lags.append( "1" if "spatial-lag-disadv" in a else "0" )
+    lagsFlag = "".join( lags )
+    
+    ep = 'exposure' if 'exposure' in a else 'noexposure'
+    
+    print a
+    print lagsFlag, iters, ep, year
+    
+    fname = "glmmadmb--totallehd-totalcrime-bysource-{0}-logpop-{1}-{2}-logpopdensty-.out".format(ep, lagsFlag, iters)
+    coefficients_pvalue(lagsFlag, itersN=iters, exposure=ep, year=year)    
+    
+    return redirect('download/' + fname)
 
+
+@app.route('/download/<fname>')
+def download_result(fname):
+    fn = here + '/../R/'
+    return send_from_directory(fn, fname)
+    
+    
     
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0')

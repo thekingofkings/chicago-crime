@@ -1,0 +1,61 @@
+<html>
+<head>
+	<title>Permutation Test on Chicago Crime</title>
+
+</head>
+
+<body>
+	<h1>Leave One Out Permutation on Chicago Crime</h1>
+
+	<form action=new-permute method=get>
+		<p>We use total LEHD flow data to caculate social lag.</p>
+		<p>We estimate total crime.</p>
+
+		<h3>Select year to predict</h3>
+		<p>One single year from 2003 to 2013. Year of Chicago crime: <input type=text name=year /></p>
+
+		<h3>Select features for the Negative Binomial model</h3>
+		<table border=3>
+			<tr>
+				<th>Features</th>
+				<th>Select or not</th>
+			</tr>
+			<tr>
+				<td width=200>Demographics: including total population, population density, disadvantage index, residential stability, ethnic diversity <br>(note: we always take log on total population and population density)</td>
+				<td><input type=radio name='demo' value=y checked=true/></td>
+			</tr>
+			<tr>
+				<td>social lag with crime count</td>
+				<td><input type=radio name='social-lag-crime' value=y /></td>
+			</tr>
+			<tr>
+				<td>spatial lag with crime count</td>
+				<td><input type=radio name='spatial-lag-crime' value=y /></td>
+			</tr>
+			<tr>
+				<td>social lag with disadvantage index</td>
+				<td><input type=radio name='social-lag-disadv' value=y /></td>
+			</tr>
+			<tr>
+				<td>spatial lag with disadvantage index</td>
+				<td><input type=radio name='spatial-lag-disadv' value=y /></td>
+			</tr>
+			<tr>
+				<td>log(total population) as exposure</td>
+				<td>Select this to use it as exposure:<input type=radio name='exposure' value=y /></td>
+			</tr>
+		</table><br>
+		<p>Note: all social lags are normalized by out-flow. All spatial lag use contiguous matrix.</p>
+
+		<h3>Number of permutations</h3>
+		<p>Number of permutation: <input type=text name=iters /></p>
+		<button type=submit>Submit</button>
+	</form>
+
+	<h3><font color=red>Warning: running with 1000 iterations is slow!</font></h3>
+	<p>It may take up 20 minutes to run 1000 iterations to get the p-value. However, if running only 10 iterations, the results are expected in 60 seconds.</p>
+
+</body>
+
+
+</html>

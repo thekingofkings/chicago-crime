@@ -832,7 +832,7 @@ def NB_coefficients(year=2010):
 
 
 
-def coefficients_pvalue(lehdType="total", crimeType='total', year=2010):
+def coefficients_pvalue(lagsFlag, itersN="10", exposure="exposure", year=2010, lehdType="total", crimeType='total'):
     """Return the pvalue of Negative Binomial model coefficients.
     Permutation test + leave-one-out evaluation
     Retrieve leave-one-out error distribution. To determine the p-value
@@ -843,6 +843,8 @@ def coefficients_pvalue(lehdType="total", crimeType='total', year=2010):
     Keyword arguments:
     lehdType -- the type of LEHD flow (default "total", alternative "lowincome")
     crimeType -- the type of predicated crime (default "violent", alternative "total")
+    exposure -- exposure or noexposure
+    lagsFlag -- social lag, spatial lag, socai lag disadv, spatial lag disadv
     """
     
     C = generate_corina_features('ca')
@@ -878,20 +880,18 @@ def coefficients_pvalue(lehdType="total", crimeType='total', year=2010):
     # use a multiprocess Pool to run subprocess in parallel
     socialNorm = ['bydestination', 'bysource', 'bypair']
     os.chdir("../R")
-    from multiprocessing import Pool, cpu_count
-    subProcessPool = Pool(cpu_count() / 2)
-    itersN = "10"
+#    from multiprocessing import Pool, cpu_count
+#    subProcessPool = Pool(cpu_count() / 2)
 
-    # social lag, spatial lag, socai lag disadv, spatial lag disadv
-    lagsFlag = "0101"
     for sn in socialNorm[1:2]:
-        for ep in ["exposure", "noexposure"][0:1]:
-            for logpop in ["logpop", "pop"][0:1]:
-                for logpopden in ["logpopdensty", "popdensty"][0:1]:
-                    subProcessPool.apply_async(subPworker, (lehdType, crimeType, sn, ep, logpop, lagsFlag, itersN, logpopden))
-                    #subprocess.Popen(['Rscript', 'pvalue-evaluation.R', lehdType+"lehd", crimeType+"crime", sn, ep, logpop])
-    subProcessPool.close()
-    subProcessPool.join()
+        for logpop in ["logpop", "pop"][0:1]:
+            for logpopden in ["logpopdensty", "popdensty"][0:1]:
+                #subProcessPool.apply_async(subPworker, (lehdType, crimeType, sn, exposure, logpop, lagsFlag, itersN, logpopden))
+                p = subprocess.Popen(['Rscript', 'pvalue-evaluation.R', lehdType+"lehd", crimeType+"crime", sn, exposure, logpop, lagsFlag, itersN, logpopden])
+                p.wait()
+#    subProcessPool.close()
+#    subProcessPool.join()
+    
     
 
 
@@ -1027,7 +1027,7 @@ if __name__ == '__main__':
                 j = o[-i]
                 print ' &'.join( [h[j]] + ['{0:.3f}'.format(row[j]) for row in v] )
     elif t == 'pvalue':
-        coefficients_pvalue(lehdType="total", crimeType="total")
+        coefficients_pvalue(lagsFlag="1111", itersN="10", exposure="exposure", year=2010, lehdType="total", crimeType="total")
     elif t == 'getlongtable':
         r = longTable_features_allYears()
     
