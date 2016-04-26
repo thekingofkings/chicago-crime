@@ -76,7 +76,6 @@ itersN <- strtoi(args[7])
 
 pvalues <- c()
 
-if (FALSE){
                                         # permute demographics
 for (i in 1:ncol(demos.part)) {
     
@@ -98,7 +97,7 @@ for (i in 1:ncol(demos.part)) {
     }
     pvalues[[featureName]] <- cnt/itersN
 }
-}
+
 
 
 if (lags != "0000") {

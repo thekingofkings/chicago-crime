@@ -275,8 +275,8 @@ leaveOneOut.PermuteLag <- function(demos, ca, w2, Y, normalize=FALSE, socialnorm
                     test.dn['social.lag.disadv'] <- sociallag.disadv.p[i]
                 } else {
                     if (lags.flg[4] == "1") {
-                        F[,'social.lag.disadv'] <- sociallag.disadv.p[-i]
-                        test.dn['social.lag.disadv'] <- sociallag.disadv.p[i]
+                        F[,'social.lag.disadv'] <- sociallag.disadv[-i]
+                        test.dn['social.lag.disadv'] <- sociallag.disadv[i]
                     }
                 }
             }
@@ -292,7 +292,7 @@ leaveOneOut.PermuteLag <- function(demos, ca, w2, Y, normalize=FALSE, socialnorm
                 } else {
                     if (lags.flg[2] == "1") { # spatial lag is included but not permuted
                         F[,'spatial.lag'] <- spatial.lag[-i]
-                        test.dn['spatial.lag'] <- spatial.lag[i]
+                        test.dn['spatial.lag'] <- spatial.lag[i] 
                     }
                 }
 

@@ -123,6 +123,7 @@ from FeatureUtils import *
 def prepare_features(features=["poi", "taxi", "demos", "spatiallag"], leaveOneOut=-1):
     
     Y = retrieve_crime_count(year=2013)
+    Y = Y.reshape((-1,1))
     if leaveOneOut > 0:
         Y = np.delete(Y, leaveOneOut-1, 0)
     

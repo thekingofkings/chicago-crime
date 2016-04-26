@@ -882,7 +882,8 @@ def coefficients_pvalue(lehdType="total", crimeType='total', year=2010):
     subProcessPool = Pool(cpu_count() / 2)
     itersN = "10"
 
-    lagsFlag = "1111"
+    # social lag, spatial lag, socai lag disadv, spatial lag disadv
+    lagsFlag = "0101"
     for sn in socialNorm[1:2]:
         for ep in ["exposure", "noexposure"][0:1]:
             for logpop in ["logpop", "pop"][0:1]:
