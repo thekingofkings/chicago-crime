@@ -51,6 +51,8 @@ import pandas as pd
 from sklearn import cross_validation
 
 # misc libraries
+import matplotlib
+matplotlib.use("AGG")
 import matplotlib.pyplot as plt
 import subprocess
 import os.path
@@ -871,15 +873,15 @@ def coefficients_pvalue(lagsFlag, itersN="10", exposure="exposure", year=2010, l
         Y = retrieve_crime_count(year=year, col=violentCrime, region='ca')
     
         
-    demo.to_csv("../R/pvalue-demo.csv", index=False)
-    np.savetxt("../R/pvalue-spatiallag.csv", W1, delimiter=",")
-    np.savetxt("../R/pvalue-sociallag.csv", W2, delimiter=",")
-    np.savetxt("../R/pvalue-crime.csv", Y)
+    demo.to_csv(here + "/../R/pvalue-demo.csv", index=False)
+    np.savetxt(here + "/../R/pvalue-spatiallag.csv", W1, delimiter=",")
+    np.savetxt(here + "/../R/pvalue-sociallag.csv", W2, delimiter=",")
+    np.savetxt(here + "/../R/pvalue-crime.csv", Y)
     
 
     # use a multiprocess Pool to run subprocess in parallel
     socialNorm = ['bydestination', 'bysource', 'bypair']
-    os.chdir("../R")
+    os.chdir(here + "/../R")
 #    from multiprocessing import Pool, cpu_count
 #    subProcessPool = Pool(cpu_count() / 2)
 
