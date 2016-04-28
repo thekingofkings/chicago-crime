@@ -57,7 +57,7 @@ Y <- Y / demos$total.population * 10000
 # use exposure to indirectly predict rate
 # demos.part$total.population = log(demos.part$total.population)
 
-
+if(FALSE){
 cat("====================== split data and split model ==================\n")
 
 sn <- "bysource"
@@ -103,8 +103,41 @@ mae.org4 <- leaveOneOut.split(demos.part, ca, w2, Y, idN, idS, socialnorm=sn, ex
 cat("North:", mean(mae.org4[idN]), "\nSouth:", mean(mae.org4[idS]), "\n")
 cat("Overall:", mean(mae.org4), "\n")
 
-
 sink()
+
+
+
+
+} else if (FALSE) {
+ff <- demos.part$total.population
+plot(ff[idN], Y[idN], col='blue', xlab="Total population", ylab="Crime count", ylim=range(Y), xlim=range(ff))
+points(ff[idS], Y[idS], col='red')
+
+dat <- data.frame( x=ff[idN], y=Y[idN] )
+l1 <- lm(y~x, data=dat)
+abline(l1, col='blue')
+
+
+dat2 <- data.frame( x=ff[idS], y=Y[idS] )
+l2 <- lm(y~x, data=dat2)
+abline(l2, col='red')
+
+
+dat3 <- data.frame( x=ff, y=Y )
+l3 <- lm(y~x, data=dat3)
+abline(l3, col='black')
+
+
+cat(l1$coefficients, "\n", l2$coefficients, "\n", l3$coefficients, "\n")
+}
+
+
+plot(ca)
+plot(caN, border="black", col=rgb(0.5, 0.5, 1), add=TRUE)
+plot(caS, border="black", col=rgb(1, 0.5, 0.5), add=TRUE)
+cr = coordinates(ca)
+text(cr, labels=ca$AREA_NUMBE)
+
 
 
 stopCluster(cl)

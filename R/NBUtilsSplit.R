@@ -95,8 +95,12 @@ leaveOneOut.split <- function( demos, ca, w2, Y, idN, idS, socialnorm="bysource"
         return ( c(abs(ybar-Y[i]), as.vector(mod$b)) )
 
     }
+	cat(nrow(errors), ncol(errors), "\n")
 
-    cat(rowSums(errors)[-1] / N, "\n")
+	cat(idN, "\n")
+	cat(idS, "\n")
+    cat("North", rowSums(errors[,idN])[-1] / length(idN), "\n")
+    cat("South", rowSums(errors[,idS])[-1] / length(idS), "\n")
     return (errors[1,])
 }
 
