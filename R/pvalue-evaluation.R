@@ -11,7 +11,7 @@ registerDoParallel(cl)
 source("NBUtils.R")
 
 args <- commandArgs(trailingOnly = TRUE)
-z = file(paste("glmmadmb-", args[1], args[2], args[3], args[4], args[5], args[6], args[7], args[8], ".out", sep="-"), open="wa")
+z = file(paste("glmmadmb-", args[1], args[2], args[3], args[4], args[5], args[6], args[7], args[8], args[9],".out", sep="-"), open="wa")
 
 
 
@@ -58,6 +58,13 @@ if (args[8] == "logpopdensty" ){
     demos.part$population.density = log(demos.part$population.density)
 }
 
+if (args[9] == "templag") {
+    yt <- read.csv('pvalue-templag.csv', header=FALSE)
+    yt <- log(yt$V1)
+    demos.part["templag"] <- yt
+}
+    
+
 
 lags <- args[6]
 
@@ -77,7 +84,6 @@ itersN <- strtoi(args[7])
 pvalues <- c()
 
 
-if(FALSE){
                                         # permute demographics
 for (i in 1:ncol(demos.part)) {
     
@@ -98,7 +104,6 @@ for (i in 1:ncol(demos.part)) {
         }
     }
     pvalues[[featureName]] <- cnt/itersN
-}
 }
 
 

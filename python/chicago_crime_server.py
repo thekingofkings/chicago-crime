@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify, redirect
+from flask import Flask, request, jsonify, redirect, make_response
 from flask import render_template, send_from_directory
 from NBRegression import *
 
@@ -127,12 +127,14 @@ def new_permute():
     lagsFlag = "".join( lags )
     
     ep = 'exposure' if 'exposure' in a else 'noexposure'
+    tl = 'templag' if 'templag' in a else 'notemplag'
     
     print a
     print lagsFlag, iters, ep, year
     
-    fname = "glmmadmb--totallehd-totalcrime-bysource-{0}-logpop-{1}-{2}-logpopdensty-.out".format(ep, lagsFlag, iters)
-    coefficients_pvalue(lagsFlag, itersN=iters, exposure=ep, year=year)    
+    fname = "glmmadmb--totallehd-totalcrime-bysource-{0}-logpop-{1}-{2}-logpopdensty-{3}-.out".format(
+            ep, lagsFlag, iters, tl)
+    coefficients_pvalue(lagsFlag, tempflag=tl, itersN=iters, exposure=ep, year=year)    
     
     return redirect('download/' + fname)
 
@@ -140,7 +142,9 @@ def new_permute():
 @app.route('/download/<fname>')
 def download_result(fname):
     fn = here + '/../R/'
-    return send_from_directory(fn, fname, cache_timeout=0)
+    response = make_response(send_from_directory(fn, fname))
+    response.cache_control.max_age = 0
+    return response
     
     
     

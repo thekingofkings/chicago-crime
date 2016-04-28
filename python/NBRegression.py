@@ -834,7 +834,7 @@ def NB_coefficients(year=2010):
 
 
 
-def coefficients_pvalue(lagsFlag, itersN="10", exposure="exposure", year=2010, lehdType="total", crimeType='total'):
+def coefficients_pvalue(lagsFlag, tempflag="templag", itersN="10", exposure="exposure", year=2010, lehdType="total", crimeType='total'):
     """Return the pvalue of Negative Binomial model coefficients.
     Permutation test + leave-one-out evaluation
     Retrieve leave-one-out error distribution. To determine the p-value
@@ -869,14 +869,17 @@ def coefficients_pvalue(lagsFlag, itersN="10", exposure="exposure", year=2010, l
                 'ARSON', 'DOMESTIC VIOLENCE', 'ASSAULT']
     if crimeType == 'total':
         Y = retrieve_crime_count(year=year, col=['total'], region='ca')
+        yt = retrieve_crime_count(year=2003, col=['total'], region='ca')
     elif crimeType == 'violent':
         Y = retrieve_crime_count(year=year, col=violentCrime, region='ca')
+        yt = retrieve_crime_count(year=2003, col=violentCrime, region='ca')
     
         
     demo.to_csv(here + "/../R/pvalue-demo.csv", index=False)
     np.savetxt(here + "/../R/pvalue-spatiallag.csv", W1, delimiter=",")
     np.savetxt(here + "/../R/pvalue-sociallag.csv", W2, delimiter=",")
     np.savetxt(here + "/../R/pvalue-crime.csv", Y)
+    np.savetxt(here + "/../R/pvalue-templag.csv", yt)
     
 
     # use a multiprocess Pool to run subprocess in parallel
@@ -889,7 +892,7 @@ def coefficients_pvalue(lagsFlag, itersN="10", exposure="exposure", year=2010, l
         for logpop in ["logpop", "pop"][0:1]:
             for logpopden in ["logpopdensty", "popdensty"][0:1]:
                 #subProcessPool.apply_async(subPworker, (lehdType, crimeType, sn, exposure, logpop, lagsFlag, itersN, logpopden))
-                p = subprocess.Popen(['Rscript', 'pvalue-evaluation.R', lehdType+"lehd", crimeType+"crime", sn, exposure, logpop, lagsFlag, itersN, logpopden])
+                p = subprocess.Popen(['Rscript', 'pvalue-evaluation.R', lehdType+"lehd", crimeType+"crime", sn, exposure, logpop, lagsFlag, itersN, logpopden, tempflag])
                 p.wait()
 #    subProcessPool.close()
 #    subProcessPool.join()
@@ -1029,7 +1032,7 @@ if __name__ == '__main__':
                 j = o[-i]
                 print ' &'.join( [h[j]] + ['{0:.3f}'.format(row[j]) for row in v] )
     elif t == 'pvalue':
-        coefficients_pvalue(lagsFlag="1111", itersN="10", exposure="exposure", year=2010, lehdType="total", crimeType="total")
+        coefficients_pvalue(lagsFlag="1000", itersN="10", exposure="exposure", year=2010, lehdType="total", crimeType="total")
     elif t == 'getlongtable':
         r = longTable_features_allYears()
     
