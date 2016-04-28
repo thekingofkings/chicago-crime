@@ -140,7 +140,7 @@ def new_permute():
 @app.route('/download/<fname>')
 def download_result(fname):
     fn = here + '/../R/'
-    return send_from_directory(fn, fname)
+    return send_from_directory(fn, fname, cache_timeout=0)
     
     
     
