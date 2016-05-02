@@ -154,7 +154,7 @@ leaveOneOut <- function(demos, ca, w2, Y, coeff=FALSE, normalize=FALSE, socialno
             if (lags[4] == "1")
                 test.dn['spatial.lag.disadv'] <- spl.disadv
         }
-        
+
 
         # normalize features
         if (normalize) {
@@ -168,8 +168,9 @@ leaveOneOut <- function(demos, ca, w2, Y, coeff=FALSE, normalize=FALSE, socialno
         
         # fit NB model
         dat <- data.frame(Y[-i], F)
-        names(dat)[1] <- "y"
-        
+        colnames(dat)[1] <- "y"
+
+        cat(as.matrix(dat), "\n")
         stopifnot( all(is.finite(as.matrix(dat))) )
 
         mod <- learnNB(dat, exposure)

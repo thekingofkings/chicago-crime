@@ -917,7 +917,10 @@ def coefficients_pvalue(lagsFlag, tempflag="templag", selfflow="selfflow", iters
         for logpop in ["logpop", "pop"][0:1]:
             for logpopden in ["logpopdensty", "popdensty"][0:1]:
                 #subProcessPool.apply_async(subPworker, (lehdType, crimeType, sn, exposure, logpop, lagsFlag, itersN, logpopden))
-                p = subprocess.Popen(['Rscript', 'pvalue-evaluation.R', lehdType+"lehd", crimeType+"crime", sn, exposure, logpop, lagsFlag, itersN, logpopden, tempflag])
+                p = subprocess.Popen(['Rscript', 'pvalue-evaluation.R', 
+                                      lehdType+"lehd", crimeType+"crime", sn, 
+                                      exposure, logpop, lagsFlag, itersN, 
+                                      logpopden, tempflag, selfflow])
                 p.wait()
 #    subProcessPool.close()
 #    subProcessPool.join()
@@ -1057,7 +1060,8 @@ if __name__ == '__main__':
                 j = o[-i]
                 print ' &'.join( [h[j]] + ['{0:.3f}'.format(row[j]) for row in v] )
     elif t == 'pvalue':
-        coefficients_pvalue(lagsFlag="1000", itersN="10", exposure="exposure", year=2010, lehdType="total", crimeType="total")
+        coefficients_pvalue(lagsFlag="1000", tempflag="notemplag", selfflow="selfflow",
+                            itersN="10", exposure="exposure", year=2010, lehdType="total", crimeType="total")
     elif t == 'getlongtable':
         r = longTable_features_allYears()
     

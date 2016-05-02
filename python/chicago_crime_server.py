@@ -128,13 +128,14 @@ def new_permute():
     
     ep = 'exposure' if 'exposure' in a else 'noexposure'
     tl = 'templag' if 'templag' in a else 'notemplag'
+    sf = 'selfflow' if 'selfflow' in a else 'noselfflow'
     
     print a
     print lagsFlag, iters, ep, year
     
-    fname = "glmmadmb--totallehd-totalcrime-bysource-{0}-logpop-{1}-{2}-logpopdensty-{3}-.out".format(
-            ep, lagsFlag, iters, tl)
-    coefficients_pvalue(lagsFlag, tempflag=tl, itersN=iters, exposure=ep, year=year)    
+    fname = "glmmadmb--totallehd-totalcrime-bysource-{0}-logpop-{1}-{2}-logpopdensty-{3}-{4}.out".format(
+            ep, lagsFlag, iters, tl, sf)
+    coefficients_pvalue(lagsFlag, tempflag=tl, selfflow=sf, itersN=iters, exposure=ep, year=year)    
     
     return redirect('download/' + fname)
 

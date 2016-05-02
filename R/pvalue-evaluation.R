@@ -11,7 +11,7 @@ registerDoParallel(cl)
 source("NBUtils.R")
 
 args <- commandArgs(trailingOnly = TRUE)
-z = file(paste("glmmadmb-", args[1], args[2], args[3], args[4], args[5], args[6], args[7], args[8], args[9],".out", sep="-"), open="wa")
+z = file(paste("glmmadmb-", args[1], args[2], args[3], args[4], args[5], args[6], args[7], args[8], args[9], args[10],".out", sep="-"), open="wa")
 
 
 
@@ -25,7 +25,7 @@ demos <- read.table('pvalue-demo.csv', header=TRUE, sep=",")
 focusColumn <- names(demos) %in% c("total.population", "population.density",
                                    "disadvantage.index", "residential.stability",
                                    "ethnic.diversity")
-demos.part <- demos[focusColumn]
+demos.part <- demos[,focusColumn]
 stopifnot( ncol(demos.part) == 5 )
 cat("Selected Demographics features:\n", names(demos.part), "\n")
 
@@ -50,20 +50,28 @@ Y <- Y$V1
 
 
 if (args[5] == "logpop") {
-    demos.part$total.population = log(demos.part$total.population / 1000) 
+    demos.part[,'total.population'] = log(demos$total.population / 1000) 
 }
 
 
 if (args[8] == "logpopdensty" ){
-    demos.part$population.density = log(demos.part$population.density)
+    demos.part[, "population.density"] = log(demos.part$population.density)
 }
 
 if (args[9] == "templag") {
     yt <- read.csv('pvalue-templag.csv', header=FALSE)
     yt <- log(yt$V1)
-    demos.part["templag"] <- yt
+    demos.part[,"templag"] <- yt
 }
-    
+
+
+if (args[10] == "selfflow") {
+    sf <- read.csv('pvalue-selfflow.csv', header=FALSE)
+    sf <-  sf$V1 / demos$total.population * 1000 
+    demos.part[,"selfflow"] <- sf
+}
+
+stopifnot(all(is.finite(as.matrix(demos.part))))
 
 
 lags <- args[6]
