@@ -230,6 +230,9 @@ def retrieve_crime_count(year, col=['total'], region='ca'):
         year - the year to retrieve
         col  - the type of crime
         region - ca or tract
+        
+    Output:
+        if region == 'ca':  Y is a column vector of size (77,1)
     """
     if region == 'ca':
         Y =np.zeros( (77,1) )

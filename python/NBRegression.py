@@ -834,7 +834,9 @@ def NB_coefficients(year=2010):
 
 
 
-def coefficients_pvalue(lagsFlag, tempflag="templag", itersN="10", exposure="exposure", year=2010, lehdType="total", crimeType='total'):
+def coefficients_pvalue(lagsFlag, tempflag="templag", selfflow="selfflow", itersN="10", 
+                        exposure="exposure", year=2010, lehdType="total", 
+                        crimeType='total'):
     """Return the pvalue of Negative Binomial model coefficients.
     Permutation test + leave-one-out evaluation
     Retrieve leave-one-out error distribution. To determine the p-value
@@ -862,24 +864,47 @@ def coefficients_pvalue(lagsFlag, tempflag="templag", itersN="10", exposure="exp
                                            normalization='none')
     elif lehdType == "taxi":
         W2 = getTaxiFlow(normalization="none")
-                                           
+    
+    if selfflow == 'selfflow':
+        s = [W2[i,i] for i in range(W2.shape[0])]
+        np.savetxt(here + "/../R/pvalue-selfflow.csv", s)
+            
+    
+    for i in range(W2.shape[0]):
+        W2[i,i] = 0
     
     # the predicated crime type                                           
     violentCrime = ['HOMICIDE', 'CRIM SEXUAL ASSAULT', 'BATTERY', 'ROBBERY', 
                 'ARSON', 'DOMESTIC VIOLENCE', 'ASSAULT']
     if crimeType == 'total':
         Y = retrieve_crime_count(year=year, col=['total'], region='ca')
-        yt = retrieve_crime_count(year=2003, col=['total'], region='ca')
+        if tempflag == "templag":
+            ystart = (year-3) if year - 3 >= 2003 else 2003
+            tlag = []
+            for ytmp in range(ystart, year):
+                yt = retrieve_crime_count(year=ytmp, col=['total'], region='ca')
+                tlag.append(yt)
+            yt = np.mean(tlag, axis=0)
+            assert yt.shape == Y.shape
+            np.savetxt(here + "/../R/pvalue-templag.csv", yt)
     elif crimeType == 'violent':
         Y = retrieve_crime_count(year=year, col=violentCrime, region='ca')
-        yt = retrieve_crime_count(year=2003, col=violentCrime, region='ca')
+        if tempflag == "templag":
+            ystart = (year-3) if year - 3 >= 2003 else 2003
+            tlag = []
+            for ytmp in range(ystart, year):
+                yt = retrieve_crime_count(year=ytmp, col=violentCrime, region='ca')
+                tlag.append(yt)
+            yt = np.mean(tlag, axis=0)
+            assert yt.shape == Y.shape
+            np.savetxt(here + "/../R/pvalue-templag.csv", yt)
     
         
     demo.to_csv(here + "/../R/pvalue-demo.csv", index=False)
     np.savetxt(here + "/../R/pvalue-spatiallag.csv", W1, delimiter=",")
     np.savetxt(here + "/../R/pvalue-sociallag.csv", W2, delimiter=",")
     np.savetxt(here + "/../R/pvalue-crime.csv", Y)
-    np.savetxt(here + "/../R/pvalue-templag.csv", yt)
+    
     
 
     # use a multiprocess Pool to run subprocess in parallel
