@@ -186,8 +186,9 @@ def generate_transition_SocialLag(year = 2010, lehd_type=0, region='ca', leaveOu
     
     
     # update diagonal as 0
-    for i in range(len(W)):
-        W[i,i] = 0
+#    if normalization != 'none':
+#        for i in range(len(W)):
+#            W[i,i] = 0
     # first make all self-factor 0
     assert W.dtype == "float64"
         
