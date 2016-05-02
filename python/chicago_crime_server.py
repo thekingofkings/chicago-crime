@@ -133,7 +133,7 @@ def new_permute():
     print a
     print lagsFlag, iters, ep, year
     
-    fname = "glmmadmb--totallehd-totalcrime-bysource-{0}-logpop-{1}-{2}-logpopdensty-{3}-{4}.out".format(
+    fname = "glmmadmb--totallehd-totalcrime-bysource-{0}-logpop-{1}-{2}-logpopdensty-{3}-{4}-.out".format(
             ep, lagsFlag, iters, tl, sf)
     coefficients_pvalue(lagsFlag, tempflag=tl, selfflow=sf, itersN=iters, exposure=ep, year=year)    
     
