@@ -108,7 +108,7 @@ sink()
 
 
 
-} else if (TRUE) {
+} else if (FALSE) {
 ff <- demos.part$total.population
 plot(ff[idN], Y[idN], col='blue', xlab="Total population", ylab="Crime count", ylim=range(Y), xlim=range(ff), cex=1.5, pch=21, bg='blue', cex.lab=2, cex.axis=2)
 points(ff[idS], Y[idS], col='red', cex=1.5, pch=22, bg='red')

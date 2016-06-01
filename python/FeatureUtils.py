@@ -194,12 +194,13 @@ def generate_transition_SocialLag(year = 2010, lehd_type=0, region='ca', leaveOu
         
     # normalization section
     if normalization == 'source':
+        # source mean the residence
+        W = np.transpose(W)    
         sW = np.sum(W, axis=1, keepdims=True)
         W = W / sW
         assert abs( np.sum(W[1,]) - 1 ) < 0.0000000001 and W.dtype == "float64"
-    elif normalization == 'destination':
-        # use in-flow (therefore transpose)
-        W = np.transpose(W)
+    elif normalization == 'destination': # 
+        # destination mean workplace
         sW = np.sum(W, axis=1)
         sW = sW.reshape((len(sW),1))
         W = W / sW
@@ -208,7 +209,7 @@ def generate_transition_SocialLag(year = 2010, lehd_type=0, region='ca', leaveOu
         sW = np.sum(sW)
         W = W / sW
     
-    # by default, the output is the out-flow count matrix
+    # by default, the output is the workplace-to-residence count matrix
     return W
 
 
