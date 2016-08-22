@@ -14,9 +14,15 @@ import numpy as np
 from FeatureUtils import *
 from Crime import Tract
 from foursquarePOI import getFourSquarePOIDistribution, getFourSquarePOIDistributionHeader
-import matplotlib.pyplot as plt
 from scipy.stats import pearsonr
 
+import matplotlib as mpl
+mpl.use('Agg')
+import matplotlib.pyplot as plt
+from pylab import rcParams
+rcParams['figure.figsize'] = (4*1.6,3*1.7)
+rcParams['pdf.fonttype'] = 42
+rcParams['ps.fonttype'] = 42
 
 
 
@@ -258,6 +264,7 @@ def line_spatialflow_crime():
     Y = np.divide(Y, popul) * 10000
     f1 = np.dot(W, Y)
     
+    plt.figure()
     plt.scatter(f1, Y)
     plt.axis([0,700000, 0, 6000])
     idx = [31, 75, 37]
@@ -267,7 +274,7 @@ def line_spatialflow_crime():
     plt.figtext(0.43, 0.78, '#32', fontsize='large')
     plt.figtext(0.15, 0.37, '#76', fontsize='large')    
     plt.figtext(0.79, 0.33, '#38', fontsize='large')
-    plt.xlabel('Geographical neigbhor feature value', fontsize='x-large')
+    plt.xlabel('Geographical influence feature value', fontsize='x-large')
     plt.ylabel('Crime rate', fontsize='x-large')
     
     plt.savefig('spatial-crime-rate.pdf', format='pdf')
@@ -287,6 +294,7 @@ def line_taxiflow_crime():
     
     f1 = np.dot(s, Y)
     
+    plt.figure()
     plt.scatter(f1, Y)
     plt.axis([0, 6000, 0, 6000])
     idx = [31, 46]
@@ -330,11 +338,11 @@ def correlation_taxiflow_crime(flowPercentage=True, crimeRate=True):
 if __name__ == '__main__':
     
 #    correlation_POIdist_crime()
-    correlation_POI_crime('ca')
+#    correlation_POI_crime('ca')
 #    r = line_taxiflow_crime()
 #    line_POI_crime()
 #    line_socialflow_crime()
 #    r = line_spatialflow_crime()
 #    correlation_socialflow_crime(region='ca', useRate=True, weightSocialFlow=True)
-#    r = correlation_demo_crime()
+    r = correlation_demo_crime()
 #    correlation_taxiflow_crime(flowPercentage=True, crimeRate=True)

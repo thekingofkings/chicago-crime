@@ -11,14 +11,14 @@ cr = coordinates(CAs)
 ids = as.numeric(as.character(CAs$AREA_NUMBE))
 
 
-#args <- commandArgs(trailingOnly=T)
-args = c('poi')
+args <- commandArgs(trailingOnly=T)
+#args = c('poi')
 
 if (length(args) < 1) {
 	cat('Usage: <poi|demo|crime|poi_count|error>\n')
 } else if (args[1] == 'poi') {
 
-	feature = read.csv('poi_dist.csv', header=FALSE)
+	feature = read.csv('../python/POI_dist.csv', header=FALSE)
 	f_ordered <- list()
 	for (i in 1:77) {
 		f_ordered[[i]] = feature[ids[i],]
