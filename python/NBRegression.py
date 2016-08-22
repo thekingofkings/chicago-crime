@@ -8,7 +8,6 @@ Author: Hongjian
 date:8/20/2015
 
 
-
 # Main function
 
 coefficients_pvalue()
@@ -20,37 +19,13 @@ This implementation use multi-processing in Python. Namely muliple R-instance
 will be called to run simultaneously.
 """
 
-
-"""
-Part One
-Generate vairous features
-
-factor into separate file FeatureUtils
-"""
-
 from FeatureUtils import *
-import warnings
-warnings.filterwarnings('ignore')
 from NegBinStatModel import negativeBinomialRegression
-
-
-"""
-Part Two
-Regression models
-"""
-
+import warnings
 from LinearModel import linearRegression
-
-
-"""
-Part Three
-build model and compare
-"""
 import numpy as np
 import pandas as pd
 from sklearn import cross_validation
-
-# misc libraries
 import matplotlib
 matplotlib.use("AGG")
 import matplotlib.pyplot as plt
@@ -58,21 +33,80 @@ import subprocess
 import os.path
 import os
 from sklearn.utils import shuffle
+from foursquarePOI import getFourSquarePOIDistribution
+from taxiFlow import getTaxiFlow
+import statsmodels.api as sm
 
 here = os.path.dirname(os.path.abspath(__file__))
 
 
 
+#+++++++++++++++++++++++++++++++++++++++++++++++++
+# Utility Functions
+#+++++++++++++++++++++++++++++++++++++++++++++++++
 
-"""
-Part Three
+def NB_training_R(features, featureNames, crimeRates, region, verboseoutput):
+    """
+    Use R package (glmmADMB) to train NB regression model
+    """
+    
+    f = pd.DataFrame(features, columns = featureNames)  
+    # call the Rscript to get Negative Binomial Regression results
+    # region - controls tract vs. CA level
+    # verbose - controls the output
+    np.savetxt("Y.csv", crimeRates, delimiter=",")
+    f.to_csv("f.csv", sep=",", index=False)
+    if verboseoutput:
+        subprocess.call( ['Rscript', 'nbr_eval.R', region, 'verbose'] )
+    else:
+        nbres = subprocess.check_output( ['Rscript', 'nbr_eval.R', region] )
+    return nbres
+    
+    
 
-Evaluation and fitting real models on Chicago data.
-"""
+def NB_training_python(features, crimeRates):
+    """
+    Use Python package (statsmodeles) to train NB regression model
+    """
+    errors = []
+    loo = cross_validation.LeaveOneOut(len(crimeRates))
+    for train_idx, test_idx in loo:
+        train_Y = crimeRates[train_idx]
+        train_X = features[train_idx]
+        nbmodel = sm.GLM(train_Y, train_X, family=sm.families.NegativeBinomial())
+        model_res = nbmodel.fit()
+        ybar = nbmodel.predict(model_res.params, features[test_idx])
+        errors.append(abs(ybar-crimeRates[test_idx]))
+    return np.mean(errors), np.std(errors), np.mean(errors) / np.mean(crimeRates)
+    
+    
+def LR_training_python(lrf, Y, verboseoutput):    
+    Y = Y.reshape((len(Y),))
+    loo = cross_validation.LeaveOneOut(len(Y))
+    mae2 = 0
+    errors2 = []
+    for train_idx, test_idx in loo:
+        f_train, f_test = lrf[train_idx], lrf[test_idx]
+        Y_train, Y_test = Y[train_idx], Y[test_idx]
+        if not np.any(np.isnan(f_train)) and np.all(np.isfinite(f_train)):
+            r2 = linearRegression(f_train, Y_train)
+            y2 = r2.predict(f_test)
+            errors2.append( np.abs( Y_test - y2 ) )
+            if verboseoutput:
+                print Y_test[0], y2[0]
+        else:
+            print 'nan or infinite'
+            pass
 
-from foursquarePOI import getFourSquarePOIDistribution
-from taxiFlow import getTaxiFlow
+    mae2 = np.mean(errors2)
+    var2 = np.sqrt( np.var(errors2) )
+    mre2 = mae2 / Y.mean()
+    return mae2, var2, mre2
 
+
+#+++++++++++++++++++++++++++++++++++++++++++++++++
+# Experiment Evaluation
+#+++++++++++++++++++++++++++++++++++++++++++++++++
 
 def leaveOneOut_evaluation_onChicagoCrimeData(year=2010, features= ["all"], 
                                               crime_t=['total'], flow_type=0, 
@@ -83,6 +117,7 @@ def leaveOneOut_evaluation_onChicagoCrimeData(year=2010, features= ["all"],
     Generate the social lag from previous year
     use income/race/education of current year
     """
+    warnings.warn("The leave one out in nbr_eval.R is unfair")
     if 'sociallag' in features:
         W = generate_transition_SocialLag(year, lehd_type=flow_type, region=region,
                                           normalization='pair')
@@ -213,50 +248,12 @@ def leaveOneOut_evaluation_onChicagoCrimeData(year=2010, features= ["all"],
     if 'temporallag' in features:
         f = np.concatenate( (f, np.log(Yhat)), axis=1)
         lrf = np.concatenate( (f, Yhat), axis=1)
-        columnName += ['temporal lag']  
-    f = pd.DataFrame(f, columns = columnName)
+        columnName += ['temporal lag']
+        
+    nbres = NB_training_R(f, columnName, Y, region, verboseoutput)
+    print NB_training_python(f, Y)
+    mae2, var2, mre2 = LR_training_python(lrf, Y, verboseoutput)
     
-
-    # call the Rscript to get Negative Binomial Regression results
-    np.savetxt("Y.csv", Y, delimiter=",")
-    f.to_csv("f.csv", sep=",", index=False)
-    if verboseoutput:
-        subprocess.call( ['Rscript', 'nbr_eval.R', region, 'verbose'] )
-    else:
-        nbres = subprocess.check_output( ['Rscript', 'nbr_eval.R', region] )
-    
-    Y = Y.reshape((len(Y),))
-    loo = cross_validation.LeaveOneOut(len(Y))
-#    mae = 0
-    mae2 = 0
-#    errors1 = []
-    errors2 = []
-    for train_idx, test_idx in loo:
-        f_train, f_test = lrf[train_idx], lrf[test_idx]
-        Y_train, Y_test = Y[train_idx], Y[test_idx]
-#        res, mod = negativeBinomialRegression(f_train, Y_train)
-#        ybar = mod.predict(res.params, exog=f_test)
-#        errors1.append( np.abs(Y_test - ybar.values[0])[0] )
-        
-        if not np.any(np.isnan(f_train)) and np.all(np.isfinite(f_train)):
-            r2 = linearRegression(f_train, Y_train)
-            y2 = r2.predict(f_test)
-            errors2.append( np.abs( Y_test - y2 ) )
-    #        print test_idx, Y_test[0], ybar.values[0], y2[0]
-            if verboseoutput:
-                print Y_test[0], y2[0]
-        else:
-            print 'nan or infinite'
-            pass
-        
-        
-#    mae = np.mean(errors1)
-    mae2 = np.mean(errors2)
-#    var = np.sqrt( np.var(errors1) )
-    var2 = np.sqrt( np.var(errors2) )
-#    mre = mae / Y.mean()
-    mre2 = mae2 / Y.mean()
-#    print "NegBio Regression MAE", mae, "std", var, "MRE", mre
     if verboseoutput:
         print "Linear Regression MAE", mae2, "std", var2, "MRE", mre2
     else:
@@ -946,7 +943,9 @@ def subPworker(lehdType, crimeType, sn, ep, logpop, lagsFlag, itersN, logpopden)
 
 def longTable_features_allYears():
     """
-    To serve the needs of Corina run her own experiemtns.
+    Write various features into files.
+    
+    To serve the needs of Corina running her own experiemtns.
     Create the following tables in sperate tables containing all different years.
     """
     
@@ -1024,8 +1023,8 @@ if __name__ == '__main__':
     # f = unitTest_onChicagoCrimeData()
 #   print f.summary()
     if t == 'leaveOneOut':
-        r = leaveOneOut_evaluation_onChicagoCrimeData(2010, features=
-                 ['corina', 'spatiallag', 'sociallag', 'taxiflow', 'POIdist'],   # temporallag
+        r = leaveOneOut_evaluation_onChicagoCrimeData(2012, features=
+                 ['corina', 'spatiallag', 'taxiflow', 'POIdist'],   # temporallag
                  verboseoutput=False, region='ca', logFeatures=['spatiallag2', 'sociallag2', 'taxiflow2'])
     elif t == 'permutation':
         permutationTest_onChicagoCrimeData(2010, ['corina', 'sociallag', 'spatiallag', 'temporallag'], iters=3)
