@@ -64,7 +64,7 @@ def NB_training_R(features, featureNames, crimeRates, region, verboseoutput):
     
     
 
-def NB_training_python(features, crimeRates):
+def NB_training_python_GLM(features, crimeRates):
     """
     Use Python package (statsmodeles) to train NB regression model
     """
@@ -102,6 +102,19 @@ def LR_training_python(lrf, Y, verboseoutput):
     var2 = np.sqrt( np.var(errors2) )
     mre2 = mae2 / Y.mean()
     return mae2, var2, mre2
+
+
+
+def NB_training_python_GLikelihoodModel(features, Y):
+    from NegBinStatModel import negativeBinomialRegression
+    errors = []
+    loo = cross_validation.LeaveOneOut(len(Y))
+    for train_idx, test_idx in loo:
+        res, mod = negativeBinomialRegression(features[train_idx], Y[train_idx])
+        ybar = mod.predict(res.params, features[test_idx])
+        errors.append(abs(ybar-Y[test_idx]))
+    return np.mean(errors), np.std(errors), np.mean(errors)/np.mean(Y)
+    
 
 
 #+++++++++++++++++++++++++++++++++++++++++++++++++
@@ -251,7 +264,8 @@ def leaveOneOut_evaluation_onChicagoCrimeData(year=2010, features= ["all"],
         columnName += ['temporal lag']
         
     nbres = NB_training_R(f, columnName, Y, region, verboseoutput)
-    print NB_training_python(f, Y)
+    print NB_training_python_GLM(f, Y)
+    print NB_training_python_GLikelihoodModel(f, Y)
     mae2, var2, mre2 = LR_training_python(lrf, Y, verboseoutput)
     
     if verboseoutput:
