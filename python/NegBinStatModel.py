@@ -14,11 +14,11 @@ is deprecated.
 
 from FeatureUtils import *
 import numpy as np
-from statsmodels.discrete.discrete_model import CountModel
+from statsmodels.discrete.discrete_model import CountModel, NegativeBinomialResults, \
+    NegativeBinomialResultsWrapper
 import unittest
 from scipy.special import gammaln, digamma
 import statsmodels.api as sm
-from scipy import stats
     
 
 class NegBin(CountModel):
@@ -43,7 +43,8 @@ class NegBin(CountModel):
         
         
     def fit(self, start_params=None, method='bfgs', maxiter = 1000, full_output=1,
-            disp=1, callback=None, cov_type='nonrobust', cov_kwds=None, **kwds):
+            disp=1, callback=None, cov_type='nonrobust', cov_kwds=None, use_t = None,
+            **kwds):
         if start_params == None:
             start_params = sm.Poisson(self.endog, self.exog).fit().params
             start_params = np.append(start_params, 0.1)
@@ -65,7 +66,7 @@ class NegBin(CountModel):
             cov_kwds = {}  #TODO: make this unnecessary ?
         result._get_robustcov_results(cov_type=cov_type,
                                     use_self=True, use_t=use_t, **cov_kwds)
-        return resul 
+        return result
                 
 
     def score(self, params, **kwds):
@@ -150,7 +151,7 @@ def negativeBinomialRegression(features, Y):
     mod = NegBin(Y, features)
     res = mod.fit(disp=False)
     if not res.mle_retvals['converged']:
-        print "NBreg not converged.", res.params[0]
+        print "NBreg not converged."
     return res, mod
 
 

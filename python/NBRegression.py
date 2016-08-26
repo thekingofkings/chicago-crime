@@ -18,7 +18,8 @@ one-out errors to measure the significance.
 This implementation use multi-processing in Python. Namely muliple R-instance
 will be called to run simultaneously.
 """
-
+import matplotlib
+matplotlib.use("AGG")
 from FeatureUtils import *
 from NegBinStatModel import negativeBinomialRegression
 import warnings
@@ -26,8 +27,6 @@ from LinearModel import linearRegression
 import numpy as np
 import pandas as pd
 from sklearn import cross_validation
-import matplotlib
-matplotlib.use("AGG")
 import matplotlib.pyplot as plt
 import subprocess
 import os.path
@@ -36,7 +35,7 @@ from sklearn.utils import shuffle
 from foursquarePOI import getFourSquarePOIDistribution
 from taxiFlow import getTaxiFlow
 import statsmodels.api as sm
-
+from statsmodels.discrete.discrete_model import NegativeBinomial
 here = os.path.dirname(os.path.abspath(__file__))
 
 
@@ -115,6 +114,18 @@ def NB_training_python_GLikelihoodModel(features, Y):
         errors.append(abs(ybar-Y[test_idx]))
     return np.mean(errors), np.std(errors), np.mean(errors)/np.mean(Y)
     
+
+
+def NB_training_python_NBcount(features, Y):
+    errors = []
+    loo = cross_validation.LeaveOneOut(len(Y))
+    for train_idx, test_idx in loo:
+        mod = NegativeBinomial(Y[train_idx], features[train_idx])
+        res = mod.fit()
+        print res.params
+        ybar = mod.predict(res.params, features[test_idx])
+        errors.append(abs(ybar-Y[test_idx]))
+    return np.mean(errors)
 
 
 #+++++++++++++++++++++++++++++++++++++++++++++++++
@@ -265,7 +276,8 @@ def leaveOneOut_evaluation_onChicagoCrimeData(year=2010, features= ["all"],
         
     nbres = NB_training_R(f, columnName, Y, region, verboseoutput)
     print NB_training_python_GLM(f, Y)
-    print NB_training_python_GLikelihoodModel(f, Y)
+    # print NB_training_python_GLikelihoodModel(f, Y)
+    print NB_training_python_NBcount(f, Y)
     mae2, var2, mre2 = LR_training_python(lrf, Y, verboseoutput)
     
     if verboseoutput:
