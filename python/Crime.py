@@ -5,6 +5,8 @@ Split Chicago crime by years.
 Extract crime count by tracts.
 """
 
+import numpy as np
+import matplotlib.pyplot as plt
 import shapefile
 from shapely.geometry import Polygon, Point, box
 import sys
@@ -39,6 +41,19 @@ class CrimeRecord:
         
     def __str__( self ):
         return ' '.join( [self.id, self.caseNumber, self.date, self.type, self.lat, self.lon ] )
+        
+        
+    def getDateField(self, field):
+        """
+        Get month/day/year/hour/miniute/second field from date
+        """
+        if field == 'hour':
+            hour = int(self.date[11:13])
+            # is it PM?
+            delta = 12 if hour < 12 and self.date[20:22] == 'PM' else 0
+            return hour + delta
+        else:
+            return self.date
             
         
 
@@ -66,6 +81,25 @@ class CrimeDataset:
                             tract.count[cr.type] = 1
                         else:
                             tract.count[cr.type] += 1
+                            
+
+
+    def temporalDistribution_perTract_perCategory(self, areas):
+        """
+        Generate the temporal distribution of crime occurrences over 
+        each category for each area
+        """
+        for line in self.f:
+            cr = CrimeRecord(line)
+            if cr.id != None:
+                for area in areas.values():
+                    if area.containCrime(cr):
+                        hoc = cr.getDateField('hour')
+                        if cr.type not in area.timeHist:
+                            area.timeHist[cr.type] = np.zeros(24)
+                        area.timeHist[cr.type][hoc] += 1
+                        area.timeHist['total'][hoc] += 1
+                        
                         
             
         
@@ -102,6 +136,7 @@ class Tract:
         self.bbox = box(*shp.bbox)
         self.polygon = Polygon(shp.points)
         self.count = {'total': 0} # type: value
+        self.timeHist = {'total': np.zeros(24)}
         if rec != None:
             self.CA = rec[7]
         
@@ -115,6 +150,27 @@ class Tract:
             if self.polygon.contains(cr.point):
                 return True
         return False
+        
+        
+    
+    def plotTimeHist(self, keys=None):
+        """
+        Plot the crime time histogram
+        """
+        if len(self.timeHist) == 1:
+            return
+        else:
+            if keys is None:
+                keys = self.timeHist.keys()
+            values = [self.timeHist[key] for key in keys]
+            
+            plt.figure()
+            for val in values:
+                plt.plot(val)
+            plt.legend(keys)
+            plt.show()
+            
+            
         
         
     @classmethod
@@ -146,10 +202,15 @@ class Tract:
             cls.cas[int(tid)] = trt
             
         return cls.cas
-            
-        
-if __name__ == '__main__':
-    
+
+
+
+def main():
+    """
+    Commandline tool
+    1. split crime file by years
+    2. generate crime count for each tract in given year
+    """
     year = 2010
     arguments = {}
     if len(sys.argv) % 2 == 1:
@@ -164,7 +225,7 @@ if __name__ == '__main__':
     if 'splitfile' in arguments:
         if arguments['splitfile'] == 'true':
             CrimeDataset.splitFileIntoYear(here + '/../data/Crimes_-_2001_to_present.csv')
-            sys.exit(0)
+            return 0
             
     if 'year' in arguments:
         year = arguments['year']
@@ -173,7 +234,7 @@ if __name__ == '__main__':
     
     if os.path.exists(foutName):
         print 'The year {0} is already merged.\nQuit Program'.format(year)
-        sys.exit(0)
+        return 0
             
     
     c = CrimeDataset(here + '/../data/chicago-crime-{0}.csv'.format(year))
@@ -198,3 +259,19 @@ if __name__ == '__main__':
             
     print "Bad records: {0}".format(CrimeRecord.cntBadRecord)
     print "Total records: {0}".format(CrimeRecord.cntTotal)          
+
+
+
+
+def crime_time_histogram(year=2010):
+    CA = Tract.createAllCAObjects()
+    c = CrimeDataset("../data/chicago-crime-{0}.csv".format(year))
+    c.temporalDistribution_perTract_perCategory(CA)
+    return CA
+    
+    
+        
+if __name__ == '__main__':
+#    main()
+    ca = crime_time_histogram()
+    
