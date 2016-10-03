@@ -7,7 +7,6 @@ library(spdep)
 library(foreach)
 
 
-
 # calculate contiguous spatial matrix
 spatialWeight <- function( ca, leaveOneOut = -1 ) {
     if (leaveOneOut > -1) {
@@ -46,6 +45,7 @@ normalize.social.lag <- function( sco, socialnorm="bysource" ) {
         sco <- sco / s
         stopifnot( sco[4, 4] == 0, nrow(sco)==N, ncol(sco)==N, abs(sum(sco) - 1) <= 0.00000001)
     }
+	sco[is.nan(sco)] = 0
 
     return (sco)
 }
@@ -108,6 +108,7 @@ leaveOneOut <- function(demos, ca, w2, Y, coeff=FALSE, normalize=FALSE, socialno
             sco <- w2[-i, -i]
 
             sco <- normalize.social.lag(sco, socialnorm)
+        	stopifnot( all(is.finite(as.matrix(sco))) )
 
             if (lags[1] == "1")
                 F[,'social.lag'] = as.vector(sco %*% y)
@@ -142,6 +143,8 @@ leaveOneOut <- function(demos, ca, w2, Y, coeff=FALSE, normalize=FALSE, socialno
             stopifnot(rownames(w2) != NULL)
             dropCA <- rownames(w2[i, ,drop=FALSE])
             spt <- spatialWeight(ca, as.numeric(dropCA) )
+        	stopifnot( all(is.finite(as.matrix(spt))) )
+
             if (lags[2] == "1")
                 F[,'spatial.lag'] = as.vector(spt %*% y)
             if (lags[4] == "1")

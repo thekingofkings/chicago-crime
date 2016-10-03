@@ -420,7 +420,7 @@ def permutationTest_onChicagoCrimeData(year=2010, features= ["all"], logFeatures
     Initial try - before 2015/10/4
     
     For each sample point (CA), we permute the dependent variable (crime count),
-    while keeps the dependent variables the same.
+    while keeps the independent variables the same.
     
     This approach is hard to explain.
     
@@ -907,33 +907,33 @@ def coefficients_pvalue(lagsFlag, tempflag="templag", selfflow="selfflow", iters
     # use a multiprocess Pool to run subprocess in parallel
     socialNorm = ['bydestination', 'bysource', 'bypair']
     os.chdir(here + "/../R")
-#    from multiprocessing import Pool, cpu_count
-#    subProcessPool = Pool(cpu_count() / 2)
+    from multiprocessing import Pool, cpu_count
+    subProcessPool = Pool(cpu_count() / 2)
 
     for sn in socialNorm[1:2]:
         for logpop in ["logpop", "pop"][0:1]:
             for logpopden in ["logpopdensty", "popdensty"][0:1]:
-                #subProcessPool.apply_async(subPworker, (lehdType, crimeType, sn, exposure, logpop, lagsFlag, itersN, logpopden))
-                p = subprocess.Popen(['Rscript', 'pvalue-evaluation.R', 
-                                      lehdType+"lehd", crimeType+"crime", sn, 
-                                      exposure, logpop, lagsFlag, itersN, 
-                                      logpopden, tempflag, selfflow])
-                p.wait()
-#    subProcessPool.close()
-#    subProcessPool.join()
+                subProcessPool.apply_async(subPworker, (lehdType, crimeType, sn, exposure, logpop, lagsFlag, itersN, logpopden, tempflag, selfflow))
+#                p = subprocess.Popen(['Rscript', 'pvalue-evaluation.R', 
+#                                      lehdType+"lehd", crimeType+"crime", sn, 
+#                                      exposure, logpop, lagsFlag, itersN, 
+#                                      logpopden, tempflag, selfflow])
+#                p.wait()
+    subProcessPool.close()
+    subProcessPool.join()
     
     
 
 
-def subPworker(lehdType, crimeType, sn, ep, logpop, lagsFlag, itersN, logpopden):
-    print "Start worker with", sn, ep, logpop, lagsFlag, itersN, logpopden
+def subPworker(lehdType, crimeType, sn, ep, logpop, lagsFlag, itersN, logpopden, tempflag, selfflow):
+    print "Start worker with", sn, ep, logpop, lagsFlag, itersN, logpopden, tempflag, selfflow
     import platform
     if platform.system() == "Windows":
         p = subprocess.Popen(['Rscript', 'pvalue-evaluation.R', lehdType+"lehd", crimeType+"crime", 
-                          sn, ep, logpop, lagsFlag, itersN, logpopden], shell=True)
+                          sn, ep, logpop, lagsFlag, itersN, logpopden, tempflag, selfflow], shell=True)
     elif platform.system() == "Linux":
         p = subprocess.Popen(['Rscript', 'pvalue-evaluation.R', lehdType+"lehd", crimeType+"crime", 
-                          sn, ep, logpop, lagsFlag, itersN, logpopden])
+                          sn, ep, logpop, lagsFlag, itersN, logpopden, tempflag, selfflow])
         
     print p.pid, "is running"
     p.wait()
@@ -1059,8 +1059,8 @@ if __name__ == '__main__':
                 j = o[-i]
                 print ' &'.join( [h[j]] + ['{0:.3f}'.format(row[j]) for row in v] )
     elif t == 'pvalue':
-        coefficients_pvalue(lagsFlag="1000", tempflag="notemplag", selfflow="selfflow",
-                            itersN="10", exposure="exposure", year=2010, lehdType="total", crimeType="total")
+        coefficients_pvalue(lagsFlag="1100", tempflag="notemplag", selfflow="noselfflow",
+                            itersN="1000", exposure="exposure", year=2010, lehdType="taxi", crimeType="total")
     elif t == 'getlongtable':
         r = longTable_features_allYears()
     

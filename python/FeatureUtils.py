@@ -132,7 +132,7 @@ def generate_geographical_SpatialLag_ca(knearest=True, leaveOut=-1):
 
 def generate_transition_SocialLag(year = 2010, lehd_type=0, region='ca', leaveOut=-1, normalization='source'):
     """
-    Generate the spatial lag from the transition flow connected CAs.
+    Generate the spatial lag matrix from the transition flow connected CAs.
     
     0 - #total jobs
     1 - #jobs age under 29,
