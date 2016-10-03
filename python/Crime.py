@@ -274,4 +274,6 @@ def crime_time_histogram(year=2010):
 if __name__ == '__main__':
 #    main()
     ca = crime_time_histogram()
+    ca[32].plotTimeHist(['THEFT', 'NARCOTICS', 'CRIMINAL DAMAGE', 'BURGLARY', 
+        'MOTOR VEHICLE THEFT', 'ROBBERY'])
     
