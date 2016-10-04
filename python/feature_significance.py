@@ -27,7 +27,7 @@ import numpy as np
 from FeatureUtils import retrieve_crime_count, generate_corina_features, generate_geographical_SpatialLag_ca
 from foursquarePOI import getFourSquarePOIDistribution
 from taxiFlow import getTaxiFlow
-
+import unittest
 
 
 def extract_raw_samples(year=2010, crime_t=['total'], crime_rate=True):
@@ -93,7 +93,7 @@ def permute_feature(features):
 
 
 
-def build_nodal_features(D, P, leaveOneOut=-1):
+def build_nodal_features(D, P, leaveOneOut):
     """
     Build nodal features for various prediction models.
     
@@ -104,21 +104,120 @@ def build_nodal_features(D, P, leaveOneOut=-1):
         
     Output:
     Xn - nodal feature vectors
+    Xn is a (train, test) tuple.
     """
     if leaveOneOut > -1:
         Xn = np.ones((D.shape[0]-1, 1))
         D_loo = np.delete(D, leaveOneOut, 0)
-        P_loo = np.delete(D, leaveOneOut, 0)
+        P_loo = np.delete(P, leaveOneOut, 0)
         Xn = np.concatenate((Xn, D_loo, P_loo), axis=1)
         assert Xn.shape[0] == 76
-    else:
-        Xn = np.ones((D.shape[0],1))
-        Xn = np.concatenate((Xn, D, P), axis=1)
-        assert Xn.shape[0] == 77
-    return Xn    
-    
+    Xn_test = np.concatenate(([1], D[leaveOneOut,:], P[leaveOneOut,:]))
+    return Xn, Xn_test 
 
+
+
+def build_taxi_features(Y, Tf, leaveOneOut):
+    """
+    Build taxi flow features.
+    
+    Input:
+    Y - crime rate / count
+    Tf - taxi flow count matrix. need normalization first.
+    leaveOneOut - the index of testing region
+    
+    Output:
+    T - taxi flow feature, calculated by
+            T = Tf' * Y
+    T is a (train, test) tuple.
+    """
+    # leave one out
+    if leaveOneOut > -1:
+        Tf_loo = np.delete(Tf, leaveOneOut, 0)
+        Tf_loo = np.delete(Tf_loo, leaveOneOut, 1)
+        Y_loo = np.delete(Y, leaveOneOut, 0)
+        
+    # taxi flow normalization (by destination)
+    Tf_sum = np.sum(Tf_loo, axis=0, keepdims=True).astype(float)
+    Tf_sum[Tf_sum==0] = 1
+    assert Tf_sum.shape == (1, Y_loo.shape[0])
+    Tf_norml = Tf_loo / Tf_sum
+    
+    # calculate taxi flow feature
+    T = np.dot(np.transpose(Tf_norml), Y_loo)
+
+    # for testing sample
+    Tf_test = Tf[:,leaveOneOut]
+    Tf_test = np.delete(Tf_test, leaveOneOut).astype(float)
+    Tf_test /= np.sum(Tf_test) if np.sum(Tf_test) != 0 else 1
+    return T, np.dot(Tf_test, Y_loo)
+        
+    
+def build_geo_features(Y, Gd, leaveOneOut=-1):
+    """
+    Build geo distance weighted features.
+
+    Input:
+    Y - crime rate / count
+    Gd - geospatial distance weight matrix
+    leaveOneOut - the index of testing region
+
+    Output:
+    G - geospatial feature, calculated by
+            G = Gd * Y
+    G is a (train, test) tuple.
+    """
+    if leaveOneOut > -1:
+        Gd_loo = np.delete(Gd, leaveOneOut, 0)
+        Gd_loo = np.delete(Gd_loo, leaveOneOut, 1)
+        Y_loo = np.delete(Y, leaveOneOut, 0)
+    else:
+        Gd_loo = Gd
+        Y_loo = Y
+
+    Gd_test = np.delete(Gd[leaveOneOut, :], leaveOneOut)
+    return np.dot(Gd_loo, Y_loo), np.dot(Gd_test, Y_loo)
+
+
+
+def leaveOneOut(Y, D, P, Tf, Gd, leaveOneOut):
+    Xn = build_nodal_features(D, P, leaveOneOut)
+    T = build_taxi_features(Y, Tf, leaveOneOut)
+    G = build_geo_features(Y, Gd, leaveOneOut)
+    X = np.concatenate(Xn, T, G)
+
+
+
+
+class TestFeatureSignificance(unittest.TestCase):
+
+    def test_extract_raw_samples(self):
+        Y, D, P, Tf, Gd = extract_raw_samples()
+        assert Y is not None
+        assert D.shape == (77, 8)
+        assert P.shape[0] == 77
+        assert Tf.shape == (77, 77)
+        assert Gd.shape == (77, 77)
+
+    def test_build_nodal_features(self):
+        Y, D, P, T, Gd = extract_raw_samples()
+        Xn, Xn_test = build_nodal_features(D, P, 3)
+        assert Xn_test.shape[0] == Xn.shape[1] 
+    
+    def test_build_taxi_features(self):
+        Y = np.array([1,2,3]).reshape((3,1))
+        Tf = np.arange(9).reshape((3,3))
+        T, T_test = build_taxi_features(Y, Tf, 1)
+        np.testing.assert_almost_equal(T[0,0], 3.0)
+        np.testing.assert_almost_equal(T[1,0], 2.6)
+        np.testing.assert_almost_equal(T_test[0], 22.0/8)
+
+    def test_build_geo_features(self):
+        Y = np.array([1,2,3]).reshape((3,1))
+        Gd = np.arange(9).reshape((3,3))
+        G, G_test = build_geo_features(Y, Gd, 1)
+        assert G[0,0] == 6 and G[1,0] == 30 and G_test[0] == 18
 
 
 if __name__ == '__main__':
-    Y, D, P, Tf, Gd = extract_raw_samples()
+    unittest.main()
