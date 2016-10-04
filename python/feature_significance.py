@@ -88,8 +88,7 @@ def permute_feature(features):
                         column.
     """
     features_permuted = np.copy(features)
-    for i in range(features_permuted.shape[1]):
-        np.random.shuffle(features_permuted[:,i])
+    np.random.shuffle(features_permuted)
     return features_permuted
 
 
@@ -182,6 +181,36 @@ def build_geo_features(Y, Gd, leaveOneOut=-1):
 
 
 
+def build_features(Y, D, P, Tf, Yf, Gd, Yg, testK):
+    """
+    Build features for both training and testing samples in leave one out setting.
+
+    Input:
+    Y - crime rate/count
+    D - demo feature
+    P - POI feature
+    Tf - taxi flow matrix
+    Yf - crime vector for taxi flow calculation
+    Gd - geo weight matrix
+    Yg - crime vector for geo feature calculation
+    testK - index of testing sample
+    
+    Output:
+    X_train
+    X_test
+    Y_train
+    Y_test
+    """
+    Xn = build_nodal_features(D, P, testK)
+    T = build_taxi_features(Y, Tf, testK)
+    G = build_geo_features(Y, Gd, testK)
+    X_train = np.concatenate((Xn[0], T[0], G[0]), axis=1)
+    X_test = np.concatenate((Xn[1], T[1], G[1]))
+    Y_train = np.delete(Y, testK)
+    Y_test = Y[testK, 0]
+    return X_train, X_test, Y_train, Y_test
+    
+
 def leaveOneOut_error(Y, D, P, Tf, Gd):
     """
     Use GLM model from python statsmodels library to fit data.
@@ -192,19 +221,22 @@ def leaveOneOut_error(Y, D, P, Tf, Gd):
     """
     errors = []
     for k in range(len(Y)):
-        Xn = build_nodal_features(D, P, k)
-        T = build_taxi_features(Y, Tf, k)
-        G = build_geo_features(Y, Gd, k)
-        X_train = np.concatenate((Xn[0], T[0], G[0]), axis=1)
-        X_test = np.concatenate((Xn[1], T[1], G[1]))
-        Y_train = np.delete(Y, k)
-        Y_test = Y[k, 0]
+        X_train, X_test, Y_train, Y_test = build_features(Y, D, P, Tf, Y, Gd, Y, k)
         # Train NegativeBinomial Model from statsmodels library
         nbm = sm.GLM(Y_train, X_train, family=sm.families.NegativeBinomial())
         nb_res = nbm.fit()
         ybar = nbm.predict(nb_res.params, X_test)
         errors.append(np.abs(ybar - Y_test))
     return np.mean(errors), np.mean(errors) / np.mean(Y)
+
+
+
+def permutation_test_significance(Y, D, P, Tf, Gd, n, to_permute="demo"):
+    """
+    Permutation test on selected features to return significance.
+    """
+    pass
+
 
 
 
@@ -217,6 +249,13 @@ class TestFeatureSignificance(unittest.TestCase):
         assert P.shape[0] == 77
         assert Tf.shape == (77, 77)
         assert Gd.shape == (77, 77)
+        
+    def test_permute_feature(self):
+        Y, D, P, Tf, Gd = extract_raw_samples()
+        Yp = permute_feature(Y)
+        assert np.sum(Yp - Y) != 0
+        Dp = permute_feature(D)
+        np.testing.assert_almost_equal(np.sum(Dp, axis=0)[1], np.sum(D, axis=0)[1])
 
     def test_build_nodal_features(self):
         Y, D, P, T, Gd = extract_raw_samples()
@@ -244,4 +283,9 @@ class TestFeatureSignificance(unittest.TestCase):
 
 
 if __name__ == '__main__':
-    unittest.main()
+     unittest.main()
+#    for year in range(2010, 2015):
+#        Y, D, P, Tf, Gd = extract_raw_samples(year, crime_t=['all'])
+#        mae, mre = leaveOneOut_error(Y, D, P, Tf, Gd)
+#        print year, mae, mre
+
