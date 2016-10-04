@@ -27,6 +27,7 @@ import numpy as np
 from FeatureUtils import retrieve_crime_count, generate_corina_features, generate_geographical_SpatialLag_ca
 from foursquarePOI import getFourSquarePOIDistribution
 from taxiFlow import getTaxiFlow
+import statsmodels.api as sm
 import unittest
 
 
@@ -56,7 +57,7 @@ def extract_raw_samples(year=2010, crime_t=['total'], crime_rate=True):
     # Crime rate / count
     demo = generate_corina_features()
     population = demo[1][:,0].reshape(demo[1].shape[0], 1)
-    Y = y_cnt / population if crime_rate else y_cnt
+    Y = y_cnt / population * 10000 if crime_rate else y_cnt
     assert(Y.shape == (77,1))
     
     # Demo features
@@ -153,6 +154,7 @@ def build_taxi_features(Y, Tf, leaveOneOut):
     return T, np.dot(Tf_test, Y_loo)
         
     
+
 def build_geo_features(Y, Gd, leaveOneOut=-1):
     """
     Build geo distance weighted features.
@@ -180,12 +182,29 @@ def build_geo_features(Y, Gd, leaveOneOut=-1):
 
 
 
-def leaveOneOut(Y, D, P, Tf, Gd, leaveOneOut):
-    Xn = build_nodal_features(D, P, leaveOneOut)
-    T = build_taxi_features(Y, Tf, leaveOneOut)
-    G = build_geo_features(Y, Gd, leaveOneOut)
-    X = np.concatenate(Xn, T, G)
+def leaveOneOut_error(Y, D, P, Tf, Gd):
+    """
+    Use GLM model from python statsmodels library to fit data.
+    Evaluate with leave-one-out setting, return the average of n errors.
 
+    Output:
+    error - the average error of k leave-one-out evaluation
+    """
+    errors = []
+    for k in range(len(Y)):
+        Xn = build_nodal_features(D, P, k)
+        T = build_taxi_features(Y, Tf, k)
+        G = build_geo_features(Y, Gd, k)
+        X_train = np.concatenate((Xn[0], T[0], G[0]), axis=1)
+        X_test = np.concatenate((Xn[1], T[1], G[1]))
+        Y_train = np.delete(Y, k)
+        Y_test = Y[k, 0]
+        # Train NegativeBinomial Model from statsmodels library
+        nbm = sm.GLM(Y_train, X_train, family=sm.families.NegativeBinomial())
+        nb_res = nbm.fit()
+        ybar = nbm.predict(nb_res.params, X_test)
+        errors.append(np.abs(ybar - Y_test))
+    return np.mean(errors), np.mean(errors) / np.mean(Y)
 
 
 
@@ -217,6 +236,11 @@ class TestFeatureSignificance(unittest.TestCase):
         Gd = np.arange(9).reshape((3,3))
         G, G_test = build_geo_features(Y, Gd, 1)
         assert G[0,0] == 6 and G[1,0] == 30 and G_test[0] == 18
+
+    def test_leaveOneOut_error(self):
+        Y, D, P, Tf, Gd = extract_raw_samples()
+        mae, mre = leaveOneOut_error(Y, D, P, Tf, Gd)
+        assert mae <= 1000 and mre < 0.35
 
 
 if __name__ == '__main__':
