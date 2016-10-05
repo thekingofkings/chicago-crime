@@ -181,7 +181,7 @@ def build_geo_features(Y, Gd, leaveOneOut=-1):
 
 
 
-def build_features(Y, D, P, Tf, Yf, Gd, Yg, testK):
+def build_features(Y, D, P, Tf, Yt, Gd, Yg, testK):
     """
     Build features for both training and testing samples in leave one out setting.
 
@@ -190,7 +190,7 @@ def build_features(Y, D, P, Tf, Yf, Gd, Yg, testK):
     D - demo feature
     P - POI feature
     Tf - taxi flow matrix
-    Yf - crime vector for taxi flow calculation
+    Yt - crime vector for taxi flow calculation
     Gd - geo weight matrix
     Yg - crime vector for geo feature calculation
     testK - index of testing sample
@@ -202,8 +202,8 @@ def build_features(Y, D, P, Tf, Yf, Gd, Yg, testK):
     Y_test
     """
     Xn = build_nodal_features(D, P, testK)
-    T = build_taxi_features(Y, Tf, testK)
-    G = build_geo_features(Y, Gd, testK)
+    T = build_taxi_features(Yt, Tf, testK)
+    G = build_geo_features(Yg, Gd, testK)
     X_train = np.concatenate((Xn[0], T[0], G[0]), axis=1)
     X_test = np.concatenate((Xn[1], T[1], G[1]))
     Y_train = np.delete(Y, testK)
@@ -211,7 +211,7 @@ def build_features(Y, D, P, Tf, Yf, Gd, Yg, testK):
     return X_train, X_test, Y_train, Y_test
     
 
-def leaveOneOut_error(Y, D, P, Tf, Gd):
+def leaveOneOut_error(Y, D, P, Tf, Yt, Gd, Yg):
     """
     Use GLM model from python statsmodels library to fit data.
     Evaluate with leave-one-out setting, return the average of n errors.
@@ -221,7 +221,7 @@ def leaveOneOut_error(Y, D, P, Tf, Gd):
     """
     errors = []
     for k in range(len(Y)):
-        X_train, X_test, Y_train, Y_test = build_features(Y, D, P, Tf, Y, Gd, Y, k)
+        X_train, X_test, Y_train, Y_test = build_features(Y, D, P, Tf, Yt, Gd, Yg, k)
         # Train NegativeBinomial Model from statsmodels library
         nbm = sm.GLM(Y_train, X_train, family=sm.families.NegativeBinomial())
         nb_res = nbm.fit()
@@ -235,8 +235,28 @@ def permutation_test_significance(Y, D, P, Tf, Gd, n, to_permute="demo"):
     """
     Permutation test on selected features to return significance.
     """
-    pass
-
+    model_error = leaveOneOut_error(Y, D, P, Tf, Y, Gd, Y)
+    Yt = np.copy(Y)
+    Yg = np.copy(Y)
+    cnt = 0.0
+    for i in range(n):
+        if i % (n/10) == 0:
+            print "Permutation test {0}%, current pvalue {1} ...".format(i/(n/10)*10, cnt/n)
+        if to_permute == "demo":
+            D = permute_feature(D)
+        elif to_permute == "poi":
+            P = permute_feature(P)
+        elif to_permute == "taxi":
+            Yt = permute_feature(Yt)
+        elif to_permute == "geo":
+            Yg = permute_feature(Yg)
+        else:
+            raise ValueError("Feature to_permute not found.")
+        perm_error = leaveOneOut_error(Y, D, P, Tf, Yt, Gd, Yg)
+        if perm_error < model_error:
+            cnt += 1
+    print "Significance for {0} is {1} with {2} permutations.".format(to_permute, cnt/n, n)
+    return cnt / n
 
 
 
@@ -278,14 +298,26 @@ class TestFeatureSignificance(unittest.TestCase):
 
     def test_leaveOneOut_error(self):
         Y, D, P, Tf, Gd = extract_raw_samples()
-        mae, mre = leaveOneOut_error(Y, D, P, Tf, Gd)
+        mae, mre = leaveOneOut_error(Y, D, P, Tf, Y, Gd, Y)
         assert mae <= 1000 and mre < 0.35
 
 
-if __name__ == '__main__':
-     unittest.main()
-#    for year in range(2010, 2015):
-#        Y, D, P, Tf, Gd = extract_raw_samples(year, crime_t=['all'])
-#        mae, mre = leaveOneOut_error(Y, D, P, Tf, Gd)
-#        print year, mae, mre
 
+
+def main_evaluate_different_years():
+    for year in range(2010, 2015):
+        Y, D, P, Tf, Gd = extract_raw_samples(year, crime_t=['total'])
+        mae, mre = leaveOneOut_error(Y, D, P, Tf, Y, Gd, Y)
+        print year, mae, mre
+    
+
+if __name__ == '__main__':
+#    unittest.main()
+#    main_evaluate_different_years()
+    sig = {}
+    for f in ["demo", "geo", "taxi", "poi"]:
+        Y, D, P, Tf, Gd = extract_raw_samples(2010, crime_t=['total'])
+        s = permutation_test_significance(Y, D, P, Tf, Gd, 2000, to_permute=f)
+        sig[f] = s
+    import pickle
+    pickle.dump(sig, open("significance", 'w'))
