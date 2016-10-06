@@ -24,7 +24,7 @@ such as NB and GWNBR.
 
 
 import numpy as np
-from FeatureUtils import retrieve_crime_count, generate_corina_features, generate_geographical_SpatialLag_ca
+from FeatureUtils import retrieve_crime_count, generate_corina_features, generate_geographical_SpatialLag_ca, generate_GWR_weight
 from foursquarePOI import getFourSquarePOIDistribution
 from taxiFlow import getTaxiFlow
 import statsmodels.api as sm
@@ -39,7 +39,6 @@ def extract_raw_samples(year=2010, crime_t=['total'], crime_rate=True):
     This function is called once only to avoid unnecessary disk I/O.
     
     Input:
-    features    - a list features. ['all'] == ['demo', 'poi', 'geo', 'taxi']
     year        - which year to study
     crime_t     - crime types of interest, e.g. 'total'
     crime_rate  - predict crime_rate or not (count)
@@ -93,26 +92,26 @@ def permute_feature(features):
 
 
 
-def build_nodal_features(D, P, leaveOneOut):
+def build_nodal_features( X, leaveOneOut):
     """
     Build nodal features for various prediction models.
     
     Input:
-    D - the demo feature
-    P - the POI feature
+    X - a tuple of nodal features, e.g. (D, ) or (P, ), or (D, P)
     leaveOneOut - the index of testing region
         
     Output:
-    Xn - nodal feature vectors
+    Xn - nodal feature vectors. Guaranteed none empty.
     Xn is a (train, test) tuple.
     """
     if leaveOneOut > -1:
-        Xn = np.ones((D.shape[0]-1, 1))
-        D_loo = np.delete(D, leaveOneOut, 0)
-        P_loo = np.delete(P, leaveOneOut, 0)
-        Xn = np.concatenate((Xn, D_loo, P_loo), axis=1)
+        Xn = np.ones((X[0].shape[0]-1, 1))
+        Xn_test = [1]
+        for nodal_feature in X:
+            nodal_feature_loo = np.delete(nodal_feature, leaveOneOut, 0)    
+            Xn = np.concatenate((Xn, nodal_feature_loo), axis=1)
+            Xn_test = np.concatenate((Xn_test, nodal_feature[leaveOneOut, :]))
         assert Xn.shape[0] == 76
-    Xn_test = np.concatenate(([1], D[leaveOneOut,:], P[leaveOneOut,:]))
     return Xn, Xn_test 
 
 
@@ -181,7 +180,7 @@ def build_geo_features(Y, Gd, leaveOneOut=-1):
 
 
 
-def build_features(Y, D, P, Tf, Yt, Gd, Yg, testK):
+def build_features(Y, D, P, Tf, Yt, Gd, Yg, testK, features=['all']):
     """
     Build features for both training and testing samples in leave one out setting.
 
@@ -193,7 +192,8 @@ def build_features(Y, D, P, Tf, Yt, Gd, Yg, testK):
     Yt - crime vector for taxi flow calculation
     Gd - geo weight matrix
     Yg - crime vector for geo feature calculation
-    testK - index of testing sample
+    testK - index of testing sample    
+    features    - a list features. ['all'] == ['demo', 'poi', 'geo', 'taxi']
     
     Output:
     X_train
@@ -201,27 +201,43 @@ def build_features(Y, D, P, Tf, Yt, Gd, Yg, testK):
     Y_train
     Y_test
     """
-    Xn = build_nodal_features(D, P, testK)
-    T = build_taxi_features(Yt, Tf, testK)
-    G = build_geo_features(Yg, Gd, testK)
-    X_train = np.concatenate((Xn[0], T[0], G[0]), axis=1)
-    X_test = np.concatenate((Xn[1], T[1], G[1]))
+    X = []
+    if 'all' in features or 'demo' in features:
+        X.append(D)
+    if 'all' in features or 'poi' in features:
+        X.append(P)
+    Xn = build_nodal_features(tuple(X), testK)
+    X_train = Xn[0]
+    X_test = Xn[1]
+    
+    if 'all' in features or 'taxi' in features:
+        T = build_taxi_features(Yt, Tf, testK)
+        X_train = np.concatenate((X_train, T[0]), axis=1)
+        X_test = np.concatenate((X_test, T[1]))
+        
+    if 'all' in features or 'geo' in features:
+        G = build_geo_features(Yg, Gd, testK)
+        X_train = np.concatenate((X_train, G[0]), axis=1)
+        X_test = np.concatenate((X_test, G[1]))
     Y_train = np.delete(Y, testK)
     Y_test = Y[testK, 0]
     return X_train, X_test, Y_train, Y_test
     
 
-def leaveOneOut_error(Y, D, P, Tf, Yt, Gd, Yg):
+def leaveOneOut_error(Y, D, P, Tf, Yt, Gd, Yg, features=['all']):
     """
     Use GLM model from python statsmodels library to fit data.
     Evaluate with leave-one-out setting, return the average of n errors.
+    
+    Input:    
+    features    - a list features. ['all'] == ['demo', 'poi', 'geo', 'taxi']
 
     Output:
     error - the average error of k leave-one-out evaluation
     """
     errors = []
     for k in range(len(Y)):
-        X_train, X_test, Y_train, Y_test = build_features(Y, D, P, Tf, Yt, Gd, Yg, k)
+        X_train, X_test, Y_train, Y_test = build_features(Y, D, P, Tf, Yt, Gd, Yg, k, features)
         # Train NegativeBinomial Model from statsmodels library
         nbm = sm.GLM(Y_train, X_train, family=sm.families.NegativeBinomial())
         nb_res = nbm.fit()
@@ -279,7 +295,7 @@ class TestFeatureSignificance(unittest.TestCase):
 
     def test_build_nodal_features(self):
         Y, D, P, T, Gd = extract_raw_samples()
-        Xn, Xn_test = build_nodal_features(D, P, 3)
+        Xn, Xn_test = build_nodal_features((D, P), 3)
         assert Xn_test.shape[0] == Xn.shape[1] 
     
     def test_build_taxi_features(self):
@@ -310,10 +326,8 @@ def main_evaluate_different_years():
         mae, mre = leaveOneOut_error(Y, D, P, Tf, Y, Gd, Y)
         print year, mae, mre
     
-
-if __name__ == '__main__':
-#    unittest.main()
-#    main_evaluate_different_years()
+    
+def main_calculate_significance():
     sig = {}
     for f in ["demo", "geo", "taxi", "poi"]:
         Y, D, P, Tf, Gd = extract_raw_samples(2010, crime_t=['total'])
@@ -321,3 +335,19 @@ if __name__ == '__main__':
         sig[f] = s
     import pickle
     pickle.dump(sig, open("significance", 'w'))
+    
+    
+def main_evaluate_feature_setting():
+    feature_settings = [['demo'], ['demo', 'poi'], ['demo', 'taxi'], ['demo', 'poi', 'taxi'],
+                        ['demo', 'geo'], ['demo', 'geo', 'poi'], ['demo', 'geo', 'taxi'], ['all']]
+    Y, D, P, Tf, Gd = extract_raw_samples(2010)
+    gwr_gamma = generate_GWR_weight(0.5)
+    
+    for feature_setting in feature_settings:
+        mae, mre = leaveOneOut_error(Y, D, P, Tf, Y, Gd, Y, feature_setting)
+    
+
+if __name__ == '__main__':
+    unittest.main()
+    main_evaluate_different_years()
+#    main_calculate_significance()
