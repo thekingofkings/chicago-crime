@@ -224,13 +224,14 @@ def build_features(Y, D, P, Tf, Yt, Gd, Yg, testK, features=['all']):
     return X_train, X_test, Y_train, Y_test
     
 
-def leaveOneOut_error(Y, D, P, Tf, Yt, Gd, Yg, features=['all']):
+def leaveOneOut_error(Y, D, P, Tf, Yt, Gd, Yg, features=['all'], gwr_gamma=None):
     """
     Use GLM model from python statsmodels library to fit data.
     Evaluate with leave-one-out setting, return the average of n errors.
     
     Input:    
     features    - a list features. ['all'] == ['demo', 'poi', 'geo', 'taxi']
+    gwr_gamma   - the GWR weight matrx
 
     Output:
     error - the average error of k leave-one-out evaluation
@@ -238,8 +239,9 @@ def leaveOneOut_error(Y, D, P, Tf, Yt, Gd, Yg, features=['all']):
     errors = []
     for k in range(len(Y)):
         X_train, X_test, Y_train, Y_test = build_features(Y, D, P, Tf, Yt, Gd, Yg, k, features)
+        gamma = np.delete(gwr_gamma[:,k], k) if gwr_gamma is not None else None
         # Train NegativeBinomial Model from statsmodels library
-        nbm = sm.GLM(Y_train, X_train, family=sm.families.NegativeBinomial())
+        nbm = sm.GLM(Y_train, X_train, family=sm.families.NegativeBinomial(), freq_weights=gamma)
         nb_res = nbm.fit()
         ybar = nbm.predict(nb_res.params, X_test)
         errors.append(np.abs(ybar - Y_test))
@@ -340,14 +342,19 @@ def main_calculate_significance():
 def main_evaluate_feature_setting():
     feature_settings = [['demo'], ['demo', 'poi'], ['demo', 'taxi'], ['demo', 'poi', 'taxi'],
                         ['demo', 'geo'], ['demo', 'geo', 'poi'], ['demo', 'geo', 'taxi'], ['all']]
-    Y, D, P, Tf, Gd = extract_raw_samples(2010)
-    gwr_gamma = generate_GWR_weight(0.5)
+    Y, D, P, Tf, Gd = extract_raw_samples(2011)
+    gwr_gamma = generate_GWR_weight(0.1)
     
     for feature_setting in feature_settings:
+        print feature_setting
         mae, mre = leaveOneOut_error(Y, D, P, Tf, Y, Gd, Y, feature_setting)
+        print "NB\t{0}\t{1}".format(mae, mre)
+        mae, mre = leaveOneOut_error(Y, D, P, Tf, Y, Gd, Y, feature_setting, gwr_gamma)
+        print "GWNBR\t{0}\t{1}".format(mae, mre)
     
 
 if __name__ == '__main__':
-    unittest.main()
-    main_evaluate_different_years()
+#    unittest.main()
+#    main_evaluate_different_years()
 #    main_calculate_significance()
+    main_evaluate_feature_setting()
