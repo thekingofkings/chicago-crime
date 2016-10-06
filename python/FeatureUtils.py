@@ -127,7 +127,22 @@ def generate_geographical_SpatialLag_ca(knearest=True, leaveOut=-1):
     return W
     
         
-        
+
+def generate_GWR_weight(h = 1):
+    """
+    Generate the GWR weighting matrix with exponential function.
+    """
+    cas = Tract.createAllCAObjects()
+    centers = []
+    for i in range(1, 78):
+        centers.append(cas[i].polygon.centroid)
+    
+    gamma = np.ones((len(centers), len(centers)))
+    for i, src in enumerate(centers):
+        for j, dst in enumerate(centers):
+            if i != j:
+                gamma[i][j] = np.exp(-0.5 * src.distance(dst)**2 / h**2)
+    return gamma
 
 
 def generate_transition_SocialLag(year = 2010, lehd_type=0, region='ca', leaveOut=-1, normalization='source'):
@@ -397,17 +412,32 @@ def generateDotFile(s, threshold=400, fileName='taxiflow'):
     
 
 
+import unittest
+
+class TestFeatureUtils(unittest.TestCase):
+    
+    def test_generate_GWR_weight(self):
+        gamma = generate_GWR_weight(0.5)
+        for i in range(20):
+            np.testing.assert_almost_equal(gamma[i,i], 1.)
+        assert np.amax(gamma) <= 1
+        print np.amin(gamma)
+        
+        
+        
+
 if __name__ == '__main__':
+    unittest.main()
     
 #    from taxiFlow import getTaxiFlow
 #    s = getTaxiFlow(usePercentage=False)
 #    generateDotFile(s, 5000)
     
     
-    for year in range(2002, 2014):
-        t = generate_transition_SocialLag(year=year, lehd_type=0, region='ca', 
-                                      leaveOut=-1, normalization='none')
-        np.savetxt("{0}-social-row-matrix.csv".format(year), t, delimiter=",")
+#    for year in range(2002, 2014):
+#        t = generate_transition_SocialLag(year=year, lehd_type=0, region='ca', 
+#                                      leaveOut=-1, normalization='none')
+#        np.savetxt("{0}-social-row-matrix.csv".format(year), t, delimiter=",")
 #    generateDotFile(t, 0.08, 'sociallag')
     
 #    h = retrieve_health_data()
