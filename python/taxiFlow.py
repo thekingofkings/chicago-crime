@@ -87,34 +87,38 @@ def generateTaxiFlow(gridLevel='ca'):
     
     ordKey = sorted(cas.keys())
     
-#    cnt = 0
+    cnt = 0
+    import os
+    fnames = os.listdir("../data/ChicagoTaxi/")
     
-    with open('../data/ChicagoTaxi/201401-03.txt', 'rU') as fin:
-        reader = csv.reader(fin, delimiter='\t' )
-        header = reader.next()
-        for row in reader:
-            # initialize points            
-            start = Point(float(row[3]), float(row[4]))
-            end = Point(float(row[5]), float(row[6]))
-            
-            sid = -1
-            eid = -1
-            for key, grid in cas.items():
-                """
-                grid key starts from 1
-                map the start/end point of trip into grids to get flow
-                """
-                if grid.polygon.contains(start):
-                    sid = ordKey.index(key)
-                if grid.polygon.contains(end):
-                    eid = ordKey.index(key)
-                if sid != -1 and eid != -1:
-                    break
-            
-            TF[sid, eid] += 1
-#            cnt += 1
-#            if (cnt > 1000):
-#                break
+    for fname in fnames:
+        print "Count taxi flow in {0}".format(fname)
+        with open('../data/ChicagoTaxi/{0}'.format(fname), 'rU') as fin:
+            reader = csv.reader(fin, delimiter='\t' )
+            header = reader.next()
+            for row in reader:
+                # initialize points            
+                start = Point(float(row[3]), float(row[4]))
+                end = Point(float(row[5]), float(row[6]))
+                
+                sid = -1
+                eid = -1
+                for key, grid in cas.items():
+                    """
+                    grid key starts from 1
+                    map the start/end point of trip into grids to get flow
+                    """
+                    if grid.polygon.contains(start):
+                        sid = ordKey.index(key)
+                    if grid.polygon.contains(end):
+                        eid = ordKey.index(key)
+                    if sid != -1 and eid != -1:
+                        break
+                
+                TF[sid, eid] += 1
+                cnt += 1
+                if (cnt % 100000 == 0):
+                    print "{0} trips have been added".format(cnt)
     if gridLevel == 'ca':
         np.savetxt(here + "/TF.csv", TF, delimiter="," )
     elif gridLevel == 'tract':
@@ -127,5 +131,5 @@ def generateTaxiFlow(gridLevel='ca'):
 
 if __name__ == '__main__':
     
-#    generateTaxiFlow()
-    s = getTaxiFlow(leaveOut=2, normalization="bydestination")
+    generateTaxiFlow()
+#    s = getTaxiFlow(leaveOut=2, normalization="bydestination")

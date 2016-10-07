@@ -343,7 +343,8 @@ def main_evaluate_feature_setting():
     feature_settings = [['demo'], ['demo', 'poi'], ['demo', 'taxi'], ['demo', 'poi', 'taxi'],
                         ['demo', 'geo'], ['demo', 'geo', 'poi'], ['demo', 'geo', 'taxi'], ['all']]
     Y, D, P, Tf, Gd = extract_raw_samples(2011)
-    gwr_gamma = generate_GWR_weight(0.1)
+    gwr_gamma = generate_GWR_weight(0.08)
+    print np.amin(gwr_gamma)
     
     for feature_setting in feature_settings:
         print feature_setting
