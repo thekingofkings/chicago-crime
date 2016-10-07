@@ -22,7 +22,7 @@ such as NB and GWNBR.
 * Temporal factor is not considered.
 """
 
-
+import sys
 import numpy as np
 from FeatureUtils import retrieve_crime_count, generate_corina_features, generate_geographical_SpatialLag_ca, generate_GWR_weight
 from foursquarePOI import getFourSquarePOIDistribution
@@ -339,23 +339,46 @@ def main_calculate_significance():
     pickle.dump(sig, open("significance", 'w'))
     
     
-def main_evaluate_feature_setting():
+def main_evaluate_feature_setting(year=2010):
     feature_settings = [['demo'], ['demo', 'poi'], ['demo', 'taxi'], ['demo', 'poi', 'taxi'],
                         ['demo', 'geo'], ['demo', 'geo', 'poi'], ['demo', 'geo', 'taxi'], ['all']]
-    Y, D, P, Tf, Gd = extract_raw_samples(2011)
-    gwr_gamma = generate_GWR_weight(0.08)
-    print np.amin(gwr_gamma)
+    Y, D, P, Tf, Gd = extract_raw_samples(year, crime_t=['total'])
+    H = [0.08, 0.09, 0.1, 0.15, 0.2, 0.3, 0.5]
     
+    nb_MAEs = []
+    nb_MREs = []
+    gwnbr_MAEs = []
+    gwnbr_MREs = []
     for feature_setting in feature_settings:
-        print feature_setting
         mae, mre = leaveOneOut_error(Y, D, P, Tf, Y, Gd, Y, feature_setting)
-        print "NB\t{0}\t{1}".format(mae, mre)
-        mae, mre = leaveOneOut_error(Y, D, P, Tf, Y, Gd, Y, feature_setting, gwr_gamma)
-        print "GWNBR\t{0}\t{1}".format(mae, mre)
+        nb_MAEs.append(mae)
+        nb_MREs.append(mre)
+        # Tune bandwidth for GWR model
+        gwr_mae = sys.maxint
+        gwr_mre = 1.0
+        for h in H:
+            gwr_gamma = generate_GWR_weight(h)
+            mae, mre = leaveOneOut_error(Y, D, P, Tf, Y, Gd, Y, feature_setting, gwr_gamma)
+            if mae < gwr_mae:
+                gwr_mae = mae
+                gwr_mre = mre
+        gwnbr_MAEs.append(gwr_mae)
+        gwnbr_MREs.append(gwr_mre)
+    print "Settings\t",
+    for f in feature_settings:
+        feature_header = [ele[0] for ele in f]
+        print '+'.join(feature_header) + "\t",
+    print ""
+    print "NB_MAE\t" + '\t'.join(map(str, nb_MAEs))
+    print "NB_MRE\t" + '\t'.join(map(str, nb_MREs))
+    print "GWNBR_MAE\t" + '\t'.join(map(str, gwnbr_MAEs))
+    print "GWNBR_MRE\t" + '\t'.join(map(str, gwnbr_MREs))
     
 
 if __name__ == '__main__':
 #    unittest.main()
 #    main_evaluate_different_years()
 #    main_calculate_significance()
-    main_evaluate_feature_setting()
+    for year in range(2010, 2015):
+        print year
+        main_evaluate_feature_setting(year)
