@@ -88,8 +88,9 @@ def generateTaxiFlow(gridLevel='ca'):
     ordKey = sorted(cas.keys())
     
     cnt = 0
-    import os
-    fnames = os.listdir("../data/ChicagoTaxi/")
+#    import os
+#    fnames = os.listdir("../data/ChicagoTaxi/")
+    fnames = ['201401-03.txt']
     
     for fname in fnames:
         print "Count taxi flow in {0}".format(fname)

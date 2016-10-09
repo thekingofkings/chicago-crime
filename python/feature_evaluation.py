@@ -339,10 +339,10 @@ def main_calculate_significance():
     pickle.dump(sig, open("significance", 'w'))
     
     
-def main_evaluate_feature_setting(year=2010):
+def main_evaluate_feature_setting(year=2010, crime_t=['total']):
     feature_settings = [['demo'], ['demo', 'poi'], ['demo', 'taxi'], ['demo', 'poi', 'taxi'],
                         ['demo', 'geo'], ['demo', 'geo', 'poi'], ['demo', 'geo', 'taxi'], ['all']]
-    Y, D, P, Tf, Gd = extract_raw_samples(year, crime_t=['total'])
+    Y, D, P, Tf, Gd = extract_raw_samples(year, crime_t)
     H = [0.08, 0.09, 0.1, 0.15, 0.2, 0.3, 0.5]
     
     nb_MAEs = []
@@ -373,12 +373,28 @@ def main_evaluate_feature_setting(year=2010):
     print "NB_MRE\t" + '\t'.join(map(str, nb_MREs))
     print "GWNBR_MAE\t" + '\t'.join(map(str, gwnbr_MAEs))
     print "GWNBR_MRE\t" + '\t'.join(map(str, gwnbr_MREs))
+
+
+
+def main_evaluate_feature_setting_by_year():
+    for year in range(2010, 2015):
+        print year
+        main_evaluate_feature_setting(year)
     
+
+
+def main_evaluate_feature_setting_by_type():
+    crime_cats = ['THEFT', 'BATTERY', 'NARCOTICS', 'CRIMINAL DAMAGE', 'BURGLARY', 
+                  'OTHER OFFENSE', 'ASSAULT', 'MOTOR VEHICLE THEFT', 'ROBBERY',
+                  'DECEPTIVE PRACTICE']
+    for crime_t in crime_cats:
+        print crime_t
+        main_evaluate_feature_setting(2010, [crime_t])
+    
+
 
 if __name__ == '__main__':
 #    unittest.main()
 #    main_evaluate_different_years()
 #    main_calculate_significance()
-    for year in range(2010, 2015):
-        print year
-        main_evaluate_feature_setting(year)
+    main_evaluate_feature_setting_by_type()
