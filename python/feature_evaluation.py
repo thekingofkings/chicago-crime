@@ -26,7 +26,7 @@ import sys
 import numpy as np
 from FeatureUtils import retrieve_crime_count, generate_corina_features, generate_geographical_SpatialLag_ca, generate_GWR_weight
 from foursquarePOI import getFourSquarePOIDistribution
-from taxiFlow import getTaxiFlow
+from taxiFlow import getTaxiFlow, taxi_flow_normalization
 import statsmodels.api as sm
 import unittest
 
@@ -116,7 +116,7 @@ def build_nodal_features( X, leaveOneOut):
 
 
 
-def build_taxi_features(Y, Tf, leaveOneOut):
+def build_taxi_features(Y, Tf, leaveOneOut, normalization="bydestination"):
     """
     Build taxi flow features.
     
@@ -127,7 +127,7 @@ def build_taxi_features(Y, Tf, leaveOneOut):
     
     Output:
     T - taxi flow feature, calculated by
-            T = Tf' * Y
+            T = Tf * Y
     T is a (train, test) tuple.
     """
     # leave one out
@@ -137,18 +137,19 @@ def build_taxi_features(Y, Tf, leaveOneOut):
         Y_loo = np.delete(Y, leaveOneOut, 0)
         
     # taxi flow normalization (by destination)
-    Tf_sum = np.sum(Tf_loo, axis=0, keepdims=True).astype(float)
-    Tf_sum[Tf_sum==0] = 1
-    assert Tf_sum.shape == (1, Y_loo.shape[0])
-    Tf_norml = Tf_loo / Tf_sum
+    Tf_norml = taxi_flow_normalization(Tf_loo, normalization)
     
     # calculate taxi flow feature
-    T = np.dot(np.transpose(Tf_norml), Y_loo)
+    T = np.dot(Tf_norml, Y_loo)
 
     # for testing sample
-    Tf_test = Tf[:,leaveOneOut]
+    if normalization == "bydestination":
+        Tf_test = Tf[:,leaveOneOut]
+    elif normalization == "bysource" or normalization == "none":
+        Tf_test = Tf[leaveOneOut,:]
     Tf_test = np.delete(Tf_test, leaveOneOut).astype(float)
-    Tf_test /= np.sum(Tf_test) if np.sum(Tf_test) != 0 else 1
+    if normalization != "none":
+        Tf_test /= np.sum(Tf_test) if np.sum(Tf_test) != 0 else 1
     return T, np.dot(Tf_test, Y_loo)
         
     
@@ -303,10 +304,21 @@ class TestFeatureSignificance(unittest.TestCase):
     def test_build_taxi_features(self):
         Y = np.array([1,2,3]).reshape((3,1))
         Tf = np.arange(9).reshape((3,3))
-        T, T_test = build_taxi_features(Y, Tf, 1)
+        # normalize by destination
+        T, T_test = build_taxi_features(Y, Tf, 1, "bydestination")
         np.testing.assert_almost_equal(T[0,0], 3.0)
         np.testing.assert_almost_equal(T[1,0], 2.6)
         np.testing.assert_almost_equal(T_test[0], 22.0/8)
+        # normalize by source
+        T, T_test = build_taxi_features(Y, Tf, 1, "bysource")
+        np.testing.assert_almost_equal(T[0,0], 3)
+        np.testing.assert_almost_equal(T[1,0], 15.0/7)
+        np.testing.assert_almost_equal(T_test[0], 18.0/8)
+        # without normalize
+        T, T_test = build_taxi_features(Y, Tf, 1, "none")
+        np.testing.assert_almost_equal(T[0,0], 6)
+        np.testing.assert_almost_equal(T[1,0], 30)
+        np.testing.assert_almost_equal(T_test[0], 18)
 
     def test_build_geo_features(self):
         Y = np.array([1,2,3]).reshape((3,1))
@@ -394,7 +406,10 @@ def main_evaluate_feature_setting_by_type():
 
 
 if __name__ == '__main__':
-#    unittest.main()
+    if len(sys.argv) == 2 and sys.argv[1] == 'test':
+        suite = unittest.TestLoader().loadTestsFromTestCase(TestFeatureSignificance)
+        unittest.TextTestRunner(verbosity=2).run(suite)
+    else:
 #    main_evaluate_different_years()
 #    main_calculate_significance()
-    main_evaluate_feature_setting_by_type()
+        main_evaluate_feature_setting_by_type()

@@ -48,27 +48,47 @@ def getTaxiFlow(leaveOut = -1, normalization="bydestination", gridLevel='ca'):
         
     n = s.shape[0]
     
-    try:
-        assert s.dtype == "float64"
-        if normalization == 'bydestination':
-            s = np.transpose(s)
-            fsum = np.sum(s, axis=1, keepdims=True)
-            fsum[fsum==0] = 1   # get rid of divide by 0
-            assert fsum.shape == (n,1)
-            s = s / fsum
-            assert s.sum() == n and abs(s.sum(axis=1)[9] - 1) <= 0.000000001
-        elif normalization == 'bysource':
-            fsum = np.sum(s, axis=1, keepdims=True)
-            fsum[fsum==0] = 1   # get rid of divide by 0
-            s = s / fsum
-            assert fsum.shape == (n,1) and abs(s.sum(axis=1)[23] - 1) <= 0.000000001
-        elif normalization == 'none':
-            # by default, the return value is out-flow count matrix
-            pass
-    except AssertionError:
-        print s.sum(), n
+    return taxi_flow_normalization(s, normalization)
     
-    return s
+
+
+def taxi_flow_normalization(tf, method="bydestination"):
+    """
+    Normalize the taxi flow matrix `tf`.
+    Input:
+    tf - raw taxi flow matrix tf_ij is flow from i to j
+    method - choice of normalization
+    
+    Output:
+    tf_norm - normlized taxi flow matrix, tf_norm_ij is flow from j to i
+    """
+    n = tf.shape[0]
+    tf = tf.astype(float)
+    try:
+        assert tf.dtype == "float64"
+        if method == "bydestination":
+            tf = np.transpose(tf)
+            fsum = np.sum(tf, axis=1, keepdims=True)
+            fsum[fsum==0] = 1
+            assert fsum.shape == (n,1)
+            tf = tf / fsum
+            assert tf.sum() == n
+            np.testing.assert_almost_equal(tf.sum(axis=1)[n-1], 1)
+        elif method == "bysource":
+            fsum = np.sum(tf, axis=1, keepdims=True)
+            fsum[fsum==0] = 1
+            tf = tf / fsum
+            assert fsum.shape == (n,1)
+            np.testing.assert_almost_equal(tf.sum(axis=1)[n-1], 1)
+        elif method == "none":
+            pass
+        else:
+            print "Normalization method is not implemented."
+    except AssertionError as err:
+        print tf.sum(), n, err
+        
+    return tf
+            
 
 
 
