@@ -181,7 +181,7 @@ def build_geo_features(Y, Gd, leaveOneOut=-1):
 
 
 
-def build_features(Y, D, P, Tf, Yt, Gd, Yg, testK, features=['all']):
+def build_features(Y, D, P, Tf, Yt, Gd, Yg, testK, features=['all'], taxi_norm="bynormalization"):
     """
     Build features for both training and testing samples in leave one out setting.
 
@@ -212,7 +212,7 @@ def build_features(Y, D, P, Tf, Yt, Gd, Yg, testK, features=['all']):
     X_test = Xn[1]
     
     if 'all' in features or 'taxi' in features:
-        T = build_taxi_features(Yt, Tf, testK)
+        T = build_taxi_features(Yt, Tf, testK, taxi_norm)
         X_train = np.concatenate((X_train, T[0]), axis=1)
         X_test = np.concatenate((X_test, T[1]))
         
@@ -225,7 +225,7 @@ def build_features(Y, D, P, Tf, Yt, Gd, Yg, testK, features=['all']):
     return X_train, X_test, Y_train, Y_test
     
 
-def leaveOneOut_error(Y, D, P, Tf, Yt, Gd, Yg, features=['all'], gwr_gamma=None):
+def leaveOneOut_error(Y, D, P, Tf, Yt, Gd, Yg, features=['all'], gwr_gamma=None, taxi_norm="bydestination"):
     """
     Use GLM model from python statsmodels library to fit data.
     Evaluate with leave-one-out setting, return the average of n errors.
@@ -239,7 +239,7 @@ def leaveOneOut_error(Y, D, P, Tf, Yt, Gd, Yg, features=['all'], gwr_gamma=None)
     """
     errors = []
     for k in range(len(Y)):
-        X_train, X_test, Y_train, Y_test = build_features(Y, D, P, Tf, Yt, Gd, Yg, k, features)
+        X_train, X_test, Y_train, Y_test = build_features(Y, D, P, Tf, Yt, Gd, Yg, k, features, taxi_norm)
         gamma = np.delete(gwr_gamma[:,k], k) if gwr_gamma is not None else None
         # Train NegativeBinomial Model from statsmodels library
         nbm = sm.GLM(Y_train, X_train, family=sm.families.NegativeBinomial(), freq_weights=gamma)
@@ -405,6 +405,27 @@ def main_evaluate_feature_setting_by_type():
     
 
 
+def main_compare_taxi_normalization_method():    
+    H = [0.08, 0.09, 0.1, 0.15, 0.2, 0.3, 0.5]
+    for year in range(2010, 2015):
+        print year
+        Y, D, P, Tf, Gd = extract_raw_samples(year, ["total"])
+        for taxi_norm in ["bydestination", "bysource", "none"]:
+            gwr_mae = sys.maxint
+            gwr_mre = 1.0
+            best_h = 0
+            for h in H:
+                gwr_gamma = generate_GWR_weight(h)
+                mae, mre = leaveOneOut_error(Y, D, P, Tf, Y, Gd, Y, ["all"], gwr_gamma, taxi_norm)
+                if mae < gwr_mae:
+                    gwr_mae = mae
+                    gwr_mre = mre
+                    best_h = h
+            print taxi_norm, gwr_mae, gwr_mre, best_h
+        
+
+
+
 if __name__ == '__main__':
     if len(sys.argv) == 2 and sys.argv[1] == 'test':
         suite = unittest.TestLoader().loadTestsFromTestCase(TestFeatureSignificance)
@@ -412,4 +433,5 @@ if __name__ == '__main__':
     else:
 #    main_evaluate_different_years()
 #    main_calculate_significance()
-        main_evaluate_feature_setting_by_type()
+#        main_evaluate_feature_setting_by_type()
+        main_compare_taxi_normalization_method()
