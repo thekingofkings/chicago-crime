@@ -30,7 +30,7 @@ def leaveOneOut_error(Y, X):
         X_train, X_test = X[train_idx], X[test_idx]
         Y_train, Y_test = Y[train_idx], Y[test_idx]
         # Train NegativeBinomial Model from statsmodels library
-        nbm = sm.GLM(Y_train, X_train, family=sm.families.NegativeBinomial())
+        nbm = sm.GLM(Y_train, X_train, family=sm.families.Poisson())
         nb_res = nbm.fit()
         ybar = nbm.predict(nb_res.params, X_train)
         er_train = np.mean(np.abs(ybar - Y_test))
@@ -55,5 +55,9 @@ if __name__ == '__main__':
     ge = np.array(ge)
     ge[:,0] = 1
     y_cnt = retrieve_crime_count(2010)
+    demo = generate_corina_features()
+    population = demo[1][:,0].reshape(demo[1].shape[0], 1)
+    y = y_cnt / population * 10000
     
-    er = leaveOneOut_error(y_cnt, ge)
+    er = leaveOneOut_error(y, ge)
+    
