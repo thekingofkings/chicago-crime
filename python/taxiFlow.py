@@ -148,9 +148,25 @@ def generateTaxiFlow(gridLevel='ca'):
 
 
 
+def generate_graph_embedding_src():
+    flow = getTaxiFlow(normalization="none")
+    row, column = flow.shape
+    with open("multi-view-learning/taxi.od", 'w') as fout:
+        for i in range(row):
+            for j in range(column):
+                if flow[i,j] > 0:
+                    fout.write('{0} {1} {2}\n'.format(i, j, flow[i,j]))
+                
+            
 
 
 if __name__ == '__main__':
-    
-    generateTaxiFlow()
-#    s = getTaxiFlow(leaveOut=2, normalization="bydestination")
+    import sys
+    if len(sys.argv) == 2 and sys.argv[1] == 'generateTaxiFlow':
+        print "Generate taxi flow"
+        generateTaxiFlow()
+    elif len(sys.argv) == 2 and sys.argv[1] == 'graphEmbedding':
+        print "Generate graph embedding source"
+        generate_graph_embedding_src()
+    else:
+        s = getTaxiFlow(leaveOut=2, normalization="bydestination")
