@@ -169,4 +169,4 @@ if __name__ == '__main__':
         print "Generate graph embedding source"
         generate_graph_embedding_src()
     else:
-        s = getTaxiFlow(leaveOut=2, normalization="bydestination")
+        s = getTaxiFlow(leaveOut=-1, normalization="none")

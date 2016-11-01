@@ -87,14 +87,26 @@ def CA_clustering_with_embedding():
     kmeans = KMeans(n_clusters=5, max_iter=100).fit(ge)
     for idx, lab in enumerate(kmeans.labels_):
         print idx+1, lab
-        
+    
+    colorMaps = ['blue', 'red', 'g', 'c', 'w']
     cas = Tract.createAllCAObjects()
-    return kmeans
+    import matplotlib.pyplot as plt
+    import descartes
+    fig = plt.figure()
+    ax = fig.add_subplot(111)
+    for k in cas:
+        cak = cas[k].polygon
+        ax.add_patch(descartes.PolygonPatch(cak, fc=colorMaps[kmeans.labels_[k-1]]))
+        ax.annotate(str(k), [cak.centroid.x, cak.centroid.y])
+    ax.axis('equal')
+    fig.show()
+    
+    return kmeans, cas
 
     
     
 
 if __name__ == '__main__':
     
-    kmeans = CA_clustering_with_embedding()
+    kmeans, cas = CA_clustering_with_embedding()
     
