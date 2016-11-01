@@ -7,8 +7,28 @@ import sys
 sys.path.append("../")
 
 from FeatureUtils import retrieve_crime_count, generate_corina_features
+from Crime import Tract
 
 
+
+def get_graph_embedding_features(hasConstant=True):
+    """
+    Get graph embedding vector, which is generated from LINE
+    """
+    ge = []
+    with open('vec_all.txt', 'r') as fin:
+        fin.readline()
+        for line in fin:
+            ls = line.strip().split(" ")
+            ge.append([float(i) for i in ls])
+    ge = np.array(ge)
+    if hasConstant:
+        ge[:,0] = 1
+        return ge
+    else:
+        return ge[:, 1:]
+    
+    
 
 
 def leaveOneOut_error(Y, X):
@@ -30,7 +50,7 @@ def leaveOneOut_error(Y, X):
         X_train, X_test = X[train_idx], X[test_idx]
         Y_train, Y_test = Y[train_idx], Y[test_idx]
         # Train NegativeBinomial Model from statsmodels library
-        nbm = sm.GLM(Y_train, X_train, family=sm.families.Poisson())
+        nbm = sm.GLM(Y_train, X_train, family=sm.families.NegativeBinomial())
         nb_res = nbm.fit()
         ybar = nbm.predict(nb_res.params, X_train)
         er_train = np.mean(np.abs(ybar - Y_test))
@@ -44,20 +64,37 @@ def leaveOneOut_error(Y, X):
     
     
     
-
-if __name__ == '__main__':
-    ge = []
-    with open('vec_all_20.txt', 'r') as fin:
-        header = fin.readline()
-        for line in fin:
-            ls = line.strip().split(" ")
-            ge.append([float(i) for i in ls])
-    ge = np.array(ge)
-    ge[:,0] = 1
+    
+    
+def predict_crime_with_embedding():
+    ge = get_graph_embedding_features()
+    
     y_cnt = retrieve_crime_count(2010)
     demo = generate_corina_features()
     population = demo[1][:,0].reshape(demo[1].shape[0], 1)
     y = y_cnt / population * 10000
     
     er = leaveOneOut_error(y, ge)
+    print er
+    return er
+    
+    
+
+
+def CA_clustering_with_embedding():
+    ge = get_graph_embedding_features(hasConstant=False)
+    from sklearn.cluster import KMeans
+    kmeans = KMeans(n_clusters=5, max_iter=100).fit(ge)
+    for idx, lab in enumerate(kmeans.labels_):
+        print idx+1, lab
+        
+    cas = Tract.createAllCAObjects()
+    return kmeans
+
+    
+    
+
+if __name__ == '__main__':
+    
+    kmeans = CA_clustering_with_embedding()
     
