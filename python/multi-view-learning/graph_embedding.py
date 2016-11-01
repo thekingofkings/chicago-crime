@@ -55,7 +55,7 @@ def leaveOneOut_error(Y, X):
         ybar = nbm.predict(nb_res.params, X_train)
         er_train = np.mean(np.abs(ybar - Y_test))
         errs_train += er_train, er_train / np.mean(Y_test)
-        print er_train, er_train / np.mean(Y_test)
+#        print er_train, er_train / np.mean(Y_test)
         
         ybar = nbm.predict(nb_res.params, X_test)
         errors.append(np.abs(ybar - Y_test))
@@ -84,7 +84,7 @@ def predict_crime_with_embedding():
 def CA_clustering_with_embedding():
     ge = get_graph_embedding_features(hasConstant=False)
     from sklearn.cluster import KMeans
-    kmeans = KMeans(n_clusters=5, max_iter=100).fit(ge)
+    kmeans = KMeans(n_clusters=3, max_iter=100).fit(ge)
     for idx, lab in enumerate(kmeans.labels_):
         print idx+1, lab
     
@@ -108,5 +108,9 @@ def CA_clustering_with_embedding():
 
 if __name__ == '__main__':
     
-    kmeans, cas = CA_clustering_with_embedding()
+    import sys
+    if len(sys.argv) >= 2 and sys.argv[1] == 'leaveOneOut':
+        predict_crime_with_embedding()
+    else:
+        kmeans, cas = CA_clustering_with_embedding()
     
