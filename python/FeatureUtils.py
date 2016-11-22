@@ -143,8 +143,19 @@ def generate_GWR_weight(h = 1):
             if i != j:
                 gamma[i][j] = np.exp(-0.5 * src.distance(dst)**2 / h**2)
     return gamma
+    
+    
+def generate_geo_graph_embedding_src():
+    flow = generate_geographical_SpatialLag_ca()
+    row, column = flow.shape
+    with open("multi-view-learning/geo.od", 'w') as fout:
+        for i in range(row):
+            for j in range(column):
+                if flow[i,j] > 0:
+                    fout.write('{0} {1} {2}\n'.format(i, j, flow[i,j]))
 
 
+                    
 def generate_transition_SocialLag(year = 2010, lehd_type=0, region='ca', leaveOut=-1, normalization='source'):
     """
     Generate the spatial lag matrix from the transition flow connected CAs.
@@ -427,7 +438,11 @@ class TestFeatureUtils(unittest.TestCase):
         
 
 if __name__ == '__main__':
-    unittest.main()
+    import sys
+    if len(sys.argv) > 1 and sys.argv[1] == 'test':
+        unittest.main()
+    else:
+        generate_geo_graph_embedding_src()
     
 #    from taxiFlow import getTaxiFlow
 #    s = getTaxiFlow(usePercentage=False)
