@@ -20,12 +20,12 @@ from Crime import Tract
 
 
 
-def get_graph_embedding_features():
+def get_graph_embedding_features(fn='taxi_all.txt'):
     """
     Get graph embedding vector, which is generated from LINE
     """
     ge = []
-    with open('vec_all.txt', 'r') as fin:
+    with open(fn, 'r') as fin:
         fin.readline()
         for line in fin:
             ls = line.strip().split(" ")
