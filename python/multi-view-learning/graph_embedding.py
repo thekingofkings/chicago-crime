@@ -86,9 +86,9 @@ def predict_crime_with_embedding():
 
 
 def CA_clustering_with_embedding():
-    ge = get_graph_embedding_features(hasConstant=False)
+    ge = get_graph_embedding_features()
     from sklearn.cluster import KMeans
-    kmeans = KMeans(n_clusters=3, max_iter=100).fit(ge)
+    kmeans = KMeans(n_clusters=5, max_iter=100).fit(ge)
     for idx, lab in enumerate(kmeans.labels_):
         print idx+1, lab
     
