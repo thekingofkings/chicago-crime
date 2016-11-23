@@ -46,9 +46,9 @@ def getFourSquarePOIDistribution( leaveOut = -1, gridLevel = 'ca', useRatio=Fals
     retrieve Foursquare POI distribution from local file
     """
     if gridLevel == 'ca':
-        d = np.loadtxt("POI_dist.csv", delimiter=",")
+        d = np.loadtxt(here + "/POI_dist.csv", delimiter=",")
     elif gridLevel == 'tract':
-        d = np.loadtxt('POI_dist_tract.csv', delimiter=",")
+        d = np.loadtxt(here + '/POI_dist_tract.csv', delimiter=",")
     
     if leaveOut > 0:
         d = np.delete(d, leaveOut-1, 0)

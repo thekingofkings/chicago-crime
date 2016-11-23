@@ -34,9 +34,9 @@ def getTaxiFlow(leaveOut = -1, normalization="bydestination", gridLevel='ca'):
     normalization takes value "none/bydestination/bysource"
     """
     if gridLevel == 'ca':
-        s = np.loadtxt("TF.csv", delimiter=",")
+        s = np.loadtxt(here + "/TF.csv", delimiter=",")
     elif gridLevel == 'tract':
-        s = np.loadtxt("TF_tract.csv", delimiter=",")
+        s = np.loadtxt(here + "/TF_tract.csv", delimiter=",")
     n = s.shape[0]
     
     for i in range(n):
