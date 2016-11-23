@@ -431,7 +431,7 @@ if __name__ == '__main__':
         suite = unittest.TestLoader().loadTestsFromTestCase(TestFeatureSignificance)
         unittest.TextTestRunner(verbosity=2).run(suite)
     else:
-#    main_evaluate_different_years()
+        main_evaluate_different_years()
 #    main_calculate_significance()
 #        main_evaluate_feature_setting_by_type()
-        main_compare_taxi_normalization_method()
+#        main_compare_taxi_normalization_method()

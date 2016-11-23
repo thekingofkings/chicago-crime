@@ -52,7 +52,7 @@ def leaveOneOut_error(Y, X):
     errs_train = np.zeros(2)
     loo = LeaveOneOut(len(Y))
     X = sm.add_constant(X, prepend=False)
-    for train_idx, test_idx in loo:    
+    for train_idx, test_idx in loo:
         X_train, Y_train = X[train_idx], Y[train_idx]
         # Train NegativeBinomial Model from statsmodels library
         glm = sm.GLM(Y_train, X_train, family=sm.families.NegativeBinomial())
@@ -63,8 +63,9 @@ def leaveOneOut_error(Y, X):
 #        print er_train, er_train / np.mean(Y[train_idx])
         ybar = nbm.predict(X[test_idx])
         errors.append(np.abs(ybar - Y[test_idx]))
+        print ybar, Y[test_idx]
     print errs_train / len(Y)
-    return np.mean(errors), np.mean(errors / Y), np.mean(errors) / np.mean(Y)
+    return np.mean(errors), np.mean(Y), np.mean(errors / Y), np.mean(errors) / np.mean(Y)
     
     
     
