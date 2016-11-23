@@ -63,7 +63,7 @@ def leaveOneOut_error(Y, X):
 #        print er_train, er_train / np.mean(Y[train_idx])
         ybar = nbm.predict(X[test_idx])
         errors.append(np.abs(ybar - Y[test_idx]))
-        print ybar, Y[test_idx]
+#        print ybar, Y[test_idx]
     print errs_train / len(Y)
     return np.mean(errors), np.mean(Y), np.mean(errors / Y), np.mean(errors) / np.mean(Y)
     
