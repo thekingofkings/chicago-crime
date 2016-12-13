@@ -435,12 +435,31 @@ class TestFeatureUtils(unittest.TestCase):
         print np.amin(gamma)
         
         
-        
+def generate_binary_crime_label():
+    y = retrieve_crime_count(2013)
+    threshold = np.median(y)
+    label = [1 if ele >= threshold else 0 for ele in y]
+    F = generate_corina_features()
+    from sklearn import svm, tree
+    from sklearn.model_selection import cross_val_score
+    clf1 = svm.SVC()
+    scores1 = cross_val_score(clf1, F[1], label, cv=10)
+    print scores1.mean(), scores1
+    clf2 = tree.DecisionTreeClassifier()
+    scores2 = cross_val_score(clf2, F[1], label, cv=10)
+    print scores2.mean(), scores2
+    import pickle
+    pickle.dump(label, open("crime-label", 'w'))
+    return y, label, F[1]
+    
 
 if __name__ == '__main__':
     import sys
-    if len(sys.argv) > 1 and sys.argv[1] == 'test':
-        unittest.main()
+    if len(sys.argv) > 1: 
+        if sys.argv[1] == 'test':
+            unittest.main()
+        elif sys.argv[1] == 'binarylabel':
+            y, l, f = generate_binary_crime_label()
     else:
         generate_geo_graph_embedding_src()
     
