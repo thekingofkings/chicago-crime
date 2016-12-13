@@ -452,6 +452,19 @@ def generate_binary_crime_label():
     pickle.dump(label, open("crime-label", 'w'))
     return y, label, F[1]
     
+    
+def generate_binary_demo_label():
+    D = generate_corina_features()
+    demolabel = {}
+    for i, d in enumerate(D[0]):
+        F = D[1][:,i]
+        thrsd = np.median(F)
+        label= [1 if ele >= thrsd else 0 for ele in F]
+        demolabel[d] = label
+    import pickle
+    pickle.dump(demolabel, open("demo-label", "w"))
+    return demolabel, D
+    
 
 if __name__ == '__main__':
     import sys
@@ -460,6 +473,7 @@ if __name__ == '__main__':
             unittest.main()
         elif sys.argv[1] == 'binarylabel':
             y, l, f = generate_binary_crime_label()
+            l, D = generate_binary_demo_label()
     else:
         generate_geo_graph_embedding_src()
     

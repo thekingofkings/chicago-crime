@@ -149,11 +149,29 @@ def generatePOIfeature(gridLevel = 'ca'):
     
     
 
+def getPOIlabel():
+    d = getFourSquarePOIDistribution(-1, "ca", False)
+    header = getFourSquarePOIDistributionHeader()
+    POIlabel = {}
+    for i, h in enumerate(header):
+        F = d[:, i]
+        thrd = np.median(F)
+        lbl = [1 if ele >= thrd else 0 for ele in F]
+        POIlabel[h] = lbl
+    import pickle
+    pickle.dump(POIlabel, open("poi-label", "w"))
+    return POIlabel, d
 
     
 
 if __name__ == '__main__':
-    
-    generatePOIfeature(gridLevel='ca')
-#    d = getFourSquarePOIDistribution(useRatio=True)
+    import sys
+    if len(sys.argv) > 1:
+        if sys.argv[1] == "getPOI":
+            d = getFourSquarePOIDistribution(useRatio=True)
+        elif sys.argv[1] == "getPOIlabel":
+            l, d = getPOIlabel()
+    else:
+        generatePOIfeature(gridLevel='ca')
+
 #    np.savetxt("../R/poi_dist.csv", d, delimiter=",")
