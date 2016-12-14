@@ -16,6 +16,7 @@ import numpy as np
 import csv
 from openpyxl import load_workbook
 import heapq
+import pickle
 
 
 import os
@@ -448,7 +449,6 @@ def generate_binary_crime_label():
     clf2 = tree.DecisionTreeClassifier()
     scores2 = cross_val_score(clf2, F[1], label, cv=10)
     print scores2.mean(), scores2
-    import pickle
     pickle.dump(label, open("crime-label", 'w'))
     return y, label, F[1]
     
@@ -461,9 +461,39 @@ def generate_binary_demo_label():
         thrsd = np.median(F)
         label= [1 if ele >= thrsd else 0 for ele in F]
         demolabel[d] = label
-    import pickle
     pickle.dump(demolabel, open("demo-label", "w"))
     return demolabel, D
+    
+    
+    
+
+def generate_lehd_label():
+    f = generate_transition_SocialLag(2010, 0, 'ca', -1, 'None')
+    r = []
+    for i in range(77):
+        home = np.sum(f[:,i])
+        work = np.sum(f[i,:])
+        r.append(home/work)
+    avg, std = np.mean(r), np.std(r)
+    label = []
+    cnt = [0,0,0]
+    for i in r:
+        if i >= avg + std / 2:
+            label.append(1)
+            cnt[0] += 1
+        elif i <= avg - std / 2:
+            label.append(-1)
+            cnt[1] += 1
+        else:
+            label.append(0)
+            cnt[2] += 1
+    for idx, i in enumerate(r):
+        print idx+1, i, '\t', label[idx]
+    print cnt
+    pickle.dump(label, open("lehd-label", "w"))
+    return f, label
+
+    
     
 
 if __name__ == '__main__':
@@ -474,6 +504,8 @@ if __name__ == '__main__':
         elif sys.argv[1] == 'binarylabel':
             y, l, f = generate_binary_crime_label()
             l, D = generate_binary_demo_label()
+        elif sys.argv[1] == 'LEHDlabel':
+            l = generate_lehd_label()
     else:
         generate_geo_graph_embedding_src()
     
