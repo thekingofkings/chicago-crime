@@ -474,19 +474,16 @@ def generate_lehd_label():
         home = np.sum(f[:,i])
         work = np.sum(f[i,:])
         r.append(home/work)
-    avg, std = np.mean(r), np.std(r)
+    avg = np.median(r)
     label = []
-    cnt = [0,0,0]
+    cnt = [0,0]
     for i in r:
-        if i >= avg + std / 2:
+        if i >= avg:
             label.append(1)
-            cnt[0] += 1
-        elif i <= avg - std / 2:
-            label.append(-1)
             cnt[1] += 1
         else:
             label.append(0)
-            cnt[2] += 1
+            cnt[0] += 1
     for idx, i in enumerate(r):
         print idx+1, i, '\t', label[idx]
     print cnt
