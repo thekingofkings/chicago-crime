@@ -22,7 +22,7 @@ from Crime import Tract
 np.set_printoptions(suppress=True)
 
 
-def generate_raw_samples():
+def generate_raw_samples(year=2012):
     """
     Generate raw features for all samples.
     
@@ -39,7 +39,7 @@ def generate_raw_samples():
     G : Numpy.Array
         Geographic graph embedding
     """   
-    Y, D, P, Tf, Gd = extract_raw_samples(year=2014)
+    Y, D, P, Tf, Gd = extract_raw_samples(year)
     T = get_graph_embedding_features('taxi_all.txt')
     G = get_graph_embedding_features('geo_all.txt')
     return Y, D, P, T, G
@@ -133,22 +133,22 @@ class MVLTest(unittest.TestCase):
         tmre = np.mean(np.abs(ter)) / np.mean(Y)
         print "Taxi MRE: {0}".format(tmre)
         assert( tmre < 0.5 )
-        self.visualize_prediction_error(ter, Y, "Taxi view")
+#        self.visualize_prediction_error(ter, Y, "Taxi view")
         
         pmre = np.mean(np.abs(per)) / np.mean(Y)
         print "POI MRE: {0}".format(pmre)
         assert( pmre < 0.8 )
-        self.visualize_prediction_error(per, Y, "POI view")
+#        self.visualize_prediction_error(per, Y, "POI view")
         
         dmre = np.mean(np.abs(der)) / np.mean(Y)
         print "Demo MRE: {0}".format(dmre)
         assert( dmre < 0.8 )
-        self.visualize_prediction_error(der, Y, "Demo view")
+#        self.visualize_prediction_error(der, Y, "Demo view")
         
         gmre = np.mean(np.abs(ger)) / np.mean(Y)
         print "Geo MRE: {0}".format(gmre)
         assert( gmre < 0.5 )
-        self.visualize_prediction_error(ger, Y, "Geo view")
+#        self.visualize_prediction_error(ger, Y, "Geo view")
     
             
         
@@ -177,7 +177,7 @@ class MVLTest(unittest.TestCase):
         mre = np.mean(np.abs(er)) / np.mean(Y)
         print "Simple combine model MRE: {0}".format(mre)
         assert( mre > 0.235 )
-        self.visualize_prediction_error(er, Y, "Concatenate multiple views")
+#        self.visualize_prediction_error(er, Y, "Concatenate multiple views")
         
     
     
@@ -211,8 +211,7 @@ class MVLTest(unittest.TestCase):
             er.append(y_error)
         mre = np.mean(np.abs(er)) / np.mean(Y)
         print "MVL with linear fusion function MRE: {0}".format(mre)
-        
-        self.visualize_prediction_error(er, Y, "MVL linear combination")
+#        self.visualize_prediction_error(er, Y, "MVL linear combination")
         
             
         

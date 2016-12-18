@@ -14,7 +14,7 @@ from Crime import Tract
 from shapely.geometry import Point
 import pickle
 import numpy as np
-import query
+import heapq
         
 import os.path
 
@@ -146,6 +146,9 @@ def generatePOIfeature(gridLevel = 'ca'):
     elif gridLevel == 'tract':
         np.savetxt(here + "/POI_dist_tract.csv", gdist, delimiter="," )
         np.savetxt(here + "/POI_cnt_tract.csv", gcn, delimiter="," )
+        with open(here + "/POI_tract.pickle", 'w') as fout:
+            pickle.dump(ordKey, fout)
+            pickle.dump(gcat, fout)
     
     
 
@@ -158,10 +161,43 @@ def getPOIlabel():
         thrd = np.median(F)
         lbl = [1 if ele >= thrd else 0 for ele in F]
         POIlabel[h] = lbl
-    import pickle
     pickle.dump(POIlabel, open("poi-label", "w"))
     return POIlabel, d
 
+    
+    
+def tract_poi_profile():
+    """
+    Profile tract by their POIs
+    
+    For each POI category, 
+    firstly find the top 3 tract with the highest POI counts;
+    next find the top 3 tract with the highest POI percentage 
+    with sufficent count supports (50).
+    """    
+    with open(here + "/POI_tract.pickle") as fin:
+        ordKey = pickle.load(fin)
+        gcat = pickle.load(fin)
+    
+    POIcat = {}
+    for tractk, val in gcat.items():
+        totalPOI = float(sum(val.values()))
+        for poik in val:
+            if poik not in POIcat:
+                POIcat[poik] = []
+            else:
+                POIcat[poik].append((tractk, val[poik], val[poik] / totalPOI))
+    
+    for poik in POIcat.keys():
+        print poik
+        POIcat[poik].sort(key=lambda x: -x[1])
+        print POIcat[poik][:3]
+        POIcat[poik] = POIcat[poik][:50]
+        POIcat[poik].sort(key=lambda x: -x[2])
+        print POIcat[poik][:3]
+    return POIcat
+        
+            
     
 
 if __name__ == '__main__':
@@ -171,7 +207,9 @@ if __name__ == '__main__':
             d = getFourSquarePOIDistribution(useRatio=True)
         elif sys.argv[1] == "getPOIlabel":
             l, d = getPOIlabel()
+        elif sys.argv[1] == "poiProfile":
+            tp = tract_poi_profile()
     else:
-        generatePOIfeature(gridLevel='ca')
+        generatePOIfeature(gridLevel='tract')
 
 #    np.savetxt("../R/poi_dist.csv", d, delimiter=",")

@@ -175,13 +175,13 @@ class Tract:
         
     @classmethod
     def createAllTractObjects( cls ):
-        cls.sf = shapefile.Reader(here + '/../data/chicago-shp-2010-gps/chicago_tract_wgs84')
+        cls.sf = shapefile.Reader(here + '/../data/Census-Tracts-2010/chicago-tract')
         cls.tracts = {}
         
         shps = cls.sf.shapes()
         for idx, shp in enumerate(shps):
             rec = cls.sf.record(idx)
-            tid = int(rec[3])
+            tid = int(rec[2])
             trt = Tract(shp, rec)
             cls.tracts[tid] = trt
         
@@ -203,6 +203,22 @@ class Tract:
             
         return cls.cas
 
+
+    @classmethod
+    def visualizeRegions(cls):
+        if hasattr(cls, "cas"):
+            r = cls.cas
+        elif hasattr(cls, "tracts"):
+            r = cls.tracts
+            
+        from descartes import PolygonPatch
+        f = plt.figure()
+        ax = f.gca()
+        for s in r.values():
+            ax.add_patch(PolygonPatch(s.polygon, alpha=0.5, fc="#6699cc"))
+        ax.axis("scaled")
+        plt.show()
+        
 
 
 def main():
