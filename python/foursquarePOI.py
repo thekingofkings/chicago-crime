@@ -14,7 +14,6 @@ from Crime import Tract
 from shapely.geometry import Point
 import pickle
 import numpy as np
-import heapq
         
 import os.path
 
