@@ -4,6 +4,9 @@ Extract the Community Area (CA) flow
 1. Get reference from tract to CA from census shapefile
 2. Find Chicago tracts and aggregate to CA
 
+Dependency:
+    use TractFlow to generate state_all_tract_level_od_JT00_{year}.csv files first
+
 Author: Hongjian Wang
 Date: 8/14/2015
 """
