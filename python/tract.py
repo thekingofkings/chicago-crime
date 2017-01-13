@@ -127,10 +127,10 @@ if __name__ == "__main__":
     Tract.createAllTractObjects()
     
     if len(sys.argv) > 1 and sys.argv[1] == "tractProfile":
-        rsd = [330100, 32100, 63302, 80100, 60800]
-        nl = [81700, 62200, 832000, 243400]
-        pf = [839100, 320100, 81800, 760801, 81401]
+        rsd = [280100, 320100, 81500, 81403]
+        nl = []
+        pf = []
         Tract.visualizeRegions(residence=rsd, nightlife=nl, professional=pf)
     else:
-        Tract.visualizeRegions()
+        Tract.visualizeRegions(residence=[832000], nightlife=[831900], professional=[839100])
     
