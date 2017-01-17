@@ -34,7 +34,7 @@ def getTaxiFlow(leaveOut = -1, normalization="bydestination", gridLevel='ca'):
     normalization takes value "none/bydestination/bysource"
     """
     if gridLevel == 'ca':
-        s = np.loadtxt(here + "/TF.csv", delimiter=",")
+        s = np.loadtxt(here + "/taxi-CA-static.matrix", delimiter=",") # TF.csv
     elif gridLevel == 'tract':
         s = np.loadtxt(here + "/TF_tract.csv", delimiter=",")
     n = s.shape[0]
@@ -72,7 +72,7 @@ def taxi_flow_normalization(tf, method="bydestination"):
             fsum[fsum==0] = 1
             assert fsum.shape == (n,1)
             tf = tf / fsum
-            assert tf.sum() == n
+            np.testing.assert_almost_equal(tf.sum(), n)
             np.testing.assert_almost_equal(tf.sum(axis=1)[n-1], 1)
         elif method == "bysource":
             fsum = np.sum(tf, axis=1, keepdims=True)
@@ -85,7 +85,11 @@ def taxi_flow_normalization(tf, method="bydestination"):
         else:
             print "Normalization method is not implemented."
     except AssertionError as err:
-        print tf.sum(), n, err
+        print "taxiFlow::taxi_flow_normalization", tf.sum(), n, err
+        import sys
+        import traceback
+        _, _, tb = sys.exc_info()
+        traceback.print_tb(tb) # Fixed format
         
     return tf
             

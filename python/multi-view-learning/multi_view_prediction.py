@@ -11,6 +11,8 @@ Evaluate multi-view learning framework.
 import numpy as np
 import statsmodels.api as sm
 from sklearn.cross_validation import LeaveOneOut
+from sklearn.preprocessing import scale
+import pickle
 
 import sys
 sys.path.append("../")
@@ -40,8 +42,8 @@ def generate_raw_samples(year=2012):
         Geographic graph embedding
     """   
     Y, D, P, Tf, Gd = extract_raw_samples(year)
-    T = get_graph_embedding_features('taxi_all.txt')
-    G = get_graph_embedding_features('geo_all.txt')
+    T = get_graph_embedding_features('taxi-CA-static.vec')
+    G = get_graph_embedding_features('geo-CA.vec')
     return Y, D, P, T, G
     
 
@@ -154,16 +156,16 @@ class MVLTest(unittest.TestCase):
         
         
         
-    def test_liner_combination_model(self):
+    def test_simple_concatenation_model(self):
         """
-        Test a simple linear combination model.
+        Test a simple concatenation model.
         
         We concatenate the feature vectors from four different views into one
         vector. Then train a NB model on this concatenated vector `X`.
         """
-        Y, D, P, T, G = generate_raw_samples()
-        X = np.concatenate((D,P,T,G), axis=1)
-        assert( X.shape == (77, 34) )
+        Y, D, P, T, G = generate_raw_samples(2013)
+        X = np.concatenate((D,P,G), axis=1)
+#        assert( X.shape == (77, 34) )
         X = sm.add_constant(X, prepend=False)
         loo = LeaveOneOut(len(Y))
         er = []
@@ -237,6 +239,68 @@ class MVLTest(unittest.TestCase):
         ax.set_title(title)
         fig.show()
         
+        
+def evaluate_various_flow_features_with_concatenation_model():
+    Y, D, P, T, G = extract_raw_samples(2013)
+    with open("CAflowFeatures.pickle") as fin:
+        mf = pickle.load(fin)
+        line = pickle.load(fin)
+        dw = pickle.load(fin)
+    
+    mf_mre = []
+    line_mre = []
+    dw_mre = []
+    for h in range(24):
+        print h
+        # MF models
+        Tmf = mf[h] # sum([e for e in mf.values()])
+        Tmf = scale(Tmf)
+        import nimfa
+        nmf = nimfa.Snmf(G, rank=4, max_iter=100, update="divergence", objective="conn", conn_change=50)
+        nmf_fit = nmf()
+        src = nmf_fit.basis()
+        dst = nmf_fit.coef()
+        Gmf = np.concatenate((src, dst.T), axis=1)
+        Gmf = scale(Gmf)
+        
+        X = np.concatenate((D,P,Tmf, Gmf), axis=1)
+        mre = leaveOneOut_eval(X, Y)
+        mf_mre.append(mre)
+        print "MF MRE: {0}".format(mre)
+        
+        # LINE model
+        Tline = line[h] # sum([e for e in line.values()])
+        Gline = get_graph_embedding_features('geo_all.txt')
+        X = np.concatenate((D,P,Tline, Gline), axis=1)
+        mre = leaveOneOut_eval(X, Y)
+        line_mre.append(mre)
+        print "LINE MRE: {0}".format(mre)
+        
+        # deepwalk
+        TGdw = dw[h] # sum([e for e in dw.values()])
+        X = np.concatenate((D,P,TGdw), axis=1)
+        mre = leaveOneOut_eval(X, Y)
+        dw_mre.append(mre)
+        print "Deepwalk MRE: {0}".format(mre)
+    
+    print mf_mre
+    print line_mre
+    print dw_mre
+
+    
+def leaveOneOut_eval(X, Y):
+    X = sm.add_constant(X, prepend=False)
+    loo = LeaveOneOut(len(Y))
+    er = []
+    for train_idx, test_idx in loo:
+        nbm, yp = NBmodel(train_idx, Y, X)
+        ybar = nbm.predict(X[test_idx])
+        y_error = np.abs(ybar - Y[test_idx])
+        er.append(y_error)
+    mre = np.mean(er) / np.mean(Y)
+    return mre
+    
 if __name__ == '__main__':
     
-    unittest.main()
+#    unittest.main()
+    r = evaluate_various_flow_features_with_concatenation_model()
