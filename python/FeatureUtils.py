@@ -181,13 +181,12 @@ def generate_transition_SocialLag(year = 2010, lehd_type=0, region='ca', leaveOu
         fn = here + '/../data/chicago_od_tract_{0}.csv'.format(year)
     ordkey = sorted(ts.keys())
     
-    
     listIdx = {}
     fin = open(fn)
     for line in fin:
         ls = line.split(",")
-        srcid = int(ls[0])
-        dstid = int(ls[1])
+        srcid = int(ls[0][5:])
+        dstid = int(ls[1][5:])
         val = int(ls[2 + lehd_type])
         if srcid in listIdx:
             listIdx[srcid][dstid] = val
@@ -209,8 +208,6 @@ def generate_transition_SocialLag(year = 2010, lehd_type=0, region='ca', leaveOu
                 W[ordkey.index(srcid)][ordkey.index(dstid)] = val
         else:
             W[ordkey.index(srcid)] = np.zeros( (1,len(ts)) )
-            
-    
     
     # update diagonal as 0
 #    if normalization != 'none':
@@ -491,6 +488,28 @@ def generate_lehd_label():
     return f, label
 
     
+
+def visualizeGangRelatedCrime():
+    """
+    In the following crime categories, the region 47 has much higher crime rate
+    than its peers 44, 45, 48. Actually 47 is among the top 3.
+    """
+    C = generate_corina_features()
+    popul = C[1][:,0].reshape(C[1].shape[0],1)
+    violentCrime = "BURGLARY,INTIMIDATION,KIDNAPPING"
+    violentCrime = violentCrime.split(",")
+    Y = retrieve_crime_count(year=2013, col=violentCrime, region='ca')
+    Y = np.divide(Y, popul) * 10000
+    Y = Y.reshape((77,))
+    np.savetxt("../R/crime-rate-ca.csv", Y, delimiter=",")
+    
+    import subprocess
+    import os
+    os.chdir("../R")
+    t = subprocess.check_output(["Rscript", "nodalFeature_plot.R", "crime"])
+    print t
+    return Y
+
     
 
 if __name__ == '__main__':
@@ -504,7 +523,11 @@ if __name__ == '__main__':
         elif sys.argv[1] == 'LEHDlabel':
             l = generate_lehd_label()
     else:
-        generate_geo_graph_embedding_src()
+#        generate_geo_graph_embedding_src()
+#        t = generate_transition_SocialLag(2013, 0, "tract", -1, "none")
+#        with open("lehd-tract-2013.pickle", "w") as fout:
+#            pickle.dump(t.T, fout)
+        y = visualizeGangRelatedCrime()
     
 #    from taxiFlow import getTaxiFlow
 #    s = getTaxiFlow(usePercentage=False)
