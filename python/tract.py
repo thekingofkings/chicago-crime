@@ -91,7 +91,7 @@ class Tract:
 
 
     @classmethod
-    def visualizeRegions(cls, residence=[], nightlife=[], professional=[]):
+    def visualizeRegions(cls, residence=[], nightlife=[], professional=[], airport=[76]):
         if hasattr(cls, "cas"):
             r = cls.cas
         elif hasattr(cls, "tracts"):
@@ -111,6 +111,10 @@ class Tract:
                 ax.annotate(s = str(k), xy=(p.x, p.y), xytext=(-10, -5), textcoords="offset points", fontsize=12)
             elif k in professional:
                 clr = "green"
+                p = s.polygon.centroid
+                ax.annotate(s = str(k), xy=(p.x, p.y), xytext=(-10, -5), textcoords="offset points", fontsize=12)
+            elif k in airport:
+                clr = "cyan"
                 p = s.polygon.centroid
                 ax.annotate(s = str(k), xy=(p.x, p.y), xytext=(-10, -5), textcoords="offset points", fontsize=12)
             else:
