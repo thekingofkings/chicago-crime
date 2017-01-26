@@ -98,28 +98,35 @@ class Tract:
             r = cls.tracts
             
         from descartes import PolygonPatch
-        f = plt.figure()
+        f = plt.figure(figsize=(6,6))
         ax = f.gca()
         for k, s in r.items():
             if k in residence:
                 clr = "blue"
                 p = s.polygon.centroid
-                ax.text(p.x, p.y, str(k))
+                ax.annotate(s = str(k), xy=(p.x, p.y), xytext=(-10, -5), textcoords="offset points", fontsize=12)
             elif k in nightlife:
                 clr = "red"
                 p = s.polygon.centroid
-                ax.text(p.x, p.y, str(k))
+                ax.annotate(s = str(k), xy=(p.x, p.y), xytext=(-10, -5), textcoords="offset points", fontsize=12)
             elif k in professional:
                 clr = "green"
                 p = s.polygon.centroid
-                ax.text(p.x, p.y, str(k))
+                ax.annotate(s = str(k), xy=(p.x, p.y), xytext=(-10, -5), textcoords="offset points", fontsize=12)
             else:
                 clr = "white"
             ax.add_patch(PolygonPatch(s.polygon, alpha=0.5, fc=clr))
         ax.axis("scaled")
+        ax.axis("off")
+        plt.tight_layout()
         plt.show()
+        plt.savefig("case-region-on-map.pdf")
         
 
+
+def plotCA_cases():
+    Tract.createAllCAObjects()
+    Tract.visualizeRegions(residence=[13,14,15,16], nightlife=[8,32,33], professional=[44,45,47,48])
         
         
 if __name__ == "__main__":
@@ -132,5 +139,5 @@ if __name__ == "__main__":
         pf = []
         Tract.visualizeRegions(residence=rsd, nightlife=nl, professional=pf)
     else:
-        Tract.visualizeRegions(residence=[832000], nightlife=[831900], professional=[839100])
+        plotCA_cases()
     
