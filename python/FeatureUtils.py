@@ -27,9 +27,9 @@ here = os.path.dirname(os.path.abspath(__file__))
 def generate_corina_features(region='ca', leaveOut=-1):
     """
     Generate the features recommended by Corina.
-    
+
     parameter region taks 'ca' or 'tract'
-    
+
     Return values are field description, value array
     """
     if region == 'ca':
@@ -42,16 +42,16 @@ def generate_corina_features(region='ca', leaveOut=-1):
                 'ethnic diversity', 'pct black', 'pct hispanic']
         hidx = []
         for fd in fields:
-            hidx.append( header.index(fd) )
+            hidx.append(header.index(fd))
         
-        C = np.zeros( (77,len(hidx)) )
+        C = np.zeros((77,len(hidx)))
         for i, row in enumerate(c):
-            for j, k in enumerate( hidx ):
+            for j, k in enumerate(hidx):
                 C[i][j] = float(row[k])
-                
+
         if leaveOut > 0:
             C = np.delete(C, leaveOut-1, 0)
-    
+
         return  fields_dsp, C
     elif region == 'tract':
         
@@ -61,9 +61,9 @@ def generate_corina_features(region='ca', leaveOut=-1):
         cnt = 0
         header = ['pop00', 'ppov00', 'disadv00', 'pdensmi00', 'hetero00', 'phisp00', 'pnhblk00']
         
-        fields_dsp = ['total population', 'poverty index', 'disadvantage index', 'population density',
-                'ethnic diversity', 'pct hispanic', 'pct black']
-                
+        fields_dsp = ['total population', 'poverty index', 'disadvantage index', 
+                      'population density', 'ethnic diversity', 'pct hispanic', 'pct black']
+
         ST = {}
         for row in r.iterrows():
             tract = row[1]
@@ -84,16 +84,16 @@ def generate_geographical_SpatialLag():
     """
     ts = Tract.createAllTractObjects()
     ordkey = sorted(ts)
-    centers = [ ts[k].polygon.centroid for k in ordkey ]
-    
-    W = np.zeros( (len(centers), len(centers)) )
+    centers = [ts[k].polygon.centroid for k in ordkey]
+
+    W = np.zeros((len(centers), len(centers)))
     for i, src in enumerate(centers):
         for j, dst in enumerate(centers):
             if src != dst:
                 W[i][j] = 1 / src.distance(dst)
     return W, ordkey
-        
-        
+
+
 
 def generate_geographical_SpatialLag_ca(knearest=True, leaveOut=-1):
     """
@@ -104,8 +104,6 @@ def generate_geographical_SpatialLag_ca(knearest=True, leaveOut=-1):
 
     leaveOut will select the CA and remove it. take value from 1 to 77
     """
-    
-    
     cas = Tract.createAllCAObjects()
     centers = []
     iset = range(1, 78)
@@ -494,6 +492,7 @@ def visualizeGangRelatedCrime():
     In the following crime categories, the region 47 has much higher crime rate
     than its peers 44, 45, 48. Actually 47 is among the top 3.
     """
+    focal = [43,44,46,47]
     C = generate_corina_features()
     popul = C[1][:,0].reshape(C[1].shape[0],1)
     violentCrime = "BURGLARY,INTIMIDATION,KIDNAPPING"
@@ -502,6 +501,10 @@ def visualizeGangRelatedCrime():
     Y = np.divide(Y, popul) * 10000
     Y = Y.reshape((77,))
     np.savetxt("../R/crime-rate-ca.csv", Y, delimiter=",")
+    
+    Yidx = np.argsort(Y)[::-1]
+    for i in focal:
+        print i, popul[i], Y[i], np.where(Yidx == i)
     
     import subprocess
     import os
