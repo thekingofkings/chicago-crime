@@ -112,7 +112,11 @@ class Tract:
             elif k in professional:
                 clr = "green"
                 p = s.polygon.centroid
-                ax.annotate(s = str(k), xy=(p.x, p.y), xytext=(-10, -5), textcoords="offset points", fontsize=12)
+                if k != 47:
+                    ax.annotate(s = str(k), xy=(p.x, p.y), xytext=(-10, -5), textcoords="offset points", fontsize=12)
+                else:
+                    ax.annotate(s = str(k), xy=(p.x, p.y), xytext=(-10, -22), textcoords="offset points", fontsize=12,
+                                arrowprops=dict(width=2, headwidth=5, headlength=5, shrink=0.05, facecolor="black"))
             elif k in airport:
                 clr = "cyan"
                 p = s.polygon.centroid
@@ -123,8 +127,8 @@ class Tract:
         ax.axis("scaled")
         ax.axis("off")
         plt.tight_layout()
-        plt.show()
         plt.savefig("case-region-on-map.pdf")
+#        plt.show()
         
 
 

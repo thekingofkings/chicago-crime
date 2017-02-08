@@ -3,2061 +3,2577 @@ S'Thrift / Vintage'
 p2
 S'Shops'
 p3
-sS'Chaat'
+sS'Yoshoku'
 p4
 S'Food'
 p5
-sS'Trade School'
+sS'Chaat'
 p6
-S'College & Education'
+g5
+sS'Trade School'
 p7
-sS'Residential'
+S'College & Education'
 p8
-S'Residence'
+sS'Tantuni'
 p9
+g5
 sS'Boutique'
 p10
 g3
 sS'Assisted Living'
 p11
-g9
-sS'Home Services'
+S'Residence'
 p12
-g3
-sS'Lodge'
+sS'Sukiyaki'
 p13
-S'Outdoors & Recreation'
+g5
+sS'Home Services'
 p14
-sS'Sake Bar'
+g3
+sS'Scenic Lookout'
 p15
-S'Nightlife'
+S'Outdoors & Recreation'
 p16
-sS'Cricket'
+sS'Yogurt'
 p17
-S'Arts & Entertainment'
+g5
+sS'Sake Bar'
 p18
-sS'Buddhist Temple'
+S'Nightlife'
 p19
-S'Professional'
+sS'Theme Restaurant'
 p20
-sS'Fireworks Store'
+g5
+sS'Cricket'
 p21
-g3
-sS'Skate Park'
+S'Arts & Entertainment'
 p22
-g14
-sS'Bookstore'
+sS'Ballroom'
 p23
-g7
-sS'Dry Cleaner'
+S'Professional'
 p24
-g3
-sS'States & Municipalities'
+sS'Tapas'
 p25
-g14
-sS'Hotel Bar'
+g5
+sS'Buddhist Temple'
 p26
-g16
-sS'Astrologer'
+g24
+sS'Salad'
 p27
-g3
-sS'Eye Doctor'
+g5
+sS'Memorial Site'
 p28
-g20
-sS'Theme Park'
+g22
+sS'Skate Park'
 p29
-g18
-sS'Organic Grocery'
+g16
+sS'Bookstore'
 p30
 g3
-sS'Meeting Room'
+sS'Lighting'
 p31
-g20
-sS'Private School'
+g3
+sS'Basilicata'
 p32
-g20
-sS'Night Market'
+g5
+sS'Dry Cleaner'
 p33
-g16
-sS'Coffee Shop'
+g3
+sS'Residential'
 p34
+g12
+sS'States & Municipalities'
+p35
+g16
+sS'Drive-in Theater'
+p36
+g22
+sS'Empadas'
+p37
+g5
+sS'Hotel Bar'
+p38
+g19
+sS'Astrologer'
+p39
+g3
+sS'Eye Doctor'
+p40
+g24
+sS'Apple Wine'
+p41
+g5
+sS'Theme Park'
+p42
+g22
+sS'Outlet Mall'
+p43
+g3
+sS'Organic Grocery'
+p44
+g3
+sS'Rhenisch'
+p45
+g5
+sS'Meeting Room'
+p46
+g24
+sS'Private School'
+p47
+g24
+sS'Night Market'
+p48
+g19
+sS'Coffee Shop'
+p49
 g5
 sS'Campaign'
-p35
-g20
+p50
+g24
 sS'Dosa'
-p36
+p51
 g5
 sS'Planetarium'
-p37
-g18
+p52
+g22
 sS'Shipping Store'
-p38
+p53
 g3
 sS'Halal'
-p39
+p54
 g5
 sS'Cantonese'
-p40
+p55
 g5
 sS'Campground'
-p41
-g14
-sS'Spa'
-p42
-g3
-sS'Breakfast'
-p43
-g5
-sS'Conference room'
-p44
-g20
-sS'Frame Store'
-p45
-g3
-sS'Fried Chicken'
-p46
-g5
-sS'Festival'
-p47
-S'Event'
-p48
-sS'Bowling Green'
-p49
-g14
-sS'Cuban'
-p50
-g5
-sS'Antiques'
-p51
-g3
-sS'Housing Development'
-p52
-g9
-sS'Rock Club'
-p53
-g18
-sS'State'
-p54
-g14
-sS'Hockey'
-p55
-g18
-sS'Maharashtrian'
 p56
-g5
-sS'Nail Salon'
+g16
+sS'Spa'
 p57
 g3
-sS'Fishing Store'
+sS'Breakfast'
 p58
-g3
-sS'Water Park'
+g5
+sS'Noodles'
 p59
-g18
-sS'Ski Chalet'
+g5
+sS'Conference room'
 p60
-g14
-sS'Road'
-p61
-S'Travel'
-p62
-sS'Mattress Store'
-p63
-g3
-sS'Automotive'
-p64
-g3
+g24
 sS'Community Center'
+p61
+g24
+sS'Frame Store'
+p62
+g3
+sS'Fried Chicken'
+p63
+g5
+sS'Festival'
+p64
+S'Event'
 p65
-g20
-sS'Pub'
+sS'Bowling Green'
 p66
 g16
-sS'Sweets'
+sS'Cuban'
 p67
 g5
-sS'Public Art'
+sS'Antiques'
 p68
-g18
-sS'Baseball Field'
+g3
+sS'Housing Development'
 p69
-g14
-sS'Village'
+g12
+sS'Rock Club'
 p70
-g14
-sS'Art Museum'
+g22
+sS'Lodge'
 p71
-g18
-sS'Tibetan'
+g16
+sS'State'
 p72
-g5
-sS'Tapas'
+g16
+sS'Hockey'
 p73
-g5
-sS'Opera House'
+g22
+sS'Aosta'
 p74
-g18
-sS'Shaanxi'
+g5
+sS'Maharashtrian'
 p75
 g5
-sS'Funeral Home'
+sS'Auto Workshop'
 p76
-g20
-sS'Nudist Beach'
+g3
+sS'Fishing Store'
 p77
-g14
-sS'Health & Beauty'
+g3
+sS'Water Park'
 p78
-g3
-sS'Moving Target'
+g22
+sS'Ski Chalet'
 p79
-g62
-sS'Scandinavian'
+g16
+sS'Road'
 p80
-g5
-sS'Greek'
+S'Travel'
 p81
-g5
-sS'Steakhouse'
+sS'Mattress Store'
 p82
-g5
-sS'English'
+g3
+sS'Automotive'
 p83
-g5
-sS'Dog Run'
+g3
+sS'Bunsik'
 p84
-g14
-sS'Internet Cafe'
+g5
+sS'Pub'
 p85
-g3
-sS'Watch Repair'
+g19
+sS'Agriturismo'
 p86
-g3
-sS'Kebab'
+g5
+sS'Public Art'
 p87
-g5
-sS'Recycling'
+g22
+sS'Waterfall'
 p88
-g3
-sS'Tatar'
+g16
+sS'Baseball Field'
 p89
-g5
-sS'Animal Shelter'
+g16
+sS'Village'
 p90
-g20
-sS'High School'
+g16
+sS'Art Museum'
 p91
-g20
-sS'Home'
+g22
+sS'Tibetan'
 p92
-g9
-sS'Hindu Temple'
+g5
+sS'Southwestern French'
 p93
-g20
-sS'Technology'
+g5
+sS'Marche'
 p94
-g7
-sS'Conference'
+g5
+sS'Opera House'
 p95
-g48
-sS'Big Box Store'
+g22
+sS'Shaanxi'
 p96
-g3
-sS'South Indian'
+g5
+sS'Funeral Home'
 p97
-g5
-sS'Irani'
+g24
+sS'Nudist Beach'
 p98
-g5
-sS'Middle Eastern'
+g16
+sS'Church'
 p99
-g5
-sS'Ski Area'
+g24
+sS'Moving Target'
 p100
-g14
-sS'Brazilian'
+g81
+sS'Scandinavian'
 p101
 g5
-sS'Tavernas'
+sS'Greek'
 p102
 g5
-sS'Hookah Bar'
+sS'Steakhouse'
 p103
-g16
-sS'Acehnese'
+g5
+sS'English'
 p104
 g5
-sS'Hungarian'
+sS'Dog Run'
 p105
-g5
-sS'Vietnamese'
+g16
+sS'Internet Cafe'
 p106
-g5
-sS'Street Food Gathering'
+g3
+sS'Chinese'
 p107
-g3
-sS'Newsstand'
-p108
-g3
-sS'Baseball'
-p109
-g18
-sS'Used Bookstore'
-p110
-g3
-sS'Russian'
-p111
 g5
-sS'Light Rail'
+sS'Truck Stop'
+p108
+g5
+sS'Recycling'
+p109
+g3
+sS'Tatar'
+p110
+g5
+sS'Animal Shelter'
+p111
+g24
+sS'High School'
 p112
-g62
-sS'Hong Kong'
+g24
+sS'Pastry'
 p113
 g5
-sS'Huaiyang'
+sS'Home'
 p114
-g5
-sS'Shanghai'
+g12
+sS'Hindu Temple'
 p115
-g5
-sS'Gymnastics Gym'
+g24
+sS'Technology'
 p116
-g3
-sS'Financial / Legal'
+g8
+sS'Alsatian'
 p117
-g3
-sS'Kosher'
+g5
+sS'Canal'
 p118
-g5
-sS'Frozen Yogurt'
+g16
+sS'Conference'
 p119
-g5
-sS'American'
+g65
+sS'Satay'
 p120
 g5
-sS'Baby Store'
+sS'Big Box Store'
 p121
 g3
-sS'Driving School'
+sS'South Indian'
 p122
-g20
-sS'Toll Booth'
+g5
+sS'Irani'
 p123
-g62
-sS'Whisky Bar'
+g5
+sS'Middle Eastern'
 p124
-g16
-sS'Alternative Healer'
+g5
+sS'Vacation Rental'
 p125
-g20
-sS'Dumplings'
+g81
+sS'Schnitzel'
 p126
 g5
-sS'Taiwanese'
+sS'Bossam/Jokbal'
 p127
 g5
-sS'Library'
+sS'Fireworks Store'
 p128
-g7
-sS'Souvlaki'
+g3
+sS'Ski Area'
 p129
-g5
-sS'City Hall'
+g16
+sS'Brazilian'
 p130
-g20
-sS'Supermarket'
-p131
-g3
-sS'North Indian'
-p132
 g5
-sS"Farmer's Market"
+sS'Tavernas'
+p131
+g5
+sS'Hookah Bar'
+p132
+g19
+sS'Acehnese'
 p133
-g3
-sS'Hotpot'
+g5
+sS'Janguh'
 p134
 g5
-sS'German'
+sS'Hungarian'
 p135
 g5
-sS'Beach Bar'
+sS'Samgyetang'
 p136
-g16
+g5
 sS'Manadonese'
 p137
 g5
-sS'Motel'
+sS'Street Food Gathering'
 p138
-g62
-sS'Prison'
-p139
-g20
-sS'Kerala'
-p140
-g5
-sS'Resort'
-p141
-g62
-sS'Bike'
-p142
-g62
-sS'Wine Shop'
-p143
 g3
-sS'Australian'
+sS'Newsstand'
+p139
+g3
+sS'Baseball'
+p140
+g22
+sS'Used Bookstore'
+p141
+g3
+sS'Russian'
+p142
+g5
+sS'Romagna'
+p143
+g5
+sS'Trentino'
 p144
 g5
-sS'Caucasian'
+sS'Hong Kong'
 p145
 g5
-sS'Pizza'
+sS'Huaiyang'
 p146
 g5
-sS'Costume Shop'
+sS'Tennis'
 p147
-g3
-sS'Bus Station'
+g22
+sS'Gymnastics Gym'
 p148
-g62
-sS'Dhaba'
+g16
+sS'Financial / Legal'
 p149
-g5
-sS'Brewery'
-p150
-g16
-sS'Acupuncturist'
-p151
-g20
-sS'Sports Club'
-p152
-g14
-sS'Corporate Cafeteria'
-p153
-g20
-sS'Food Court'
-p154
 g3
-sS'Deli / Bodega'
-p155
+sS'Kosher'
+p150
 g5
-sS'Boarding'
+sS'American'
+p151
+g5
+sS'Baby Store'
+p152
+g3
+sS'Driving School'
+p153
+g24
+sS'Toll Booth'
+p154
+g81
+sS'Whisky Bar'
+p155
+g19
+sS'Alternative Healer'
 p156
-g62
-sS'Beer Garden'
+g24
+sS'Currency Exchange'
 p157
-g16
-sS'Middle School'
+g3
+sS'Dumplings'
 p158
-g20
-sS'Seafood'
+g5
+sS'Taiwanese'
 p159
 g5
-sS'Nightclub'
+sS'Plane'
 p160
-g16
-sS'Cigkofte'
+g81
+sS'Library'
 p161
-g5
-sS'Northeast Indian'
+g8
+sS'Souvlaki'
 p162
 g5
-sS'Arts & Crafts'
+sS'City Hall'
 p163
-g3
-sS'Swiss'
+g24
+sS'Supermarket'
 p164
-g5
-sS'Garden'
+g3
+sS'Basque'
 p165
-g14
-sS'Department Store'
+g5
+sS'North Indian'
 p166
-g3
-sS'Shandong'
+g5
+sS"Farmer's Market"
 p167
-g5
-sS'Shoes'
+g3
+sS'Hotpot'
 p168
-g3
-sS'Speakeasy'
-p169
-g16
-sS'Herbs & Spices Store'
-p170
-g3
-sS'Japanese'
-p171
 g5
-sS'Acai'
+sS'German'
+p169
+g5
+sS'Israeli'
+p170
+g5
+sS'Beach Bar'
+p171
+g19
+sS'Vietnamese'
 p172
 g5
-sS'Hot Dogs'
+sS'Motel'
 p173
-g5
-sS'Sorority House'
+g81
+sS'Prison'
 p174
-g7
-sS'Roller Rink'
+g24
+sS'Kerala'
 p175
-g18
-sS'Video Games'
+g5
+sS'Resort'
 p176
-g3
-sS'Tattoo'
+g81
+sS'Bike'
 p177
-g3
-sS'Tourist Information'
+g81
+sS'Wine Shop'
 p178
-g62
-sS'Sandwiches'
+g3
+sS'Dutch'
 p179
 g5
-sS'Student Center'
+sS'Australian'
 p180
-g7
-sS'Chettinad'
+g5
+sS'Venezuelan'
 p181
 g5
-sS'Social Club'
+sS'Caucasian'
 p182
-g20
-sS'Chiropractors'
+g5
+sS'Food Court'
 p183
-g20
-sS'Dim Sum'
+g5
+sS'Gozleme'
 p184
 g5
-sS'Buffet'
+sS'Costume Shop'
 p185
-g5
-sS'Plane'
+g3
+sS'Bus Station'
 p186
-g62
-sS'Argentinian'
+g81
+sS'Dhaba'
 p187
 g5
-sS'Other Outdoors'
+sS'Brewery'
 p188
-g14
-sS'Central Brazilian'
+g19
+sS'Malga'
 p189
 g5
-sS'Cretan Restaurants'
+sS'Tuscan'
 p190
 g5
-sS'Bar'
+sS'Corporate Cafeteria'
 p191
-g16
-sS'Business Services'
+g24
+sS'Pizza'
 p192
-g3
-sS'Stoop Sale'
+g5
+sS'Deli / Bodega'
 p193
-g48
-sS'Music Store'
+g5
+sS'Boarding'
 p194
-g3
-sS'Perfume Shop'
+g81
+sS'Floating Market'
 p195
 g3
-sS'IT Services'
+sS'Beer Garden'
 p196
-g3
-sS'Club'
+g19
+sS'Middle School'
 p197
-g20
-sS'Travel Agency'
+g24
+sS'Soba'
 p198
-g3
-sg16
-g16
-sS'Residence Hall'
-p199
-g7
-sS'Laundromat'
-p200
-g3
-sS'Hostel'
-p201
-g62
-sS'Magirio'
-p202
 g5
-sS'Hunan'
+sS'Shabu-Shabu'
+p199
+g5
+sS'Seafood'
+p200
+g5
+sS'Burgundian'
+p201
+g5
+sS'Nightclub'
+p202
+g19
+sS'Cigkofte'
 p203
 g5
-sS'Indie'
+sS'Recruiting Agency'
 p204
-g18
-sS'Hockey Field'
+g24
+sS'Roman'
 p205
-g14
-sS'Accessories'
+g5
+sS'Arts & Crafts'
 p206
 g3
-sS'Moroccan'
+sS'Swiss'
 p207
 g5
-sS'Locksmith'
+sS'Garden'
 p208
-g3
-sS'Southern Brazilian'
+g16
+sS'Department Store'
 p209
-g5
-sS'Disc Golf'
+g3
+sS'Shandong'
 p210
-g18
-sS'Tailor'
+g5
+sS'Shoes'
 p211
 g3
-sS'Hobbies'
+sS'Speakeasy'
 p212
-g3
-sS'Parsi'
+g19
+sS'Physical Therapist'
 p213
-g5
-sg48
-g48
-sS'Chairlift'
+g24
+sS'Herbs & Spices Store'
 p214
-g14
-sS'Grocery Store'
-p215
 g3
-sS'Arts'
+sS'Japanese'
+p215
+g5
+sS'Acai'
 p216
-g7
-sS'Creperie'
+g5
+sS'Bougatsa Shops'
 p217
 g5
-sS'Bubble Tea'
+sS'Hot Dogs'
 p218
 g5
-sS'Museum'
+sS'Sorority House'
 p219
-g18
-sS'West-Ukrainian'
+g8
+sS'Roller Rink'
 p220
-g5
-sS'Butcher'
+g22
+sS'Video Games'
 p221
 g3
-sS'Platform'
+sS'Salvadoran'
 p222
-g62
-sS'B & B'
+g5
+sS'Tattoo'
 p223
-g62
-sS'Kokorec?'
-p224
-g5
-sS'Warehouse'
-p225
-g20
-sS'Administrative Building'
-p226
-g7
-sS'Outlet Store'
-p227
-g3
-sS'Jiangsu'
-p228
-g5
-sS'Print Shop'
-p229
-g3
-sS'Manti'
-p230
-g5
-sS'Scenic Lookout'
-p231
-g14
-sS'Hubei'
-p232
-g5
-sS'Szechuan'
-p233
-g5
-sS'Luggage Store'
-p234
-g3
-sS'Non-Profit'
-p235
-g20
-sS'Record Shop'
-p236
-g3
-sS'Candy Store'
-p237
-g3
-sS'Town'
-p238
-g14
-sS'Xinjiang'
-p239
-g5
-sS'Theater'
-p240
-g18
-sS'University'
-p241
-g7
-sS'Plaza'
-p242
-g14
-sS'Racetrack'
-p243
-g18
-sS'Burgers'
-p244
-g5
-sS'Mall'
-p245
-g3
-sS'Lingerie'
-p246
-g3
-sS'Paella'
-p247
-g5
-sS'Dispensary'
-p248
-g3
-sS'South American'
-p249
-g5
-sS'Bus Stop'
-p250
-g62
-sS'Discount Store'
-p251
-g3
-sS'Parade'
-p252
-g48
-sS'Toys & Games'
-p253
-g3
-sS'Tsipouro Restaurants'
-p254
-g5
-sS'Blini'
-p255
-g5
-sS'New American'
-p256
-g5
-sS'Embassy'
-p257
-g20
-sS'Nursery School'
-p258
-g20
-sS'Real Estate'
-p259
-g3
-sS'Adult Boutique'
-p260
-g3
-sS'Performing Arts'
-p261
-g18
-sS'Cupcakes'
-p262
-g5
-sS'Northeastern Brazilian'
-p263
-g5
-sS'ATM'
-p264
-g3
-sS'Indian'
-p265
-g5
-sS'Latin American'
-p266
-g5
-sS'Police Station'
-p267
-g20
-sS'Indian Chinese'
-p268
-g5
-sS'BBQ'
-p269
-g5
-sS'Cocktail'
-p270
-g16
-sS'Farm'
-p271
-g14
-sS'Art Gallery'
-p272
-g18
-sS'Climbing Gym'
-p273
-g3
-sS'Bowling Alley'
-p274
-g18
-sS'Udupi'
-p275
-g5
-sS'Afghan'
-p276
-g5
-sS'Wings'
-p277
-g5
-sS'Preschool'
-p278
-g20
-sS'Flight School'
-p279
-g20
-sS'Piano Bar'
-p280
-g18
-sS'Synagogue'
-p281
-g20
-sS'Music Venue'
-p282
-g18
-sS'Kids Store'
-p283
-g3
-sS'Macanese'
-p284
-g5
-sS'Taxi Stand'
-p285
-g62
-sS'Jain'
-p286
-g5
-sS'Smoke Shop'
-p287
-g3
-sS'Rajasthani'
-p288
-g5
-sS'Harbor / Marina'
-p289
-g14
-sS'Auto Garage'
-p290
-g3
-sS'Kafenia'
-p291
-g5
-sS'History'
-p292
-g7
-sS'Taxi'
-p293
-g62
-sS'Military Base'
-p294
-g20
-sS'Tea Room'
-p295
-g5
-sS'Peking Duck'
-p296
-g5
-sS'Karnataka'
-p297
-g5
-sS'Photography Lab'
-p298
-g3
-sS'Prayer Room'
-p299
-g20
-sS'Laser Tag'
-p300
-g18
-sS'Camera Store'
-p301
-g3
-sS'Radio Station'
-p302
-g20
-sS'EV Charging'
-p303
-g3
-sS'Aristocrat'
-p304
-g5
-sS'Cycle Studio'
-p305
-g3
-sS'Martial Arts'
-p306
-g3
-sS'Pet Store'
-p307
-g3
-sS'Emergency Room'
-p308
-g20
-sS'Piers'
-p309
-g62
-sS'Billiards'
-p310
-g18
-sS'Town Hall'
-p311
-g20
-sS'Boat / Ferry'
-p312
-g62
-sS'Flower Shop'
-p313
-g3
-sS'Field'
-p314
-g14
-sS'Southern / Soul'
-p315
-g5
-sS'Balinese'
-p316
-g5
-sS'Laundry'
-p317
-g3
-sS'Gaming Cafe'
-p318
-g3
-sS'Ukrainian'
-p319
-g5
-sS'Jewish'
-p320
-g5
-sS'Champagne Bar'
-p321
-g16
-sS'Border Crossing'
-p322
-g62
-sS'Religious School'
-p323
-g20
-sS'Souvenir Shop'
-p324
-g3
-sS'Bank'
-p325
-g3
-sS'Badminton Court'
-p326
-g14
-sS'Pelmeni'
-p327
-g5
-sS'Cajun / Creole'
-p328
-g5
-sS'Rest Areas'
-p329
-g62
-sS'Daycare'
-p330
-g3
-sS'Tram'
-p331
-g62
-sS'Modern Greek Restaurants'
-p332
-g5
-sS'Surf Spot'
-p333
-g14
-sS'Tapiocaria'
-p334
-g5
-sS'Communications'
-p335
-g7
-sS'Train Station'
-p336
-g62
-sS'Convenience Stores'
-p337
-g3
-sS'Comfort Food'
-p338
-g5
-sS'Jiangxi'
-p339
-g5
-sS'Portuguese'
-p340
-g5
-sS'Recording Studio'
-p341
-g3
-sS'Mughlai'
-p342
-g5
-sS'Gay Bar'
-p343
-g16
-sS'Outdoor Supplies'
-p344
-g3
-sS'Bathing Area'
-p345
-g14
-sS'History Museum'
-p346
-g18
-sS'Cafeteria'
-p347
-g7
-sS'Christmas Market'
-p348
-g3
-sS'Goan'
-p349
-g5
-sS'Stables'
-p350
-g14
-sS'Wine Bar'
-p351
-g16
-sg18
-g18
-sS'Food & Drink'
-p352
-g3
-sS'Shrine'
-p353
-g20
-sS'Botanical Garden'
-p354
-g14
-sS'Transportation Services'
-p355
-g62
-sS'Gate'
-p356
-g62
-sS'Math'
-p357
-g7
-sS'Doner'
-p358
-g5
-sS'TV Station'
-p359
-g20
-sS'Gym'
-p360
-g7
-sS'Academic Building'
-p361
-g7
-sS'French'
-p362
-g5
-sS'Bengali'
-p363
-g5
-sS'Patsa Restaurants'
-p364
-g5
-sS'Salsa Club'
-p365
-g18
-sS'Pool'
-p366
-g14
-sS'Goiano'
-p367
-g5
-sS'Dive Bar'
-p368
-g16
-sS'Beer Store'
-p369
-g3
-sS'Sundanese'
-p370
-g5
-sS'Piercing Parlor'
-p371
-g3
-sS'Summer Camp'
-p372
-g14
-sS'Bougatsa Shops'
-p373
-g5
-sS'Sporting Goods'
-p374
 g3
 sS'Tech Startup'
+p224
+g24
+sS'Tourist Information'
+p225
+g81
+sS'Sandwiches'
+p226
+g5
+sS'Student Center'
+p227
+g8
+sS'Chettinad'
+p228
+g5
+sS'Social Club'
+p229
+g24
+sS'Chiropractors'
+p230
+g24
+sS'Dim Sum'
+p231
+g5
+sS'Northeastern Brazilian'
+p232
+g5
+sS'Outdoor Event Space'
+p233
+g24
+sS'Buffet'
+p234
+g5
+sS'Acupuncturist'
+p235
+g24
+sS'Argentinian'
+p236
+g5
+sS'Waterfront'
+p237
+g16
+sS'Other Outdoors'
+p238
+g16
+sS'Pie Shop'
+p239
+g5
+sS'Cretan Restaurants'
+p240
+g5
+sS'Observatory'
+p241
+g24
+sS'Bar'
+p242
+g19
+sS'Business Services'
+p243
+g3
+sS'Stoop Sale'
+p244
+g65
+sS'Southern / Soul'
+p245
+g5
+sS'Estaminet'
+p246
+g5
+sS'Gukbap'
+p247
+g5
+sS'Bay'
+p248
+g16
+sS'Perfume Shop'
+p249
+g3
+sS'Sports Club'
+p250
+g16
+sS'IT Services'
+p251
+g3
+sS'Club'
+p252
+g24
+sS'Travel Agency'
+p253
+g3
+sg19
+g19
+sS'Residence Hall'
+p254
+g8
+sS'Laundromat'
+p255
+g3
+sS'Hostel'
+p256
+g81
+sS'Magirio'
+p257
+g5
+sS'Hunan'
+p258
+g5
+sS'Indie'
+p259
+g22
+sS'Japanese Curry'
+p260
+g5
+sS'Hockey Field'
+p261
+g16
+sS'Accessories'
+p262
+g3
+sS'Moroccan'
+p263
+g5
+sS'Locksmith'
+p264
+g3
+sS'Southern Brazilian'
+p265
+g5
+sS'Disc Golf'
+p266
+g22
+sS'Tailor'
+p267
+g3
+sS'Scottish'
+p268
+g5
+sS'Parsi'
+p269
+g5
+sg65
+g65
+sS'Chairlift'
+p270
+g16
+sS'Grocery Store'
+p271
+g3
+sS'Arts'
+p272
+g8
+sS'Creperie'
+p273
+g5
+sS'Latin American'
+p274
+g5
+sS'Mediterranean'
+p275
+g5
+sS'Museum'
+p276
+g22
+sS'West-Ukrainian'
+p277
+g5
+sS'Butcher'
+p278
+g3
+sS'Platform'
+p279
+g81
+sS'B & B'
+p280
+g81
+sS'Kokorec?'
+p281
+g5
+sS'Warehouse'
+p282
+g24
+sS'Indonesian Meatball Place'
+p283
+g5
+sS'Administrative Building'
+p284
+g8
+sS'Outlet Store'
+p285
+g3
+sS'Jiangsu'
+p286
+g5
+sS'South Tyrolean'
+p287
+g5
+sS'Print Shop'
+p288
+g3
+sS'Manti'
+p289
+g5
+sS'Food Stand'
+p290
+g5
+sS'Convenience Store'
+p291
+g3
+sS'Hubei'
+p292
+g5
+sS'Szechuan'
+p293
+g5
+sS'Luggage Store'
+p294
+g3
+sS'Non-Profit'
+p295
+g24
+sS'Record Shop'
+p296
+g3
+sS'Candy Store'
+p297
+g3
+sS'Town'
+p298
+g16
+sS'Xinjiang'
+p299
+g5
+sS'Theater'
+p300
+g22
+sS'University'
+p301
+g8
+sS'Plaza'
+p302
+g16
+sS'Racetrack'
+p303
+g22
+sS'Som Tum'
+p304
+g5
+sS'Burgers'
+p305
+g5
+sS'Mall'
+p306
+g3
+sS'Lingerie'
+p307
+g3
+sS'Paella'
+p308
+g5
+sS'Dispensary'
+p309
+g3
+sS'South American'
+p310
+g5
+sS'Bus Stop'
+p311
+g81
+sS'Discount Store'
+p312
+g3
+sS'Yucatecan'
+p313
+g5
+sS'Parade'
+p314
+g65
+sS'Toys & Games'
+p315
+g3
+sS'Tsipouro Restaurants'
+p316
+g5
+sS'Bavarian'
+p317
+g5
+sS'Blini'
+p318
+g5
+sS'Amphitheater'
+p319
+g22
+sS'New American'
+p320
+g5
+sS'Comic Shop'
+p321
+g3
+sS'Embassy'
+p322
+g24
+sS'Nursery School'
+p323
+g24
+sS'Real Estate'
+p324
+g3
+sS'Adult Boutique'
+p325
+g3
+sS'Performing Arts'
+p326
+g22
+sS'Cupcakes'
+p327
+g5
+sS'Okonomiyaki'
+p328
+g5
+sS'ATM'
+p329
+g3
+sS'Indian'
+p330
+g5
+sS'Bubble Tea'
+p331
+g5
+sS'Police Station'
+p332
+g24
+sS'Adult Education Center'
+p333
+g24
+sS'Drugstore'
+p334
+g3
+sS'Indian Chinese'
+p335
+g5
+sS'BBQ'
+p336
+g5
+sS'Kumpir'
+p337
+g5
+sS'Molise'
+p338
+g5
+sS'Farm'
+p339
+g16
+sS'Art Gallery'
+p340
+g22
+sS'Abruzzo'
+p341
+g5
+sS'Catalan'
+p342
+g5
+sS'Bowling Alley'
+p343
+g22
+sS'Confucian Temple'
+p344
+g24
+sS'Udupi'
+p345
+g5
+sS'Afghan'
+p346
+g5
+sS'Wings'
+p347
+g5
+sS'Preschool'
+p348
+g24
+sS'Flight School'
+p349
+g24
+sS'Piano Bar'
+p350
+g22
+sS'Rehab Center'
+p351
+g24
+sS'Synagogue'
+p352
+g24
+sS'Music Venue'
+p353
+g22
+sS'Kids Store'
+p354
+g3
+sS'Macanese'
+p355
+g5
+sS'Taxi Stand'
+p356
+g81
+sS'Jain'
+p357
+g5
+sS'Smoke Shop'
+p358
+g3
+sS'Rajasthani'
+p359
+g5
+sS'Harbor / Marina'
+p360
+g16
+sS'Auto Garage'
+p361
+g3
+sS'Coworking Space'
+p362
+g24
+sS'Kafenia'
+p363
+g5
+sS'History'
+p364
+g8
+sS'Taxi'
+p365
+g81
+sS'Military Base'
+p366
+g24
+sS'Tea Room'
+p367
+g5
+sS'Peking Duck'
+p368
+g5
+sS'Karnataka'
+p369
+g5
+sS'Photography Lab'
+p370
+g3
+sS'Prayer Room'
+p371
+g24
+sS'Laser Tag'
+p372
+g22
+sS'Camera Store'
+p373
+g3
+sS'Radio Station'
+p374
+g24
+sS'EV Charging'
 p375
-g20
-sS'Guizhou'
+g3
+sS'Aristocrat'
 p376
+g5
+sS'Cycle Studio'
+p377
+g16
+sS'Martial Arts'
+p378
+g16
+sS'Pet Store'
+p379
+g3
+sS'Emergency Room'
+p380
+g24
+sS'Other Repair'
+p381
+g3
+sS'Supplement Shop'
+p382
+g3
+sS'Indoor Play Area'
+p383
+g16
+sS'Distillery'
+p384
+g24
+sS'Piers'
+p385
+g81
+sS'Billiards'
+p386
+g22
+sS'Town Hall'
+p387
+g24
+sS'Video Store'
+p388
+g3
+sS'Flower Shop'
+p389
+g3
+sS'Field'
+p390
+g16
+sS'Soccer'
+p391
+g22
+sS'Balinese'
+p392
+g5
+sS'Laundry'
+p393
+g3
+sS'Gaming Cafe'
+p394
+g3
+sS'Provenc?al'
+p395
+g5
+sg5
+g5
+sS'Champagne Bar'
+p396
+g19
+sS'Samba School'
+p397
+g22
+sS'Border Crossing'
+p398
+g81
+sS'Religious School'
+p399
+g24
+sS'Souvenir Shop'
+p400
+g3
+sS'Bank'
+p401
+g3
+sS'Badminton Court'
+p402
+g16
+sS'Pelmeni'
+p403
+g5
+sS'Cajun / Creole'
+p404
+g5
+sS'Rest Areas'
+p405
+g81
+sS'Daycare'
+p406
+g3
+sS'Tram'
+p407
+g81
+sS'Modern Greek Restaurants'
+p408
+g5
+sS'Surf Spot'
+p409
+g16
+sS'Tapiocaria'
+p410
+g5
+sS'Communications'
+p411
+g8
+sS'Train Station'
+p412
+g81
+sS'Comfort Food'
+p413
+g5
+sS'Friuli'
+p414
+g5
+sS'Jiangxi'
+p415
+g5
+sS'Portuguese'
+p416
+g5
+sS'Recording Studio'
+p417
+g3
+sS'Mughlai'
+p418
+g5
+sS'Gay Bar'
+p419
+g19
+sS'Outdoor Supplies'
+p420
+g3
+sS'Bathing Area'
+p421
+g16
+sS'History Museum'
+p422
+g22
+sS'Cafeteria'
+p423
+g8
+sS'Christmas Market'
+p424
+g65
+sS'Batik Shop'
+p425
+g3
+sS'Goan'
+p426
+g5
+sS'Stables'
+p427
+g16
+sS'Wine Bar'
+p428
+g19
+sg22
+g22
+sS'Food & Drink'
+p429
+g3
+sS'Veneto'
+p430
+g5
+sS'Shrine'
+p431
+g24
+sS'Botanical Garden'
+p432
+g16
+sS'Transportation Services'
+p433
+g81
+sS'Sausage Shop'
+p434
+g3
+sS'Tabbakhi'
+p435
+g5
+sS'Gate'
+p436
+g81
+sS'Math'
+p437
+g8
+sS'Bulgarian'
+p438
+g5
+sS'Doner'
+p439
+g5
+sS'TV Station'
+p440
+g24
+sS'Gym'
+p441
+g8
+sS'Academic Building'
+p442
+g8
+sS'French'
+p443
+g5
+sS'Bengali'
+p444
+g5
+sS'Patsa Restaurants'
+p445
+g5
+sS'Bratwurst'
+p446
+g5
+sS'Salsa Club'
+p447
+g22
+sS'Pool'
+p448
+g16
+sS'Goiano'
+p449
+g5
+sS'Reservoir'
+p450
+g16
+sS'Cave'
+p451
+g16
+sS'Dive Bar'
+p452
+g19
+sS'Pachinko Parlor'
+p453
+g22
+sS'Beer Store'
+p454
+g3
+sS'Silesian'
+p455
+g5
+sS'Sundanese'
+p456
+g5
+sS'Piercing Parlor'
+p457
+g3
+sS'Summer Camp'
+p458
+g16
+sS'Entertainment Service'
+p459
+g3
+sS'Trattoria/Osteria'
+p460
+g5
+sS'Poutine Place'
+p461
+g5
+sS'Medical Lab'
+p462
+g24
+sS'Guizhou'
+p463
 g5
 sg3
 g3
 sS'River'
-p377
-g14
-sS'Italian'
-p378
-g5
-sS'Shoe Repair'
-p379
-g3
-sS'Bike shop'
-p380
-g3
-sS'Mediterranean'
-p381
-g5
-sS'Vegetarian / Vegan'
-p382
-g5
-sS'Falafel'
-p383
-g5
-sS'Austrian'
-p384
-g5
-sS'Cheese Shop'
-p385
-g3
-sS'Education'
-p386
-g7
-sS'Board Shop'
-p387
-g3
-sS'Concert Hall'
-p388
-g18
-sS'Caribbean'
-p389
-g5
-sS'Courthouse'
-p390
-g20
-sS'Hotel'
-p391
-g62
-sS'Hospital'
-p392
-g20
-sS'Indie Theater'
-p393
-g18
-sS'Storage'
-p394
-g3
-sS'Zoo'
-p395
-g18
-sS'Vineyard'
-p396
-g14
-sS'Fruit & Vegetable Store'
-p397
-g3
-sS'Tennis Court'
-p398
-g7
-sS'Other Repair'
-p399
-g3
-sS'Awadhi'
-p400
-g5
-sS'Dive Shop'
-p401
-g3
-sS'Indonesian'
-p402
-g5
-sS'Mineiro'
-p403
-g5
-sS'Hawaiian'
-p404
-g5
-sS'Garden Center'
-p405
-g3
-sS'Monastery'
-p406
-g20
-sS'Park'
-p407
-g14
-sS'Engineering'
-p408
-g7
-sS'Advertising Agency'
-p409
-g20
-sS'Smoothie Shop'
-p410
-g3
-sS'Quad'
-p411
-g7
-sS'Thai'
-p412
-g5
-sS'Fish & Chips'
-p413
-g5
-sS'Palace'
-p414
-g14
-sS'Event Services'
-p415
-g3
-sS'Tunnel'
-p416
-g62
-sS'Frat House'
-p417
-g7
-sS'Bath House'
-p418
-g14
-sS'Cruise'
-p419
-g62
-sS'Tree'
-p420
-g14
-sS'Subway'
-p421
-g62
-sS'Himalayan'
-p422
-g5
-sS'Roof Deck'
-p423
-g62
-sS'Rafting'
-p424
-g14
-sS'Strip Club'
-p425
-g16
-sS'Mental Health'
-p426
-g20
-sS'Dive Spot'
-p427
-g14
-sS'Neighborhood'
-p428
-g14
-sS'Salon / Barbershop'
-p429
-g3
-sS'Circus'
-p430
-g18
-sS'Ethiopian'
-p431
-g5
-sS'Other Event'
-p432
-g48
-sS'Country Dance Club'
-p433
-g18
-sS'Design'
-p434
-g3
-sS'Lawyer'
-p435
-g3
-sS'Gozleme'
-p436
-g5
-sS'Health Food Store'
-p437
-g3
-sS'Mac & Cheese'
-p438
-g5
-sS'Anhui'
-p439
-g5
-sS'Turkish'
-p440
-g5
-sg62
-g62
-sS'African'
-p441
-g5
-sS'Lounge'
-p442
-g16
-sS'Forest'
-p443
-g14
-sS'Food Truck'
-p444
-g5
-sS'Science Museum'
-p445
-g18
-sS'Ramen / Noodles'
-p446
-g5
-sS'Betting Shop'
-p447
-g3
-sS'Preserve'
-p448
-g14
-sS'Bus'
-p449
-g62
-sS'Fishing Spot'
-p450
-g14
-sS'Yunnan'
-p451
-g5
-sS'Tacos'
-p452
-g5
-sS'Trail'
-p453
-g14
-sS'Capitol Building'
-p454
-g20
-sS'Comic Shop'
-p455
-g3
-sS'Furniture / Home'
-p456
-g3
-sS'Multicuisine Indian'
-p457
-g5
-sS'Molecular Gastronomy'
-p458
-g5
-sS'Pie Shop'
-p459
-g5
-sS'Knitting Supplies'
-p460
-g3
-sS'Casino'
-p461
-g18
-sS'Language School'
-p462
-g20
-sS'Squash Court'
-p463
-g14
-sS'Javanese'
 p464
-g5
-sg20
-g20
-sS'Sculpture'
+g16
+sS'Italian'
 p465
-g14
-sS'Circus School'
+g5
+sS'Exhibit'
 p466
-g20
-sS'Terminal'
+g22
+sS'Mountain Hut'
 p467
-g62
-sS'Spiritual'
+g16
+sS'Shoe Repair'
 p468
-g20
-sS'Empadas'
+g3
+sS'Ski Shop'
 p469
-g5
-sS'Sushi'
+g3
+sS'Food Service'
 p470
-g5
-sS'Pide'
+g3
+sS'Monjayaki'
 p471
 g5
-sS'Dance Studio'
+sS'Tour Provider'
 p472
-g18
-sS'Flea Market'
+g22
+sS'Vegetarian / Vegan'
 p473
-g3
-sS'Persian'
+g5
+sS'Falafel'
 p474
 g5
-sS'Mongolian'
+sS'Austrian'
 p475
 g5
-sS'Church'
+sS'Cheese Shop'
 p476
-g20
-sS'Massage Studio'
-p477
 g3
-sS'Medical School'
+sS'Education'
+p477
+g8
+sS'Tex-Mex'
 p478
-g7
-sS'Market'
+g5
+sS'Board Shop'
 p479
 g3
-sS'Car Dealer'
+sS'Concert Hall'
 p480
-g3
-sS'City'
+g22
+sS'Caribbean'
 p481
-g14
-sS'Lighthouse'
+g5
+sS'Courthouse'
 p482
-g14
-sS'Basketball'
+g24
+sS'Pet Cafe?'
 p483
-g18
-sS'Tianjin'
+g5
+sS'Hotel'
 p484
-g5
-sS'Donuts'
+g81
+sS'Hospital'
 p485
-g5
-sS'Bagels'
+g24
+sS'Storage'
 p486
-g5
-sS'Tennis'
+g3
+sS'Zoo'
 p487
-g18
-sS'Cineplex'
+g22
+sS'Vineyard'
 p488
-g18
-sS'Factory'
+g16
+sS'Fruit & Vegetable Store'
 p489
-g20
-sS'Imperial'
+g3
+sS'Tennis Court'
 p490
-g5
-sS'Carpet Store'
+g8
+sS'Gas Station'
 p491
 g3
-sS'Convention'
+sS'Awadhi'
 p492
-g48
-sS'Bridal'
+g5
+sS'Dive Shop'
 p493
 g3
-sS'Beach'
+sS'Indonesian'
 p494
-g14
-sS'Fish Market'
+g5
+sS'Calabria'
 p495
-g3
-sS'Soccer'
+g5
+sS'Mineiro'
 p496
-g18
-sS'Comedy Club'
+g5
+sS'Hawaiian'
 p497
-g18
-sS'Salad'
+g5
+sS'Garden Center'
 p498
-g5
-sS'Music School'
-p499
-g20
-sS'Padangnese'
-p500
-g5
-sS'Check Cashing Service'
-p501
 g3
-sS'Island'
-p502
-g14
-sS'Grilled Meat Restaurants'
-p503
+sS'Monastery'
+p499
+g24
+sS'Park'
+p500
+g16
+sS'Burritos'
+p501
 g5
-sS'Classroom'
+sS'Advertising Agency'
+p502
+g24
+sS'Wedding Hall'
+p503
+g24
+sS'Quad'
 p504
-g7
-sS'Chinese'
+g8
+sS'Thai'
 p505
 g5
-sS'Pastelaria'
+sS'Fish & Chips'
 p506
 g5
-sS'Diner'
+sS'Palace'
 p507
-g5
-sg9
-g9
-sS'Medical'
+g16
+sS'Health & Beauty'
 p508
-g20
-sS'Soup'
+g3
+sS'Event Services'
 p509
-g5
-sS'Airport'
+g3
+sS'Tunnel'
 p510
-g62
-sS'Winery'
+g81
+sS'Frat House'
 p511
-g5
-sS'Apparel'
+g8
+sS'Bath House'
 p512
 g3
-sS'Meatball Place'
+sS'Cruise'
 p513
-g5
-sS'Snacks'
+g81
+sS'Tree'
 p514
-g5
-sS'Peruvian'
+g16
+sS'Corporate Amenity'
 p515
-g5
-sS'Golf Course'
+g24
+sS'Burmese'
 p516
-g14
-sS'Distillery'
+g5
+sS'African'
 p517
 g5
-sS'Video Store'
+sS'Roof Deck'
 p518
-g3
-sg5
-g5
-sS'Gift Shop'
+g81
+sS'Boat / Ferry'
 p519
-g3
-sS'Pet Service'
+g81
+sS'Rafting'
 p520
-g3
-sS"Women's Store"
+g16
+sS'Beer Bar'
 p521
-g3
-sS'Shanxi'
+g19
+sS'Yakitori'
 p522
 g5
-sS'Bridge'
+sS'Vape Store'
 p523
-g14
-sS'Lottery'
+g3
+sS'Strip Club'
 p524
-g3
-sS'Mountain'
+g19
+sS'Mental Health'
 p525
-g14
-sS'Gourmet'
+g24
+sS'Dive Spot'
 p526
-g3
-sS'Boxing Gym'
+g16
+sS'Neighborhood'
 p527
-g3
-sS'Fondue'
+g16
+sS'Salon / Barbershop'
 p528
-g5
-sS'Leather Goods'
-p529
 g3
-sS'Borek'
+sS'Circus'
+p529
+g22
+sS'Ethiopian'
 p530
 g5
-sS'Playground'
+sS'Other Event'
 p531
-g14
-sS'Yoga Studio'
+g65
+sS'Country Dance Club'
 p532
-g3
-sS'Pedestrian Street/Plaza'
+g22
+sS'Design'
 p533
-g14
-sS'Belgian'
+g3
+sS'Lawyer'
 p534
-g5
-sS'Cable Car'
+g3
+sS'Indian Sweets'
 p535
-g62
-sS'Bistro'
+g5
+sS'Smoothie Shop'
 p536
-g5
-sS'Music Festival'
+g3
+sS'Franconian'
 p537
-g48
-sS'Football'
+g5
+sS'Health Food Store'
 p538
-g18
-sS'Athletics & Sports'
+g3
+sS'Breton'
 p539
-g14
-sS'Apres Ski Bar'
+g5
+sS'Takoyaki'
 p540
-g14
-sS'Post Office'
+g5
+sS'Piadineria'
 p541
-g20
-sS'Fire Station'
+g5
+sS'Campanian'
 p542
-g20
-sS'Aquarium'
+g5
+sS'Anhui'
 p543
-g18
-sS'Recreation Center'
+g5
+sS'Turkish'
 p544
-g14
-sS'Karaoke'
+g5
+sg81
+g81
+sS'Himalayan'
 p545
-g16
-sS'Building'
+g5
+sS'Churrascaria'
 p546
-g20
-sS'Meze Restaurants'
+g5
+sS'Lounge'
 p547
-g5
-sS'Southeastern Brazilian'
+g19
+sS'Forest'
 p548
-g5
-sS'Filipino'
+g16
+sS'Food Truck'
 p549
 g5
-sS'Restaurant'
+sS'Corporate Coffee Shop'
 p550
-g5
-sS'Fish Tavernas'
+g24
+sS'Turkish Home Cooking'
 p551
 g5
-sS'Hot Spring'
+sS'Science Museum'
 p552
-g14
-sS'Bakery'
+g22
+sS'Temple'
 p553
-g5
-sS'Henan'
+g24
+sS'Betting Shop'
 p554
-g5
-sS'Mobile Phone'
+g3
+sS'Preserve'
 p555
-g3
-sS'Landmark'
+g16
+sS'Bus'
 p556
-g20
-sS'Volcano'
+g81
+sS'Swabian'
 p557
-g14
-sS'Pop-Up Shop'
+g5
+sS'Malay'
 p558
-g3
-sS'Ice Cream'
+g5
+sS'Tacos'
 p559
 g5
-sS'Shop'
+sS'Trail'
 p560
-g3
-sS'Home Cooking'
+g16
+sS'Capitol Building'
 p561
-g5
-sS'Hakka'
+g24
+sS'Gym / Fitness'
 p562
-g5
-sS"Doctor's Office"
+g16
+sS'Furniture / Home'
 p563
-g20
-sS'Optical'
-p564
 g3
-sS'Recruiting Agency'
+sS'Multicuisine Indian'
+p564
+g5
+sS'Kaiseki'
 p565
-g20
-sS'Ouzeries'
+g5
+sS'Ramen'
 p566
 g5
-sS'Northern Brazilian'
+sS'Bike Shop'
 p567
-g5
-sS'Desserts'
+g3
+sS'Molecular Gastronomy'
 p568
 g5
-sg14
-g14
-sS'Train'
+sS'Film Studio'
 p569
-g62
-sS'Sri Lankan'
+g3
+sS"Ch'ti"
 p570
 g5
-sS'Polish'
+sS'Cemetery'
 p571
-g5
-sS'Gun Shop'
+g16
+sS'Casino'
 p572
-g3
-sS'Toll Plaza'
+g22
+sS'Language School'
 p573
-g62
-sS'Jewelry'
+g24
+sS'Squash Court'
 p574
-g3
-sS'Arcade'
+g16
+sS'Javanese'
 p575
-g18
-sS'Entertainment'
-p576
-g18
-sS'Mosque'
-p577
-g20
-sS'Convention Center'
-p578
-g20
-sS'Pharmacy'
-p579
-g3
-sS'Kofte'
-p580
 g5
-sS'Gas Station / Garage'
+sg24
+g24
+sS'Sculpture'
+p576
+g16
+sS'Circus School'
+p577
+g24
+sS'Baggage Locker'
+p578
+g81
+sS'Terminal'
+p579
+g81
+sS'Spiritual'
+p580
+g24
+sS'Kebab'
 p581
-g3
-sS'Jazz Club'
+g5
+sS'Central Brazilian'
 p582
-g18
-sS'Office Supplies'
+g5
+sS'Sushi'
 p583
-g3
-sS'Betawinese'
+g5
+sS'Pide'
 p584
 g5
-sS'Movie Theater'
+sS'Dance Studio'
 p585
-g18
-sS'Hainan'
+g22
+sS'Flea Market'
 p586
-g5
-sS'Government'
+g3
+sS'Persian'
 p587
-g20
-sS'Basketball Court'
+g5
+sS'Mongolian'
 p588
-g14
-sS'Temple'
+g5
+sS'Terreiro'
 p589
-g20
-sS'Arepas'
+g24
+sS'Maternity Clinic'
 p590
-g5
-sS'Zhejiang'
+g24
+sS'Massage Studio'
 p591
-g5
-sS'Motorcycle Shop'
+g3
+sS'Sporting Goods'
 p592
 g3
-sS'Warehouse Store'
+sS'Medical School'
 p593
-g3
-sS'Intersection'
+g8
+sS'Market'
 p594
-g62
-sS'School'
+g3
+sS'City'
 p595
-g20
-sS'Dongbei'
+g16
+sS'Lighthouse'
 p596
-g5
-sS'Eastern European'
+g16
+sS'Basketball'
 p597
-g5
-sS'Punjabi'
+g22
+sS'Knitting Supplies'
 p598
-g5
-sS'Volleyball Court'
+g3
+sS'Tianjin'
 p599
-g14
-sS'Event Space'
+g5
+sS'Donuts'
 p600
-g20
-sS'Elementary School'
+g5
+sS'Bagels'
 p601
-g20
-sS'Stationery Store'
+g5
+sS'Shanghai'
 p602
-g3
-sS'Hyderabadi'
+g5
+sS'Cineplex'
 p603
-g5
-sS'Fujian'
+g22
+sS'Factory'
 p604
-g5
-sS'Liquor Store'
+g24
+sS'Corsican'
 p605
-g3
-sS'Fair'
+g5
+sS'Imperial'
 p606
-g48
-sS"Dentist's Office"
+g5
+sS'Carpet Store'
 p607
-g20
-sS'Go Kart'
+g3
+sS'Cocktail'
 p608
-g18
-sg7
-g7
-sS'Veterinarians'
+g19
+sS'Convention'
 p609
-g20
-sS'Chinese Breakfast'
+g65
+sS'Bridal'
 p610
-g5
-sS'Empanada'
+g3
+sS'Beach'
 p611
-g5
-sS'Gastropub'
+g16
+sS'Labour Canteen'
 p612
 g5
-sS'Chocolate Shop'
+sS'Fish Market'
 p613
 g3
-sS'Gujarati'
+sS'Northeast Indian'
 p614
 g5
-sS'Cosmetics'
+sS'Comedy Club'
 p615
-g3
-sS'Stadium'
+g22
+sS'Filipino'
 p616
-g18
-sS'Korean'
+g5
+sS'Tempura'
 p617
 g5
-sS'Pakistani'
+sS'Music School'
 p618
-g5
-sS'Credit Union'
+g24
+sS'Padangnese'
 p619
-g3
-sS'Voting Booth'
+g5
+sS'Check Cashing Service'
 p620
-g20
-sS'Cultural Center'
+g3
+sS'Island'
 p621
-g20
-sS'Cafe?'
+g16
+sS'Grilled Meat Restaurants'
 p622
 g5
-sS'Mini Golf'
+sS'Classroom'
 p623
-g18
-sS'Gym / Fitness'
+g8
+sS'Pastelaria'
 p624
-g3
-sS'Andhra'
+g5
+sS'Diner'
 p625
 g5
-sS'Manchu'
+sS'Friterie'
 p626
 g5
-sS'Coworking Space'
+sg12
+g12
+sS'Medical'
 p627
-g20
-sS'Auditorium'
+g24
+sS'Bouchon'
 p628
-g7
-sS'Tanning Salon'
+g5
+sS'Public Bathroom'
 p629
 g3
-sS'Soccer Field'
+sS'Music Store'
 p630
-g14
-sS'Hunting Supply'
-p631
 g3
-sS'Science'
+sS'Soup'
+p631
+g5
+sS'Airport'
 p632
-g7
-sS'Malaysian'
+g81
+sS'Baggage Claim'
 p633
-g5
-sS'Modern European'
+g81
+sS'Winery'
 p634
-g5
-sS'Castle'
+g24
+sS'Laboratory'
 p635
-g14
-sS'Gun Range'
+g24
+sS'Apparel'
 p636
-g14
-sS'Beijing'
+g3
+sS'Snacks'
 p637
 g5
-sS'Irish'
+sS'Peruvian'
 p638
 g5
-sS'Office'
+sS'Golf Course'
 p639
-g20
-sS'Czech'
+g16
+sS'Ukrainian'
 p640
 g5
-sS'Trailer Park'
+sS'Erotic Museum'
 p641
-g9
-sS'Belarusian'
+g22
+sS'Mobile Phones'
 p642
-g5
-sS'County'
+g3
+sS'Jewish'
 p643
-g14
-sS'Burritos'
-p644
 g5
-sS'National Park'
+sS'Gift Shop'
+p644
+g3
+sS'Pet Service'
 p645
-g14
-sS'Parking'
+g3
+sS'Port'
 p646
-g20
-sS'Rock Climbing'
+g81
+sS"Women's Store"
 p647
-g14
-sS'Baiano'
+g3
+sS'Shanxi'
 p648
 g5
-sS'Car Washes'
+sS'Bridge'
 p649
-g3
-sS'Paintball Field'
-p650
-g14
-sS'Churrascaria'
-p651
-g5
-sS'Romanian'
-p652
-g5
-sS'Photo Studio'
-p653
-g3
-sS'Skating Rink'
-p654
-g14
-sS'Cemetery'
-p655
-g14
-sS'Lake'
-p656
-g14
-sS'Sports Bar'
-p657
 g16
-sS'Construction'
-p658
+sS'Lottery'
+p650
 g3
-sS'Fast Food'
-p659
+sS'Mountain'
+p651
+g16
+sS'Gourmet'
+p652
+g3
+sS'Boxing Gym'
+p653
+g16
+sS'Fondue'
+p654
 g5
-sS'Distributor'
+sS'Light Rail'
+p655
+g81
+sS'Mac & Cheese'
+p656
+g5
+sS'Leather Goods'
+p657
+g3
+sS'Borek'
+p658
+g5
+sS'Playground'
+p659
+g16
+sS'Volcano'
 p660
-g20
-sS'Electronics'
+g16
+sS'Yoga Studio'
 p661
-g3
-sS"Men's Store"
+g16
+sS'Pedestrian Street/Plaza'
 p662
-g3
-sS'Track'
+g16
+sS'Belgian'
 p663
-g18
-sS'Street Art'
+g5
+sS'Cable Car'
 p664
-g18
-sS'Gluten-free'
+g81
+sS'Bistro'
 p665
 g5
-sS'Lab'
+sS'Lombard'
 p666
-g7
-sS'Pawn Shop'
+g5
+sS'Mobility Store'
 p667
 g3
-sS'Rental Car'
+sS'Music Festival'
 p668
-g62
-sS'Asian'
+g65
+sS'Football'
 p669
-g5
-sS'Varenyky'
+g22
+sS'Athletics & Sports'
 p670
-g5
-sS'Community College'
+g16
+sS'Apres Ski Bar'
 p671
-g7
-sS'Fabric Shop'
+g16
+sS'Post Office'
 p672
-g3
-sS'Country'
+g24
+sS'Fire Station'
 p673
-g14
-sS'Pitch'
+g24
+sS'Aquarium'
 p674
-g14
-sS'Rec Center'
+g22
+sS'Recreation Center'
 p675
-g7
-sS'Outdoor Sculpture'
+g16
+sS'Karaoke'
 p676
-g18
-sS'Swim School'
+g22
+sS'Building'
 p677
-g20
-sS'Mexican'
+g24
+sS'Meze Restaurants'
 p678
 g5
-sS'Historic Site'
+sS'Southeastern Brazilian'
 p679
-g18
-sS'Law School'
+g5
+sS'Piedmontese'
 p680
-g7
-sS'Well'
+g5
+sS'Restaurant'
 p681
-g14
-sS'RV Park'
+g5
+sS'Fish Tavernas'
 p682
-g62
-sS'Hardware'
+g5
+sS'Hot Spring'
 p683
-g3
-sS'Juice Bar'
+g16
+sS'Indie Movies'
 p684
-g5
-sS'Street'
+g22
+sS'Bakery'
 p685
-g62
-sS'Cambodian'
-p686
 g5
-sS'Spanish'
+sS'Canal Lock'
+p686
+g16
+sS'Henan'
 p687
 g5
-sS'Meyhane'
+sS'Landmark'
 p688
+g24
+sS'Emilia'
+p689
+g5
+sS'Pop-Up Shop'
+p690
+g3
+sS'Ice Cream'
+p691
+g5
+sS'Shop'
+p692
+g3
+sS'Stationery Store'
+p693
+g3
+sS'Hakka'
+p694
+g5
+sS"Doctor's Office"
+p695
+g24
+sS'Umbrian'
+p696
+g5
+sS'Donburi'
+p697
+g5
+sS'Industrial Estate'
+p698
+g24
+sS'Ouzeries'
+p699
+g5
+sS'Northern Brazilian'
+p700
+g5
+sS'Desserts'
+p701
+g5
+sg16
+g16
+sS'Train'
+p702
+g81
+sS'Slovak'
+p703
+g5
+sS'Sri Lankan'
+p704
+g5
+sS'Brasserie'
+p705
+g5
+sS'Wagashi'
+p706
+g5
+sS'Gun Shop'
+p707
+g3
+sS'Toll Plaza'
+p708
+g81
+sS'Jewelry'
+p709
+g3
+sS'Arcade'
+p710
+g22
+sS'Cafe?'
+p711
+g5
+sS'Mosque'
+p712
+g24
+sS'Convention Center'
+p713
+g24
+sS'Pharmacy'
+p714
+g3
+sS'Kofte'
+p715
+g5
+sS'Palatine'
+p716
+g5
+sS'Jazz Club'
+p717
+g22
+sS'Child Care'
+p718
+g3
+sS'Rugby'
+p719
+g22
+sS'Office Supplies'
+p720
+g3
+sS'Betawinese'
+p721
+g5
+sS'Movie Theater'
+p722
+g22
+sS'Hainan'
+p723
+g5
+sS'Fountain'
+p724
+g16
+sS'Government'
+p725
+g24
+sS'Basketball Court'
+p726
+g16
+sS'Shopping Plaza'
+p727
+g3
+sS'Arepas'
+p728
+g5
+sS'Kumru'
+p729
+g5
+sS'Zhejiang'
+p730
+g5
+sS'Motorcycle Shop'
+p731
+g3
+sS'Warehouse Store'
+p732
+g3
+sS'Hockey Rink'
+p733
+g16
+sS'Intersection'
+p734
+g81
+sS'School'
+p735
+g24
+sS'Dongbei'
+p736
+g5
+sS'Eastern European'
+p737
+g5
+sS'Punjabi'
+p738
+g5
+sS'Hobbies'
+p739
+g3
+sS'Volleyball Court'
+p740
+g16
+sS'Tiki Bar'
+p741
+g19
+sS'Event Space'
+p742
+g24
+sS'Elementary School'
+p743
+g24
+sS'Polish'
+p744
+g5
+sS'Puglia'
+p745
+g5
+sS'Hyderabadi'
+p746
+g5
+sS'Fujian'
+p747
+g5
+sS'Liquor Store'
+p748
+g3
+sS'Rental Service'
+p749
+g3
+sS'Fair'
+p750
+g65
+sS"Dentist's Office"
+p751
+g24
+sS'Bike Trail'
+p752
+g16
+sS'Go Kart'
+p753
+g22
+sg8
+g8
+sS'Veterinarians'
+p754
+g24
+sS'Fishing Spot'
+p755
+g16
+sS'Chinese Breakfast'
+p756
+g5
+sS'Empanada'
+p757
+g5
+sS'Gastropub'
+p758
+g5
+sS'Yunnan'
+p759
+g5
+sS'Chocolate Shop'
+p760
+g3
+sS'Gujarati'
+p761
+g5
+sS'Cosmetics'
+p762
+g3
+sS'Stadium'
+p763
+g22
+sS'Korean'
+p764
+g5
+sS'Pakistani'
+p765
+g5
+sS'Credit Union'
+p766
+g3
+sS'Pilates Studio'
+p767
+g16
+sS'Voting Booth'
+p768
+g24
+sS'Boat Rental'
+p769
+g81
+sS'Norman'
+p770
+g5
+sS'Ligurian'
+p771
+g5
+sS'Nabe'
+p772
+g5
+sS'Cultural Center'
+p773
+g24
+sS'Entertainment'
+p774
+g22
+sS'Mini Golf'
+p775
+g22
+sS'Optical'
+p776
+g3
+sS'Andhra'
+p777
+g5
+sS'Kushikatsu'
+p778
+g5
+sS'Manchu'
+p779
+g5
+sS'Climbing Gym'
+p780
+g16
+sS'Auditorium'
+p781
+g8
+sS'Tanning Salon'
+p782
+g3
+sS'German Pop-Up Restaurant'
+p783
+g5
+sS'Soccer Field'
+p784
+g16
+sS'Hunting Supply'
+p785
+g3
+sS'Science'
+p786
+g8
+sS'College Bookstore'
+p787
+g8
+sS'Udon'
+p788
+g5
+sS'Modern European'
+p789
+g5
+sS'Nail Salon'
+p790
+g3
+sS'Castle'
+p791
+g16
+sS'Watch Shops'
+p792
+g3
+sS'Gun Range'
+p793
+g16
+sS'Beijing'
+p794
+g5
+sS'Irish'
+p795
+g5
+sS'Sicilian'
+p796
+g5
+sS'Office'
+p797
+g24
+sS'Auto Dealer'
+p798
+g3
+sS'Czech'
+p799
+g5
+sS'Trailer Park'
+p800
+g12
+sS'Savoyard'
+p801
+g5
+sS'Belarusian'
+p802
+g5
+sS'Urgent Care Center'
+p803
+g24
+sS'County'
+p804
+g16
+sS'Engineering'
+p805
+g8
+sS'National Park'
+p806
+g16
+sS'Parking'
+p807
+g24
+sS'Curling Ice'
+p808
+g16
+sS'Rock Climbing'
+p809
+g16
+sS'Baiano'
+p810
+g5
+sS'Car Washes'
+p811
+g3
+sS'Paintball Field'
+p812
+g16
+sS'Kingdom Hall'
+p813
+g24
+sS'Racecourse'
+p814
+g22
+sS'Romanian'
+p815
+g5
+sS'Photo Studio'
+p816
+g3
+sS'Skating Rink'
+p817
+g16
+sS'Sardinian'
+p818
+g5
+sS'Lake'
+p819
+g16
+sS'Business Center'
+p820
+g24
+sS'Sports Bar'
+p821
+g19
+sS'Construction'
+p822
+g3
+sS'Fast Food'
+p823
+g5
+sS'Distributor'
+p824
+g24
+sS'Electronics'
+p825
+g3
+sS"Men's Store"
+p826
+g3
+sS'Unagi'
+p827
+g5
+sS'Turkish Coffeehouse'
+p828
+g5
+sS'Track'
+p829
+g22
+sS'Street Art'
+p830
+g22
+sS'Gluten-free'
+p831
+g5
+sS'Lab'
+p832
+g8
+sS'Pawn Shop'
+p833
+g3
+sS'Auvergne'
+p834
+g5
+sS'Rental Car'
+p835
+g81
+sS'Airport Service'
+p836
+g81
+sS'Asian'
+p837
+g5
+sS'Kurdish'
+p838
+g5
+sS'Varenyky'
+p839
+g5
+sS'Community College'
+p840
+g8
+sS'Metro'
+p841
+g81
+sS'Fabric Shop'
+p842
+g3
+sS'Country'
+p843
+g16
+sS'Pitch'
+p844
+g16
+sS'Rec Center'
+p845
+g8
+sS'Currywurst'
+p846
+g5
+sS'Outdoor Sculpture'
+p847
+g22
+sS'Swim School'
+p848
+g24
+sS'Mexican'
+p849
+g5
+sS'Historic Site'
+p850
+g22
+sS'Law School'
+p851
+g8
+sS'Well'
+p852
+g16
+sS'Heliport'
+p853
+g81
+sS'RV Park'
+p854
+g81
+sS'Hardware'
+p855
+g3
+sS'Juice Bar'
+p856
+g5
+sS'Cambodian'
+p857
+g5
+sS'Spanish'
+p858
+g5
+sS'Tonkatsu'
+p859
+g5
+sS'Meyhane'
+p860
 g5
 s.
