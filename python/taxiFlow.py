@@ -34,7 +34,7 @@ def getTaxiFlow(leaveOut = -1, normalization="bydestination", gridLevel='ca'):
     normalization takes value "none/bydestination/bysource"
     """
     if gridLevel == 'ca':
-        s = np.loadtxt(here + "/taxi-CA-static.matrix", delimiter=",") # TF.csv
+        s = np.loadtxt(here + "/taxi-CA-static.matrix", delimiter=",") #  , TF.csv
     elif gridLevel == 'tract':
         s = np.loadtxt(here + "/TF_tract.csv", delimiter=",")
     n = s.shape[0]

@@ -105,7 +105,7 @@ def build_nodal_features( X, leaveOneOut):
     Xn is a (train, test) tuple.
     """
     if leaveOneOut > -1:
-        Xn = np.ones((X[0].shape[0]-1, 1))
+        Xn = np.ones((76, 1))
         Xn_test = [1]
         for nodal_feature in X:
             nodal_feature_loo = np.delete(nodal_feature, leaveOneOut, 0)    
@@ -337,7 +337,7 @@ class TestFeatureSignificance(unittest.TestCase):
 def main_evaluate_different_years():
     for year in range(2013, 2015):
         Y, D, P, Tf, Gd = extract_raw_samples(year, crime_t=['total'])
-        mae, mre = leaveOneOut_error(Y, D, P, Tf, Y, Gd, Y, features=['demo', 'poi',  'taxi'])
+        mae, mre = leaveOneOut_error(Y, D, P, Tf, Y, Gd, Y, features=[  'geo', 'taxi'])
         print year, mae, mre
     
     
