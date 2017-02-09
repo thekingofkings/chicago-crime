@@ -240,7 +240,7 @@ class MVLTest(unittest.TestCase):
         fig.show()
         
         
-def evaluate_various_flow_features_with_concatenation_model():
+def evaluate_various_flow_features_with_concatenation_model(spatial):
     Y, D, P, T, G = extract_raw_samples(2013)
     with open("CAflowFeatures.pickle") as fin:
         mf = pickle.load(fin)
@@ -254,16 +254,19 @@ def evaluate_various_flow_features_with_concatenation_model():
         print h
         # MF models
         Tmf = mf[h] # sum([e for e in mf.values()])
-        Tmf = scale(Tmf)
         import nimfa
-        nmf = nimfa.Nmf(G, rank=8, max_iter=100) #, update="divergence", objective="conn", conn_change=50)
+        nmf = nimfa.Nmf(G, rank=4, max_iter=100) #, update="divergence", objective="conn", conn_change=50)
         nmf_fit = nmf()
         src = nmf_fit.basis()
         dst = nmf_fit.coef()
         Gmf = np.concatenate((src, dst.T), axis=1)
-        Gmf = scale(Gmf)
         
-        X = np.concatenate((D,P,Tmf,Gmf), axis=1)
+        if spatial == "nospatial":
+            X = np.concatenate((D,P,Tmf), axis=1)
+        elif spatial == "onlyspatial":
+            X = np.concatenate((D,P,Gmf), axis=1)
+        elif spatial == "usespatial":
+            X = np.concatenate((D,P,Tmf,Gmf), axis=1)
         mre = leaveOneOut_eval(X, Y)
         mf_mre.append(mre)
         print "MF MRE: {0}".format(mre)
@@ -271,7 +274,12 @@ def evaluate_various_flow_features_with_concatenation_model():
         # LINE model
         Tline = line[h] # sum([e for e in line.values()])
         Gline = get_graph_embedding_features('geo_all.txt')
-        X = np.concatenate((D,P,Tline, Gline), axis=1)
+        if spatial == "nospatial":
+            X = np.concatenate((D,P, Tline), axis=1) 
+        elif spatial == "onlyspatial":
+            X = np.concatenate((D,P, Gline), axis=1) 
+        elif spatial == "usespatial":
+            X = np.concatenate((D,P, Tline, Gline), axis=1) 
         mre = leaveOneOut_eval(X, Y)
         line_mre.append(mre)
         print "LINE_slotted MRE: {0}".format(mre)
@@ -294,7 +302,7 @@ def leaveOneOut_eval(X, Y):
         nbm, yp = NBmodel(train_idx, Y, X)
         ybar = nbm.predict(X[test_idx])
         y_error = np.abs(ybar - Y[test_idx])
-        if y_error[0,0] > 10 * Y[test_idx,0]:
+        if y_error[0,0] > 20 * Y[test_idx,0]:
             print test_idx, y_error, Y[test_idx]
             continue
         er.append(y_error)
@@ -304,5 +312,6 @@ def leaveOneOut_eval(X, Y):
 if __name__ == '__main__':
     
 #    unittest.main()
-    r = evaluate_various_flow_features_with_concatenation_model()
+    import sys
+    r = evaluate_various_flow_features_with_concatenation_model(sys.argv[1])
     print np.mean(r, axis=1)

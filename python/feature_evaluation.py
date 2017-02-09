@@ -335,9 +335,9 @@ class TestFeatureSignificance(unittest.TestCase):
 
 
 def main_evaluate_different_years():
-    for year in range(2010, 2015):
+    for year in range(2013, 2015):
         Y, D, P, Tf, Gd = extract_raw_samples(year, crime_t=['total'])
-        mae, mre = leaveOneOut_error(Y, D, P, Tf, Y, Gd, Y)
+        mae, mre = leaveOneOut_error(Y, D, P, Tf, Y, Gd, Y, features=['demo', 'poi',  'taxi'])
         print year, mae, mre
     
     
