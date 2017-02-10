@@ -240,12 +240,14 @@ class MVLTest(unittest.TestCase):
         fig.show()
         
         
-def evaluate_various_flow_features_with_concatenation_model(spatial):
-    Y, D, P, T, G = extract_raw_samples(2014)
+def evaluate_various_flow_features_with_concatenation_model(year, spatial):
+    Y, D, P, T, G = extract_raw_samples(year)
     with open("CAflowFeatures.pickle") as fin:
         mf = pickle.load(fin)
         line = pickle.load(fin)
-        dw = pickle.load(fin)
+        dwt = pickle.load(fin)
+        dws = pickle.load(fin)
+        hdge = pickle.load(fin)
     
     mf_mre = []
     line_mre = []
@@ -262,11 +264,11 @@ def evaluate_various_flow_features_with_concatenation_model(spatial):
         Gmf = np.concatenate((src, dst.T), axis=1)
         
         if spatial == "nospatial":
-            X = np.concatenate((P, Tmf), axis=1)
+            X = np.concatenate((D, P, Tmf), axis=1)
         elif spatial == "onlyspatial":
-            X = np.concatenate((P, Gmf), axis=1)
+            X = np.concatenate((D, P, Gmf), axis=1)
         elif spatial == "usespatial":
-            X = np.concatenate((P, Tmf,Gmf), axis=1)
+            X = np.concatenate((D, P, Tmf,Gmf), axis=1)
         mre = leaveOneOut_eval(X, Y)
         mf_mre.append(mre)
         print "MF MRE: {0}".format(mre)
@@ -275,18 +277,23 @@ def evaluate_various_flow_features_with_concatenation_model(spatial):
         Tline = line[h] # sum([e for e in line.values()])
         Gline = get_graph_embedding_features('geo_all.txt')
         if spatial == "nospatial":
-            X = np.concatenate((P, Tline), axis=1) 
+            X = np.concatenate((D, P, Tline), axis=1) 
         elif spatial == "onlyspatial":
-            X = np.concatenate((P, Gline), axis=1) 
+            X = np.concatenate((D, P, Gline), axis=1) 
         elif spatial == "usespatial":
-            X = np.concatenate((P, Tline, Gline), axis=1) 
+            X = np.concatenate((D, P, Tline, Gline), axis=1) 
         mre = leaveOneOut_eval(X, Y)
         line_mre.append(mre)
         print "LINE_slotted MRE: {0}".format(mre)
         
         # deepwalk
-        TGdw = dw[h] # sum([e for e in dw.values()])
-        X = np.concatenate((P, TGdw), axis=1)
+        if spatial == 'nospatial':
+            TGdw = dwt[h] # sum([e for e in dw.values()])
+        elif spatial == 'onlyspatial':
+            TGdw = dws[h]
+        elif spatial == 'usespatial':
+            TGdw = hdge[h]
+        X = np.concatenate((D, P, TGdw), axis=1)
         mre = leaveOneOut_eval(X, Y)
         dw_mre.append(mre)
         print "HDGE MRE: {0}".format(mre)
@@ -370,5 +377,5 @@ if __name__ == '__main__':
     
 #    unittest.main()
     import sys
-    r = evaluate_various_flow_features_with_concatenation_model(sys.argv[1])
+    r = evaluate_various_flow_features_with_concatenation_model(sys.argv[1], sys.argv[2]) # year and spatial
     print np.mean(r, axis=1)
