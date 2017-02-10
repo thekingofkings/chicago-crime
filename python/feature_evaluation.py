@@ -24,12 +24,13 @@ such as NB and GWNBR.
 
 import sys
 import numpy as np
-from FeatureUtils import retrieve_crime_count, generate_corina_features, generate_geographical_SpatialLag_ca, generate_GWR_weight
+from FeatureUtils import retrieve_crime_count, generate_corina_features, generate_geographical_SpatialLag_ca, generate_GWR_weight, generate_geographical_SpatialLag
 from foursquarePOI import getFourSquarePOIDistribution
 from taxiFlow import getTaxiFlow, taxi_flow_normalization
 import statsmodels.api as sm
 import unittest
 
+N = 801 # number of regions, 801 for tracts, 77 for CAs
 
 def extract_raw_samples(year=2010, crime_t=['total'], crime_rate=True):
     """
@@ -51,25 +52,26 @@ def extract_raw_samples(year=2010, crime_t=['total'], crime_rate=True):
     Gd - geo weight matrix
     """
     # Crime count
-    y_cnt = retrieve_crime_count(year, col = crime_t)
+    Y = retrieve_crime_count(year, col = crime_t, region="tract")
     
     # Crime rate / count
-    demo = generate_corina_features()
-    population = demo[1][:,0].reshape(demo[1].shape[0], 1)
-    Y = y_cnt / population * 10000 if crime_rate else y_cnt
-    assert(Y.shape == (77,1))
-    
+#    demo = generate_corina_features()
+#    population = demo[1][:,0].reshape(demo[1].shape[0], 1)
+#    Y = y_cnt / population * 10000 if crime_rate else y_cnt
+    assert(Y.shape == (N,1))
+#    
     # Demo features
-    D = demo[1]
+#    D = demo[1]
+    D = np.zeros((N,))
     
     # POI features
-    P = getFourSquarePOIDistribution(useRatio=False)
+    P = getFourSquarePOIDistribution(useRatio=False, gridLevel="tract")
     
     # Taxi flow matrix
-    Tf = getTaxiFlow(normalization="none")
+    Tf = getTaxiFlow(normalization="none", gridLevel="tract")
     
     # Geo weight matrix
-    Gd = generate_geographical_SpatialLag_ca()
+    Gd = generate_geographical_SpatialLag()
     
     return Y, D, P, Tf, Gd
     
@@ -105,13 +107,13 @@ def build_nodal_features( X, leaveOneOut):
     Xn is a (train, test) tuple.
     """
     if leaveOneOut > -1:
-        Xn = np.ones((76, 1))
+        Xn = np.ones((N-1, 1))
         Xn_test = [1]
         for nodal_feature in X:
             nodal_feature_loo = np.delete(nodal_feature, leaveOneOut, 0)    
             Xn = np.concatenate((Xn, nodal_feature_loo), axis=1)
             Xn_test = np.concatenate((Xn_test, nodal_feature[leaveOneOut, :]))
-        assert Xn.shape[0] == 76
+        assert Xn.shape[0] == N-1
     return Xn, Xn_test 
 
 
@@ -337,7 +339,7 @@ class TestFeatureSignificance(unittest.TestCase):
 def main_evaluate_different_years():
     for year in range(2013, 2015):
         Y, D, P, Tf, Gd = extract_raw_samples(year, crime_t=['total'])
-        mae, mre = leaveOneOut_error(Y, D, P, Tf, Y, Gd, Y, features=[  'geo', 'taxi'])
+        mae, mre = leaveOneOut_error(Y, D, P, Tf, Y, Gd, Y, features=[ 'geo'])
         print year, mae, mre
     
     

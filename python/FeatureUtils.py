@@ -91,7 +91,7 @@ def generate_geographical_SpatialLag():
         for j, dst in enumerate(centers):
             if src != dst:
                 W[i][j] = 1 / src.distance(dst)
-    return W, ordkey
+    return W
 
 
 
@@ -145,13 +145,13 @@ def generate_GWR_weight(h = 1):
     
     
 def generate_geo_graph_embedding_src():
-    flow = generate_geographical_SpatialLag_ca()
+    flow, ordkey = generate_geographical_SpatialLag()
     row, column = flow.shape
-    with open("multi-view-learning/geo.od", 'w') as fout:
+    with open("multi-view-learning/geo-tract.od", 'w') as fout:
         for i in range(row):
             for j in range(column):
                 if flow[i,j] > 0:
-                    fout.write('{0} {1} {2}\n'.format(i, j, flow[i,j]))
+                    fout.write('{0} {1} {2}\n'.format(ordkey[i], ordkey[j], flow[i,j]))
 
 
                     
@@ -277,7 +277,8 @@ def retrieve_crime_count(year, col=['total'], region='ca'):
         return Y
         
     elif region == 'tract':
-        Y = {}
+        Ys = {}
+        Y = []
         with open(here + '/../data/chicago-crime-tract-level-{0}.csv'.format(year)) as fin:
             header = fin.readline().strip().split(",")
             crime_idx = []
@@ -290,8 +291,11 @@ def retrieve_crime_count(year, col=['total'], region='ca'):
                 val = 0
                 for i in crime_idx:
                     val += int(ls[i])
-                Y[tid] = val
-        return Y
+                Ys[tid] = val
+        sortedKey = sorted(Ys.keys())
+        for k in sortedKey:
+            Y.append(Ys[k])
+        return np.array(Y).reshape((len(Y),1))
 
 
 
@@ -526,11 +530,11 @@ if __name__ == '__main__':
         elif sys.argv[1] == 'LEHDlabel':
             l = generate_lehd_label()
     else:
-#        generate_geo_graph_embedding_src()
+        generate_geo_graph_embedding_src()
 #        t = generate_transition_SocialLag(2013, 0, "tract", -1, "none")
 #        with open("lehd-tract-2013.pickle", "w") as fout:
 #            pickle.dump(t.T, fout)
-        y = visualizeGangRelatedCrime()
+#        y = visualizeGangRelatedCrime()
     
 #    from taxiFlow import getTaxiFlow
 #    s = getTaxiFlow(usePercentage=False)

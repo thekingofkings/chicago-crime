@@ -12,17 +12,19 @@ import numpy as np
 import statsmodels.api as sm
 from sklearn.cross_validation import LeaveOneOut
 from sklearn.preprocessing import scale
+from sklearn.metrics.pairwise import cosine_similarity
 import pickle
 
 import sys
 sys.path.append("../")
 
 from graph_embedding import get_graph_embedding_features
-from feature_evaluation import extract_raw_samples
+from feature_evaluation import extract_raw_samples, leaveOneOut_error
 from Crime import Tract
 
 np.set_printoptions(suppress=True)
 
+N = 801
 
 def generate_raw_samples(year=2012):
     """
@@ -294,58 +296,80 @@ def evaluate_various_flow_features_with_concatenation_model(spatial):
     return mf_mre, line_mre, dw_mre
 
 
+def similarityMatrix(F):
+    assert F.shape[0] == N
+    M = np.zeros((N,N))
+    for i in range(N):
+        for j in range(i, N):
+            if i == j:
+                M[i,j] = 1
+            else:
+                sim = cosine_similarity(F[i].reshape(1,-1), F[j].reshape(1,-1))
+                M[i,j] = sim
+                M[j,i] = sim
+    return M 
+                 
+
+
 def evaluate_various_embedding_features_with_lag_model(spatial):
-    Y, D, P, T, G = extract_raw_samples(2014)
-    with open("CAflowFeatures.pickle") as fin:
+    Y, D, P, T, G = extract_raw_samples(2013)
+    with open("tractflowFeatures.pickle") as fin:
         mf = pickle.load(fin)
         line = pickle.load(fin)
-        dw = pickle.load(fin)
+        dwt = pickle.load(fin)
+        dws = pickle.load(fin)
+        hdge = pickle.load(fin)
     
     mf_mre = []
     line_mre = []
     dw_mre = []
+    hdge_mre = []
+    
+    if spatial == "nospatial":
+        features_ = ["taxi"]
+    elif spatial == "onlyspatial":
+        features_ = ["geo"]
+    elif spatial == "usespatial":
+        features_ = ["geo", "taxi"]
+            
+            
     for h in range(24):
         print h
         # MF models
         Tmf = mf[h] # sum([e for e in mf.values()])
         import nimfa
-        nmf = nimfa.Nmf(G, rank=4, max_iter=100) #, update="divergence", objective="conn", conn_change=50)
+        nmf = nimfa.Nmf(G, rank=10, max_iter=100) #, update="divergence", objective="conn", conn_change=50)
         nmf_fit = nmf()
         src = nmf_fit.basis()
         dst = nmf_fit.coef()
         Gmf = np.concatenate((src, dst.T), axis=1)
         
-        if spatial == "nospatial":
-            X = np.concatenate((P, Tmf), axis=1)
-        elif spatial == "onlyspatial":
-            X = np.concatenate((P, Gmf), axis=1)
-        elif spatial == "usespatial":
-            X = np.concatenate((P, Tmf,Gmf), axis=1)
-        mre = leaveOneOut_eval(X, Y)
+        mre = leaveOneOut_error(Y, D, P, similarityMatrix(Tmf), Y, similarityMatrix(Gmf), Y, features=features_, taxi_norm="none")
         mf_mre.append(mre)
         print "MF MRE: {0}".format(mre)
         
         # LINE model
         Tline = line[h] # sum([e for e in line.values()])
-        Gline = get_graph_embedding_features('geo_all.txt')
-        if spatial == "nospatial":
-            X = np.concatenate((P, Tline), axis=1) 
-        elif spatial == "onlyspatial":
-            X = np.concatenate((P, Gline), axis=1) 
-        elif spatial == "usespatial":
-            X = np.concatenate((P, Tline, Gline), axis=1) 
-        mre = leaveOneOut_eval(X, Y)
+        Gline = get_graph_embedding_features('geo-tract.vec')
+        mre = leaveOneOut_error(Y, D, P, similarityMatrix(Tline), Y, similarityMatrix(Gline), Y, features=features_, taxi_norm="none")
         line_mre.append(mre)
         print "LINE_slotted MRE: {0}".format(mre)
         
         # deepwalk
-        TGdw = dw[h] # sum([e for e in dw.values()])
-        X = np.concatenate((P, TGdw), axis=1)
-        mre = leaveOneOut_eval(X, Y)
+        Tdw = dwt[h] # sum([e for e in dw.values()])
+        Gdw = dws[h]
+        mre = leaveOneOut_error(Y, D, P, similarityMatrix(Tdw), Y, similarityMatrix(Gdw), Y, features=features_, taxi_norm="none")
         dw_mre.append(mre)
+        print "DGE MRE: {0}".format(mre)
+        
+        # hetero deepwalk
+        TGdw = hdge[h] # sum([e for e in dw.values()])
+        mre = leaveOneOut_error(Y, D, P, similarityMatrix(TGdw), Y, similarityMatrix(TGdw), Y, features=["taxi"], taxi_norm="none")
+        hdge_mre.append(mre)
         print "HDGE MRE: {0}".format(mre)
+        
     
-    return mf_mre, line_mre, dw_mre
+    return mf_mre, line_mre, dw_mre, hdge_mre
 
 
 
@@ -370,5 +394,5 @@ if __name__ == '__main__':
     
 #    unittest.main()
     import sys
-    r = evaluate_various_flow_features_with_concatenation_model(sys.argv[1])
+    r = evaluate_various_embedding_features_with_lag_model(sys.argv[1])
     print np.mean(r, axis=1)
