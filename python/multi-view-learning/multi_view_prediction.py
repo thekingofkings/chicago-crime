@@ -333,7 +333,7 @@ def evaluate_various_embedding_features_with_lag_model(spatial):
         features_ = ["geo", "taxi"]
             
             
-    for h in range(24):
+    for h in range(8):
         print h
         # MF models
         Tmf = mf[h] # sum([e for e in mf.values()])
