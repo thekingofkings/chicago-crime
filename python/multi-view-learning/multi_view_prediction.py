@@ -242,6 +242,7 @@ class MVLTest(unittest.TestCase):
         
 def evaluate_various_flow_features_with_concatenation_model(year, spatial):
     Y, D, P, T, G = extract_raw_samples(year)
+    Yh = pickle.load(open("../chicago-hourly-crime-{0}.pickle".format(year)))
     with open("CAflowFeatures.pickle") as fin:
         mf = pickle.load(fin)
         line = pickle.load(fin)
@@ -269,7 +270,7 @@ def evaluate_various_flow_features_with_concatenation_model(year, spatial):
             X = np.concatenate((D, P, Gmf), axis=1)
         elif spatial == "usespatial":
             X = np.concatenate((D, P, Tmf,Gmf), axis=1)
-        mre = leaveOneOut_eval(X, Y)
+        mre = leaveOneOut_eval(X, Yh[h,:])
         mf_mre.append(mre)
         print "MF MRE: {0}".format(mre)
         
@@ -282,7 +283,7 @@ def evaluate_various_flow_features_with_concatenation_model(year, spatial):
             X = np.concatenate((D, P, Gline), axis=1) 
         elif spatial == "usespatial":
             X = np.concatenate((D, P, Tline, Gline), axis=1) 
-        mre = leaveOneOut_eval(X, Y)
+        mre = leaveOneOut_eval(X, Yh[h,:])
         line_mre.append(mre)
         print "LINE_slotted MRE: {0}".format(mre)
         
@@ -294,7 +295,7 @@ def evaluate_various_flow_features_with_concatenation_model(year, spatial):
         elif spatial == 'usespatial':
             TGdw = hdge[h]
         X = np.concatenate((D, P, TGdw), axis=1)
-        mre = leaveOneOut_eval(X, Y)
+        mre = leaveOneOut_eval(X, Yh[h,:])
         dw_mre.append(mre)
         print "HDGE MRE: {0}".format(mre)
     
@@ -366,7 +367,7 @@ def leaveOneOut_eval(X, Y):
         nbm, yp = NBmodel(train_idx, Y, X)
         ybar = nbm.predict(X[test_idx])
         y_error = np.abs(ybar - Y[test_idx])
-        if y_error[0,0] > 20 * Y[test_idx,0]:
+        if y_error > 20 * Y[test_idx]:
             print test_idx, y_error, Y[test_idx]
             continue
         er.append(y_error)

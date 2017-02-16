@@ -335,10 +335,13 @@ class TestFeatureSignificance(unittest.TestCase):
 
 
 def main_evaluate_different_years():
+    import pickle
     for year in range(2013, 2016):
         Y, D, P, Tf, Gd = extract_raw_samples(year, crime_t=['total'])
-        mae, mre = leaveOneOut_error(Y, D, P, Tf, Y, Gd, Y, features=['demo', 'poi', 'geo', 'taxi'])
-        print year, mae, mre
+        Yh = pickle.load(open("chicago-hourly-crime-{0}.pickle".format(year)))
+        for h in range(24):
+            mae, mre = leaveOneOut_error(Yh[h,:].reshape((77,1)), D, P, Tf, Y, Gd, Yh[h,:].reshape((77,1)), features=['demo', 'poi', 'geo', 'taxi'])
+            print year, h, mae, mre
     
     
 def main_calculate_significance():

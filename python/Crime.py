@@ -49,7 +49,12 @@ class CrimeRecord:
         if field == 'hour':
             hour = int(self.date[11:13])
             # is it PM?
-            delta = 12 if hour < 12 and self.date[20:22] == 'PM' else 0
+            if hour < 12 and self.date[20:22] == 'PM':
+                delta = 12
+            elif hour == 12 and self.date[20:22] == 'AM':
+                delta = -12
+            else:
+                delta = 0
             return hour + delta
         else:
             return self.date
@@ -187,13 +192,23 @@ def crime_time_histogram(year=2010):
     CA = Tract.createAllCAObjects()
     c = CrimeDataset("../data/chicago-crime-{0}.csv".format(year))
     c.temporalDistribution_perTract_perCategory(CA)
-    return CA
+    
+    hourlyCrime = []
+    for h in range(24):
+        hlist = []
+        for i in range(1, 78):
+            hlist.append(CA[i].timeHist['total'][h])
+        hourlyCrime.append(hlist)
+        
+    hourlyCrime = np.array(hourlyCrime)
+    import pickle
+    pickle.dump(hourlyCrime, open("chicago-hourly-crime-{0}.pickle".format(year), 'w'))
+    return hourlyCrime
     
     
         
 if __name__ == '__main__':
 #    main()
-    ca = crime_time_histogram()
-    ca[32].plotTimeHist(['THEFT', 'NARCOTICS', 'CRIMINAL DAMAGE', 'BURGLARY', 
-        'MOTOR VEHICLE THEFT', 'ROBBERY'])
+    ca = crime_time_histogram(2015)
+    assert ca.shape == (24, 77)
     
