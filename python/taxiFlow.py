@@ -22,7 +22,7 @@ here = os.path.dirname(os.path.abspath(__file__))
 
 
 
-def getTaxiFlow(leaveOut = -1, normalization="bydestination", gridLevel='ca'):
+def getTaxiFlow(leaveOut = -1, normalization="bydestination", gridLevel='ca', filename="/taxi-CA-static.matrix"):
     """
     Retrieve taxi flow from file
     

@@ -30,6 +30,8 @@ from taxiFlow import getTaxiFlow, taxi_flow_normalization
 import statsmodels.api as sm
 import unittest
 
+N = 77
+
 
 def extract_raw_samples(year=2010, crime_t=['total'], crime_rate=True):
     """
@@ -57,7 +59,7 @@ def extract_raw_samples(year=2010, crime_t=['total'], crime_rate=True):
     demo = generate_corina_features()
     population = demo[1][:,0].reshape(demo[1].shape[0], 1)
     Y = y_cnt / population * 10000 if crime_rate else y_cnt
-    assert(Y.shape == (77,1))
+    assert(Y.shape == (N,1))
     
     # Demo features
     D = demo[1]
@@ -284,10 +286,10 @@ class TestFeatureSignificance(unittest.TestCase):
     def test_extract_raw_samples(self):
         Y, D, P, Tf, Gd = extract_raw_samples()
         assert Y is not None
-        assert D.shape == (77, 8)
-        assert P.shape[0] == 77
-        assert Tf.shape == (77, 77)
-        assert Gd.shape == (77, 77)
+        assert D.shape == (N, 8)
+        assert P.shape[0] == N
+        assert Tf.shape == (N, N)
+        assert Gd.shape == (N, N)
         
     def test_permute_feature(self):
         Y, D, P, Tf, Gd = extract_raw_samples()
@@ -334,14 +336,26 @@ class TestFeatureSignificance(unittest.TestCase):
 
 
 
-def main_evaluate_different_years():
+def main_evaluate_different_years(year):
     import pickle
-    for year in range(2013, 2016):
-        Y, D, P, Tf, Gd = extract_raw_samples(year, crime_t=['total'])
-        Yh = pickle.load(open("chicago-hourly-crime-{0}.pickle".format(year)))
-        for h in range(24):
-            mae, mre = leaveOneOut_error(Yh[h,:].reshape((77,1)), D, P, Tf, Y, Gd, Yh[h,:].reshape((77,1)), features=['demo', 'poi', 'geo', 'taxi'])
-            print year, h, mae, mre
+    Y, D, P, Tf, Gd = extract_raw_samples(year, crime_t=['total'])
+    Yh = pickle.load(open("chicago-hourly-crime-{0}.pickle".format(year)))
+    Yh = Yh / D[:,0]
+    assert Yh.shape == (24, N)
+    MAE =[]
+    MRE = []
+    for h in range(24):
+        Tf = getTaxiFlow(filename="/taxi-CA-h{0}.matrix".format(h))
+        mae, mre = leaveOneOut_error(Yh[h,:].reshape((N,1)), D, P, Tf, Y, Gd, 
+                                     Yh[h,:].reshape((N,1)), features=['demo', 'poi', 'geo', 'taxi'],
+                                       taxi_norm="bysource")
+        print h, mae, mre
+        MAE.append(mae)
+        MRE.append(mre)
+    print year, h, np.mean(MAE), np.mean(MRE)
+    with open("kdd16-eval-{0}.pickle".format(year), "w") as fout:
+        pickle.dump(MAE, fout)
+        pickle.dump(MRE, fout)
     
     
 def main_calculate_significance():
@@ -434,7 +448,7 @@ if __name__ == '__main__':
         suite = unittest.TestLoader().loadTestsFromTestCase(TestFeatureSignificance)
         unittest.TextTestRunner(verbosity=2).run(suite)
     else:
-        main_evaluate_different_years()
+        main_evaluate_different_years(sys.argv[1])
 #    main_calculate_significance()
 #        main_evaluate_feature_setting_by_type()
 #        main_compare_taxi_normalization_method()

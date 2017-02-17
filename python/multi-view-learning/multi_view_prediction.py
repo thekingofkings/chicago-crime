@@ -21,7 +21,10 @@ from graph_embedding import get_graph_embedding_features
 from feature_evaluation import extract_raw_samples
 from Crime import Tract
 
+import matplotlib.pyplot as plt
+
 np.set_printoptions(suppress=True)
+N = 77
 
 
 def generate_raw_samples(year=2012):
@@ -97,11 +100,11 @@ class MVLTest(unittest.TestCase):
     def test_generate_raw_samples(self):
         Y, D, P, T, G = generate_raw_samples()
         assert(Y.max() < 20000 and np.mean(Y) > 1000) # use crime rate
-        assert(Y.shape == (77,1))
-        assert(D.shape == (77,8))
-        assert(P.shape == (77,10))
-        assert(T.shape == (77,8))
-        assert(G.shape == (77,8))
+        assert(Y.shape == (N,1))
+        assert(D.shape == (N,8))
+        assert(P.shape == (N,10))
+        assert(T.shape == (N,8))
+        assert(G.shape == (N,8))
         
         
     def test_view_model_independently(self):
@@ -165,7 +168,7 @@ class MVLTest(unittest.TestCase):
         """
         Y, D, P, T, G = generate_raw_samples(2013)
         X = np.concatenate((D,P,G), axis=1)
-#        assert( X.shape == (77, 34) )
+#        assert( X.shape == (N, 34) )
         X = sm.add_constant(X, prepend=False)
         loo = LeaveOneOut(len(Y))
         er = []
@@ -241,7 +244,7 @@ class MVLTest(unittest.TestCase):
         
         
 def evaluate_various_flow_features_with_concatenation_model(year, spatial):
-    Y, D, P, T, G = extract_raw_samples(year)
+    Y, D, P, T, G = extract_raw_samples(int(year))
     Yh = pickle.load(open("../chicago-hourly-crime-{0}.pickle".format(year)))
     with open("CAflowFeatures.pickle") as fin:
         mf = pickle.load(fin)
@@ -302,16 +305,27 @@ def evaluate_various_flow_features_with_concatenation_model(year, spatial):
     return mf_mre, line_mre, dw_mre
 
 
-def evaluate_various_embedding_features_with_lag_model(spatial):
-    Y, D, P, T, G = extract_raw_samples(2014)
+def evaluate_various_embedding_features_with_lag_model(year, spatial):
+    Y, D, P, T, G = extract_raw_samples(int(year))
+    population = D[:,0]
+    
+    Yh = pickle.load(open("../chicago-hourly-crime-{0}.pickle".format(year)))
+    Yh = Yh / population
+    assert Yh.shape == (24, N)
+    
     with open("CAflowFeatures.pickle") as fin:
         mf = pickle.load(fin)
         line = pickle.load(fin)
-        dw = pickle.load(fin)
+        dwt = pickle.load(fin)
+        dws = pickle.load(fin)
+        hdge = pickle.load(fin)
     
     mf_mre = []
+    mf_mae = []
     line_mre = []
+    line_mae = []
     dw_mre = []
+    dw_mae = []
     for h in range(24):
         print h
         # MF models
@@ -324,36 +338,39 @@ def evaluate_various_embedding_features_with_lag_model(spatial):
         Gmf = np.concatenate((src, dst.T), axis=1)
         
         if spatial == "nospatial":
-            X = np.concatenate((P, Tmf), axis=1)
+            X = np.concatenate((D, P, Tmf), axis=1)
         elif spatial == "onlyspatial":
-            X = np.concatenate((P, Gmf), axis=1)
+            X = np.concatenate((D, P, Gmf), axis=1)
         elif spatial == "usespatial":
-            X = np.concatenate((P, Tmf,Gmf), axis=1)
-        mre = leaveOneOut_eval(X, Y)
+            X = np.concatenate((D, P, Tmf, Gmf), axis=1)
+        mre, mae = leaveOneOut_eval(X, Yh[h,:].reshape((N,1)))
         mf_mre.append(mre)
+        mf_mae.append(mae)
         print "MF MRE: {0}".format(mre)
         
         # LINE model
         Tline = line[h] # sum([e for e in line.values()])
         Gline = get_graph_embedding_features('geo_all.txt')
         if spatial == "nospatial":
-            X = np.concatenate((P, Tline), axis=1) 
+            X = np.concatenate((D, P, Tline), axis=1) 
         elif spatial == "onlyspatial":
-            X = np.concatenate((P, Gline), axis=1) 
+            X = np.concatenate((D, P, Gline), axis=1) 
         elif spatial == "usespatial":
-            X = np.concatenate((P, Tline, Gline), axis=1) 
-        mre = leaveOneOut_eval(X, Y)
+            X = np.concatenate((D, P, Tline, Gline), axis=1) 
+        mre, mae = leaveOneOut_eval(X, Yh[h,:].reshape((N,1)))
         line_mre.append(mre)
+        line_mae.append(mae)
         print "LINE_slotted MRE: {0}".format(mre)
         
         # deepwalk
-        TGdw = dw[h] # sum([e for e in dw.values()])
-        X = np.concatenate((P, TGdw), axis=1)
-        mre = leaveOneOut_eval(X, Y)
+#        TGdw = dw[h] # sum([e for e in dw.values()])
+        X = np.concatenate((D, P, hdge[h]), axis=1)
+        mre, mae = leaveOneOut_eval(X, Yh[h,:].reshape((N,1)))
         dw_mre.append(mre)
+        dw_mae.append(mae)
         print "HDGE MRE: {0}".format(mre)
     
-    return mf_mre, line_mre, dw_mre
+    return mf_mre, line_mre, dw_mre, mf_mae, line_mae, dw_mae
 
 
 
@@ -371,12 +388,38 @@ def leaveOneOut_eval(X, Y):
             print test_idx, y_error, Y[test_idx]
             continue
         er.append(y_error)
-    mre = np.mean(er) / np.mean(Y)
-    return mre
+    max_idx = np.argmax(er)
+    print "largest error", er[max_idx], Y[max_idx], max_idx+1
+    mae = np.mean(er)
+    mre = mae / np.mean(Y)
+    return mre, mae
     
 if __name__ == '__main__':
     
 #    unittest.main()
     import sys
-    r = evaluate_various_flow_features_with_concatenation_model(sys.argv[1], sys.argv[2]) # year and spatial
+    year = sys.argv[1]
+#    r = evaluate_various_flow_features_with_concatenation_model(sys.argv[1], sys.argv[2]) # year and spatial
+    r = evaluate_various_embedding_features_with_lag_model(year, sys.argv[2])
+    pickle.dump(r, open("embeddings-{0}.pickle".format(year), "w"))
     print np.mean(r, axis=1)
+    
+    with open("../kdd16-eval-{0}.pickle".format(year)) as fin:
+        kdd_mae = pickle.load(fin)
+        kdd_mre = pickle.load(fin)
+        
+    mf_mre = r[0]
+    mf_mae = r[3]
+    line_mre = r[1]
+    line_mae = r[4]
+    dge_mre = r[2]
+    dge_mae = r[5]
+    
+    plt.figure()
+    plt.plot(mf_mre)
+    plt.plot(line_mre)
+    plt.plot(kdd_mre)
+    plt.plot(dge_mre)
+    
+    plt.legend(["MF", "LINE", "KDD", "DGE"])
+    
