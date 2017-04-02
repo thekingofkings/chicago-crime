@@ -247,7 +247,11 @@ def leaveOneOut_error(Y, D, P, Tf, Yt, Gd, Yg, features=['all'], gwr_gamma=None,
         nbm = sm.GLM(Y_train, X_train, family=sm.families.NegativeBinomial(), freq_weights=gamma)
         nb_res = nbm.fit()
         ybar = nbm.predict(nb_res.params, X_test)
-        errors.append(np.abs(ybar - Y_test))
+        y_error = np.abs(ybar - Y_test)
+        if y_error > 20 * Y_test:
+            print k, y_error, Y_test
+            continue
+        errors.append(y_error)
     return np.mean(errors), np.mean(errors) / np.mean(Y)
 
 
@@ -340,15 +344,15 @@ def main_evaluate_different_years(year):
     import pickle
     Y, D, P, Tf, Gd = extract_raw_samples(year, crime_t=['total'])
     Yh = pickle.load(open("chicago-hourly-crime-{0}.pickle".format(year)))
-    Yh = Yh / D[:,0]
+    Yh = Yh / D[:,0] * 10000
     assert Yh.shape == (24, N)
     MAE =[]
     MRE = []
     for h in range(24):
         Tf = getTaxiFlow(filename="/taxi-CA-h{0}.matrix".format(h))
-        mae, mre = leaveOneOut_error(Yh[h,:].reshape((N,1)), D, P, Tf, Y, Gd, 
+        mae, mre = leaveOneOut_error(Yh[h,:].reshape((N,1)), D, P, Tf, Yh[h,:].reshape((N,1)), Gd, 
                                      Yh[h,:].reshape((N,1)), features=['demo', 'poi', 'geo', 'taxi'],
-                                       taxi_norm="bysource")
+                                       taxi_norm="none")
         print h, mae, mre
         MAE.append(mae)
         MRE.append(mre)
