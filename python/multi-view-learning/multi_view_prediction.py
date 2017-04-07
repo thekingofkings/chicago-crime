@@ -19,7 +19,8 @@ import sys
 sys.path.append("../")
 
 from graph_embedding import get_graph_embedding_features
-from feature_evaluation import extract_raw_samples, leaveOneOut_error
+from feature_evaluation import extract_raw_samples
+from nn_leaveOneOut import leaveOneOut_error
 from Crime import Tract
 
 import matplotlib.pyplot as plt
@@ -365,6 +366,8 @@ def evaluate_various_embedding_features_with_lag_model(year, spatial):
             features_ = ['demo', 'poi', 'geo']
         elif spatial == "usespatial":
             features_ = ['demo', 'poi', 'geo', 'taxi']
+        else:
+            features_ = ["demo", "poi"]
             
         # MF models
         Tmf = mf[h] # sum([e for e in mf.values()])
