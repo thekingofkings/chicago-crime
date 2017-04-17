@@ -125,6 +125,15 @@ def generate_geographical_SpatialLag_ca(knearest=True, leaveOut=-1):
                 W[i][j] = 0 if W[i][j] < threshold else W[i][j]
     return W
     
+
+def get_centroid_ca():
+    cas = Tract.createAllCAObjects()
+    centers = []
+    for i in range(1, 78):
+        ctd = cas[i].polygon.centroid
+        centers.append([ctd.x, ctd.y])
+    return centers
+
         
 
 def generate_GWR_weight(h = 1):

@@ -24,7 +24,8 @@ such as NB and GWNBR.
 
 import sys
 import numpy as np
-from FeatureUtils import retrieve_crime_count, generate_corina_features, generate_geographical_SpatialLag_ca, generate_GWR_weight
+from FeatureUtils import retrieve_crime_count, generate_corina_features, \
+    generate_geographical_SpatialLag_ca, generate_GWR_weight, get_centroid_ca
 from foursquarePOI import getFourSquarePOIDistribution
 from taxiFlow import getTaxiFlow, taxi_flow_normalization
 import statsmodels.api as sm
@@ -183,7 +184,7 @@ def build_geo_features(Y, Gd, leaveOneOut=-1):
 
 
 
-def build_features(Y, D, P, Tf, Yt, Gd, Yg, testK, features=['all'], taxi_norm="bynormalization"):
+def build_features(Y, D, P, Tf, Yt, Gd, Yg, testK, features=['all'], taxi_norm="bydestination"):
     """
     Build features for both training and testing samples in leave one out setting.
 
@@ -446,13 +447,70 @@ def main_compare_taxi_normalization_method():
         
 
 
+def ordinary_kriging_evaluation(year):
+    """
+    Under leave-one-out setting, use only crime rate.
+    """
+    from pykrige.ok import OrdinaryKriging
+    from sklearn.model_selection import LeaveOneOut
+
+    y_cnt = retrieve_crime_count(year)
+    demo = generate_corina_features()
+    population = demo[1][:,0].reshape(demo[1].shape[0], 1)
+    Y = y_cnt / population * 10000
+    
+    coords = get_centroid_ca()
+    
+    data = np.concatenate((coords, Y), axis=1)
+    loo = LeaveOneOut()
+    
+    errors = []
+    for train_idx, test_idx in loo.split(data):
+        x_train = data[train_idx,:]
+        coords_test = data[test_idx, [0,1]]
+        y_test = data[test_idx, 2]
+        
+        OK = OrdinaryKriging(x_train[:,0], x_train[:,1], x_train[:,2], variogram_model="linear")
+        z, var = OK.execute("points", coords_test[0], coords_test[1])
+        errors.append(abs(z[0] - y_test[0]))
+    print np.mean(errors), np.mean(errors) / np.mean(Y)
+    return errors
+    
+
+def regression_kriging_evaluation(year):
+    from pykrige.rk import RegressionKriging
+    from sklearn.model_selection import LeaveOneOut
+    from sklearn.svm import SVR
+    import warnings
+    warnings.filterwarnings("ignore", category=DeprecationWarning)
+    
+    svr_model = SVR(C=0.1)
+    Y, D, P, Tf, Gd = extract_raw_samples(year, crime_t=['total'])
+    
+    coords = get_centroid_ca()
+    
+    errors = []
+    for k in range(77):
+        X_train, X_test, Y_train, Y_test = build_features(Y, D, P, Tf, Y, Gd, Y, k, taxi_norm="bydestination")
+        coords_train = np.delete(coords, k, axis=0)
+        coords_test = np.array(coords)[k,None]
+        m_rk = RegressionKriging(regression_model=svr_model)
+        m_rk.fit(X_train, coords_train, Y_train)
+        z = m_rk.predict(X_test, coords_test)
+        errors.append(abs(Y_test - z[0]))
+    print np.mean(errors), np.mean(errors)/np.mean(Y)
+    return errors
+    
+
 
 if __name__ == '__main__':
     if len(sys.argv) == 2 and sys.argv[1] == 'test':
         suite = unittest.TestLoader().loadTestsFromTestCase(TestFeatureSignificance)
         unittest.TextTestRunner(verbosity=2).run(suite)
     else:
-        main_evaluate_different_years(sys.argv[1])
+#        main_evaluate_different_years(sys.argv[1])
+        d = ordinary_kriging_evaluation(sys.argv[1])
+        d = regression_kriging_evaluation(sys.argv[1])
 #    main_calculate_significance()
 #        main_evaluate_feature_setting_by_type()
 #        main_compare_taxi_normalization_method()
