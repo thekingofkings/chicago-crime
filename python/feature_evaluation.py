@@ -502,6 +502,16 @@ def regression_kriging_evaluation(year):
     return errors
     
 
+def cokriging_evaluation(year):
+    from pyKriging import coKriging
+    Y, D, P, Tf, Gd = extract_raw_samples(2012, crime_t=['total'])
+    coords = get_centroid_ca()
+
+    X_train, X_test, Y_train, Y_test = build_features(Y, D, P, Tf, Y, Gd, Y, 0, taxi_norm="bydestination")
+    coords_train = np.delete(coords, 0, axis=0)
+    coKriging.coKriging(coords_train, X_train, coords_train, Y_train)
+    
+
 
 if __name__ == '__main__':
     if len(sys.argv) == 2 and sys.argv[1] == 'test':
@@ -509,7 +519,7 @@ if __name__ == '__main__':
         unittest.TextTestRunner(verbosity=2).run(suite)
     else:
 #        main_evaluate_different_years(sys.argv[1])
-        d = ordinary_kriging_evaluation(sys.argv[1])
+        # d = ordinary_kriging_evaluation(sys.argv[1])
         d = regression_kriging_evaluation(sys.argv[1])
 #    main_calculate_significance()
 #        main_evaluate_feature_setting_by_type()
