@@ -477,24 +477,30 @@ def ordinary_kriging_evaluation(year):
     return errors
     
 
-def regression_kriging_evaluation(year):
+def regression_kriging_evaluation(year, features_=['all']):
     from pykrige.rk import RegressionKriging
     from sklearn.model_selection import LeaveOneOut
     from sklearn.svm import SVR
+    from sklearn.linear_model import LinearRegression
+    from sklearn.ensemble import RandomForestRegressor
     import warnings
     warnings.filterwarnings("ignore", category=DeprecationWarning)
     
-    svr_model = SVR(C=0.1)
+    svr_model = SVR(kernel='rbf', C=10, gamma=0.001)
+    lr_model = LinearRegression()
+    rf_model = RandomForestRegressor(n_estimators=2)
     Y, D, P, Tf, Gd = extract_raw_samples(year, crime_t=['total'])
     
     coords = get_centroid_ca()
     
     errors = []
     for k in range(77):
-        X_train, X_test, Y_train, Y_test = build_features(Y, D, P, Tf, Y, Gd, Y, k, taxi_norm="bydestination")
+        X_train, X_test, Y_train, Y_test = build_features(Y, D, P, Tf, Y, Gd, Y, k, features=features_, taxi_norm="bydestination")
+        if k == 0:
+            print X_train.shape
         coords_train = np.delete(coords, k, axis=0)
         coords_test = np.array(coords)[k,None]
-        m_rk = RegressionKriging(regression_model=svr_model)
+        m_rk = RegressionKriging(regression_model=rf_model)
         m_rk.fit(X_train, coords_train, Y_train)
         z = m_rk.predict(X_test, coords_test)
         errors.append(abs(Y_test - z[0]))
@@ -520,7 +526,10 @@ if __name__ == '__main__':
     else:
 #        main_evaluate_different_years(sys.argv[1])
         # d = ordinary_kriging_evaluation(sys.argv[1])
-        d = regression_kriging_evaluation(sys.argv[1])
+        feature_comb = [['demo', 'geo'], ['demo', 'geo', 'poi'], ['demo', 'geo', 'taxi'], ['all']]
+        for features_ in feature_comb:
+            print features_
+            d = regression_kriging_evaluation(sys.argv[1], features_)
 #    main_calculate_significance()
 #        main_evaluate_feature_setting_by_type()
 #        main_compare_taxi_normalization_method()
