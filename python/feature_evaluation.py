@@ -107,14 +107,14 @@ def build_nodal_features( X, leaveOneOut):
     Xn - nodal feature vectors. Guaranteed none empty.
     Xn is a (train, test) tuple.
     """
-    if leaveOneOut > -1:
-        Xn = np.ones((76, 1))
-        Xn_test = [1]
-        for nodal_feature in X:
-            nodal_feature_loo = np.delete(nodal_feature, leaveOneOut, 0)    
-            Xn = np.concatenate((Xn, nodal_feature_loo), axis=1)
-            Xn_test = np.concatenate((Xn_test, nodal_feature[leaveOneOut, :]))
-        assert Xn.shape[0] == 76
+    assert leaveOneOut > -1
+    Xn = np.ones((76, 1))
+    Xn_test = [1]
+    for nodal_feature in X:
+        nodal_feature_loo = np.delete(nodal_feature, leaveOneOut, 0)    
+        Xn = np.concatenate((Xn, nodal_feature_loo), axis=1)
+        Xn_test = np.concatenate((Xn_test, nodal_feature[leaveOneOut, :]))
+    assert Xn.shape[0] == 76
     return Xn, Xn_test 
 
 
@@ -171,13 +171,10 @@ def build_geo_features(Y, Gd, leaveOneOut=-1):
             G = Gd * Y
     G is a (train, test) tuple.
     """
-    if leaveOneOut > -1:
-        Gd_loo = np.delete(Gd, leaveOneOut, 0)
-        Gd_loo = np.delete(Gd_loo, leaveOneOut, 1)
-        Y_loo = np.delete(Y, leaveOneOut, 0)
-    else:
-        Gd_loo = Gd
-        Y_loo = Y
+    assert leaveOneOut > -1
+    Gd_loo = np.delete(Gd, leaveOneOut, 0)
+    Gd_loo = np.delete(Gd_loo, leaveOneOut, 1)
+    Y_loo = np.delete(Y, leaveOneOut, 0)
 
     Gd_test = np.delete(Gd[leaveOneOut, :], leaveOneOut)
     return np.dot(Gd_loo, Y_loo), np.dot(Gd_test, Y_loo)
@@ -516,6 +513,26 @@ def cokriging_evaluation(year):
     X_train, X_test, Y_train, Y_test = build_features(Y, D, P, Tf, Y, Gd, Y, 0, taxi_norm="bydestination")
     coords_train = np.delete(coords, 0, axis=0)
     coKriging.coKriging(coords_train, X_train, coords_train, Y_train)
+
+
+
+def generate_dataframe(year):
+    Y, D, P, Tf, Gd = extract_raw_samples(year)
+    
+    Tf_norml = taxi_flow_normalization(Tf, "bydestination")
+    T = np.dot(Tf_norml, Y)
+    
+    G = np.dot(Gd, Y)
+    
+    import pandas as pd
+    COLUMNS = ['crime_rate', 'total population', 'population density', 'poverty index', 
+               'disadvantage index', 'residential stability', 'ethnic diversity',
+               'pct black', 'pct hispanic', 'Food', 'Residence', 'Travel', 'Arts & Entertainment', 
+               'Outdoors & Recreation', 'College & Education', 'Nightlife', 
+               'Professional', 'Shops', 'Event', 'taxi', 'geo']
+    df_data = pd.DataFrame(data=np.concatenate((Y, D, P, T, G), axis=1), columns=COLUMNS)
+    df_data.to_csv("../data/ca-features-{0}.dataframe".format(year))
+
     
 
 
