@@ -22,6 +22,7 @@ from graph_embedding import get_graph_embedding_features
 from feature_evaluation import extract_raw_samples, leaveOneOut_error
 # from nn_leaveOneOut import leaveOneOut_error
 from Crime import Tract
+from FeatureUtils import retrieve_income_features
 
 import matplotlib.pyplot as plt
 
@@ -349,11 +350,18 @@ def evaluate_various_flow_features_with_concatenation_model(year, spatial):
 
 def evaluate_various_embedding_features_with_lag_model(year, spatial):
     Y, D, P, T, G = extract_raw_samples(int(year))
-    population = D[:,0]
     
-    Yh = pickle.load(open("../chicago-hourly-crime-{0}.pickle".format(year)))
-    Yh = Yh / population * 10000
+    # predict hourly crime
+#    population = D[:,0]
+#    Yh = pickle.load(open("../chicago-hourly-crime-{0}.pickle".format(year)))
+#    Yh = Yh / population * 10000
+    # predict average income
+    header, income = retrieve_income_features()
+    Yh = np.repeat(income[:,0,None], 24, axis=1)
+    Yh = Yh.T
     assert Yh.shape == (24, N)
+    
+    
     
     with open("CAflowFeatures.pickle") as fin:
         mf = pickle.load(fin)

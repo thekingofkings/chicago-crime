@@ -319,9 +319,9 @@ def retrieve_income_features():
     header = ws['l3':'aa3']
     header = [c.value for c in tuple(header)[0]]
     
-#    bins = [5000, 12500, 17500, 22500, 27500, 32500, 37500, 42500, 47500, 55000, 67500,
-#            87500, 112500, 137500, 175000, 300000]
-    bins = range(1,17)
+    bins = [5000, 12500, 17500, 22500, 27500, 32500, 37500, 42500, 47500, 55000, 67500,
+            87500, 112500, 137500, 175000, 300000]
+#    bins = range(1,17)
     l = len(header)
     I = np.zeros((77,l))
     stats_header = ['income mean', 'std var']
@@ -336,7 +336,7 @@ def retrieve_income_features():
         stats[idx][0] = np.dot(bins, I[idx][:]) / total[idx]
         stats[idx][1] = np.sqrt( np.dot(I[idx][:], (bins - stats[idx][0])**2) / total[idx] )
 #    return header, I
-    return stats_header, stats, ['total'], total
+    return stats_header + ['population'], np.concatenate((stats, total), axis=1)
 
 
 

@@ -25,7 +25,8 @@ such as NB and GWNBR.
 import sys
 import numpy as np
 from FeatureUtils import retrieve_crime_count, generate_corina_features, \
-    generate_geographical_SpatialLag_ca, generate_GWR_weight, get_centroid_ca
+    generate_geographical_SpatialLag_ca, generate_GWR_weight, get_centroid_ca, \
+    retrieve_income_features
 from foursquarePOI import getFourSquarePOIDistribution
 from taxiFlow import getTaxiFlow, taxi_flow_normalization
 import statsmodels.api as sm
@@ -341,16 +342,21 @@ class TestFeatureSignificance(unittest.TestCase):
 def main_evaluate_different_years(year):
     import pickle
     Y, D, P, Tf, Gd = extract_raw_samples(year, crime_t=['total'])
-    Yh = pickle.load(open("chicago-hourly-crime-{0}.pickle".format(year)))
-    Yh = Yh / D[:,0] * 10000
+    # use hourly crime rate as label
+#    Yh = pickle.load(open("chicago-hourly-crime-{0}.pickle".format(year)))
+#    Yh = Yh / D[:,0] * 10000
+    # use average income as label
+    header, income = retrieve_income_features()
+    Yh = np.repeat(income[:,0,None], 24, axis=1)
+    Yh = Yh.T
     assert Yh.shape == (24, N)
     MAE =[]
     MRE = []
     for h in range(24):
         Tf = getTaxiFlow(filename="/taxi-CA-h{0}.matrix".format(h))
         mae, mre = leaveOneOut_error(Yh[h,:].reshape((N,1)), D, P, Tf, Yh[h,:].reshape((N,1)), Gd, 
-                                     Yh[h,:].reshape((N,1)), features=['demo', 'poi', 'geo', 'taxi'],
-                                       taxi_norm="none")
+                                     Yh[h,:].reshape((N,1)), features=['demo', 'poi'], #'geo', 'taxi'],
+                                       taxi_norm="bysource")
         print h, mae, mre
         MAE.append(mae)
         MRE.append(mre)
