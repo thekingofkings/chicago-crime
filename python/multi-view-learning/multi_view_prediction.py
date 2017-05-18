@@ -19,8 +19,8 @@ import sys
 sys.path.append("../")
 
 from graph_embedding import get_graph_embedding_features
-from feature_evaluation import extract_raw_samples
-from nn_leaveOneOut import leaveOneOut_error
+from feature_evaluation import extract_raw_samples, leaveOneOut_error
+# from nn_leaveOneOut import leaveOneOut_error
 from Crime import Tract
 
 import matplotlib.pyplot as plt
@@ -254,12 +254,23 @@ def similarityMatrix(F):
             if i == j:
                 M[i,j] = 1
             else:
-                sim = cosine_similarity(F[i].reshape(1,-1), F[j].reshape(1,-1))
+                # sim = cosine_similarity(F[i].reshape(1,-1), F[j].reshape(1,-1))
+                sim = np.dot(F[i], F[j].T)
                 M[i,j] = sim
                 M[j,i] = sim
-    return M 
+    return M
 
-       
+
+
+def keep_topk(M, k=4):
+    Mn = np.zeros(M.shape)
+    idx = np.argsort(M)[:, -k:]
+    for idx_r in idx:
+        Mn[:, idx] = M[:,idx]
+    return Mn
+        
+
+
         
 def evaluate_various_flow_features_with_concatenation_model(year, spatial):
     Y, D, P, T, G = extract_raw_samples(int(year))
@@ -379,7 +390,7 @@ def evaluate_various_embedding_features_with_lag_model(year, spatial):
         Gmf = np.concatenate((src, dst.T), axis=1)
         
         mae, mre = leaveOneOut_error(Yhat, D, P, similarityMatrix(Tmf), Yhat,
-                                     similarityMatrix(Gmf), Yhat, features=features_)
+                                     keep_topk(similarityMatrix(Gmf), 20), Yhat, features=features_, taxi_norm="bydestination")
         mf_mre.append(mre)
         mf_mae.append(mae)
         print "MF MRE: {0}".format(mre)
@@ -388,7 +399,7 @@ def evaluate_various_embedding_features_with_lag_model(year, spatial):
         Tline = line[h] # sum([e for e in line.values()])
         Gline = get_graph_embedding_features('geo_all.txt')
         mae, mre = leaveOneOut_error(Yhat, D, P, similarityMatrix(Tline), Yhat,
-                                     similarityMatrix(Gline), Yhat, features=features_)
+                                     keep_topk(similarityMatrix(Gline)), Yhat, features=features_, taxi_norm="bydestination")
         line_mre.append(mre)
         line_mae.append(mae)
         print "LINE_slotted MRE: {0}".format(mre)

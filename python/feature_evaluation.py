@@ -541,12 +541,12 @@ if __name__ == '__main__':
         suite = unittest.TestLoader().loadTestsFromTestCase(TestFeatureSignificance)
         unittest.TextTestRunner(verbosity=2).run(suite)
     else:
-#        main_evaluate_different_years(sys.argv[1])
+        main_evaluate_different_years(sys.argv[1])
         # d = ordinary_kriging_evaluation(sys.argv[1])
-        feature_comb = [['demo', 'geo'], ['demo', 'geo', 'poi'], ['demo', 'geo', 'taxi'], ['all']]
-        for features_ in feature_comb:
-            print features_
-            d = regression_kriging_evaluation(sys.argv[1], features_)
+        # feature_comb = [['demo', 'geo'], ['demo', 'geo', 'poi'], ['demo', 'geo', 'taxi'], ['all']]
+        # for features_ in feature_comb:
+        #    print features_
+        #    d = regression_kriging_evaluation(sys.argv[1], features_)
 #    main_calculate_significance()
 #        main_evaluate_feature_setting_by_type()
 #        main_compare_taxi_normalization_method()
