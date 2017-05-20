@@ -399,6 +399,16 @@ def retrieve_race_features():
     return stats_header, stats
 #    return header, R
     
+
+
+def retrieve_averge_house_price():
+    with open("../data/ca-average-house-price.pickle", 'r') as fin:
+        avg_price = pickle.load(fin)
+    
+    res = []
+    for idx in range(77):
+        res.append(avg_price[idx+1])
+    return np.array(res)
     
     
     
