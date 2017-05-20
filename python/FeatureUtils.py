@@ -402,7 +402,7 @@ def retrieve_race_features():
 
 
 def retrieve_averge_house_price():
-    with open("../data/ca-average-house-price.pickle", 'r') as fin:
+    with open(here + "/../data/ca-average-house-price.pickle", 'r') as fin:
         avg_price = pickle.load(fin)
     
     res = []

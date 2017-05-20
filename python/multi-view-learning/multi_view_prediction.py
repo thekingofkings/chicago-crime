@@ -22,7 +22,7 @@ from graph_embedding import get_graph_embedding_features
 from feature_evaluation import extract_raw_samples, leaveOneOut_error
 # from nn_leaveOneOut import leaveOneOut_error
 from Crime import Tract
-from FeatureUtils import retrieve_income_features
+from FeatureUtils import retrieve_income_features, retrieve_averge_house_price
 
 import matplotlib.pyplot as plt
 
@@ -355,10 +355,17 @@ def evaluate_various_embedding_features_with_lag_model(year, spatial):
 #    population = D[:,0]
 #    Yh = pickle.load(open("../chicago-hourly-crime-{0}.pickle".format(year)))
 #    Yh = Yh / population * 10000
+    
     # predict average income
-    header, income = retrieve_income_features()
-    Yh = np.repeat(income[:,0,None], 24, axis=1)
+#    header, income = retrieve_income_features()
+#    Yh = np.repeat(income[:,0,None], 24, axis=1)
+#    Yh = Yh.T
+    
+    # predict average house price
+    Yh = retrieve_averge_house_price()
+    Yh = np.repeat(Yh[:,None], 24, axis=1)
     Yh = Yh.T
+    
     assert Yh.shape == (24, N)
     
     
