@@ -357,14 +357,14 @@ def evaluate_various_embedding_features_with_lag_model(year, spatial):
 #    Yh = Yh / population * 10000
     
     # predict average income
-#    header, income = retrieve_income_features()
-#    Yh = np.repeat(income[:,0,None], 24, axis=1)
-#    Yh = Yh.T
+    header, income = retrieve_income_features()
+    Yh = np.repeat(income[:,0,None], 24, axis=1)
+    Yh = Yh.T
     
     # predict average house price
-    Yh = retrieve_averge_house_price()
-    Yh = np.repeat(Yh[:,None], 24, axis=1)
-    Yh = Yh.T
+#    Yh = retrieve_averge_house_price()
+#    Yh = np.repeat(Yh[:,None], 24, axis=1)
+#    Yh = Yh.T
     
     assert Yh.shape == (24, N)
     
@@ -425,6 +425,7 @@ def evaluate_various_embedding_features_with_lag_model(year, spatial):
         mae, mre = leaveOneOut_error(Yhat, D, P, similarityMatrix(dwt[h]), Yhat,
                                      similarityMatrix(dws[h]), Yhat, features=features_, #['demo', 'poi', 'geo'],
                                     taxi_norm="none")
+        
         dw_mre.append(mre)
         dw_mae.append(mae)
         print "HDGE MRE: {0}".format(mre)
@@ -471,11 +472,11 @@ def plot_hourly_evaluation(year):
 def barPlot_crime_MRE():
     N = 3
     mres = np.array([
-            [0.331, 0.3332, 0.3392, 0.3247],
-            [0.3364, 0.3319, 0.3289, 0.3173],
-            [0.3469, 0.3445, 0.3428, 0.3294]
+            [0.3084, 0.32, 0.327, 0.292],
+            [0.3083, 0.321, 0.329, 0.288],
+            [0.322, 0.333, 0.3428, 0.3124]
             ])
-    width=0.15
+    width=0.18
     pos = np.arange(N)
     
     plt.rc("axes", linewidth=2)
@@ -484,10 +485,10 @@ def barPlot_crime_MRE():
     plt.bar(pos+width, mres[:,1], width, color='r')
     plt.bar(pos+width*2, mres[:,2], width, color='y')
     plt.bar(pos+width*3, mres[:,3], width, color='b')
-    plt.axis([-0.3, 3, 0.30, 0.355])
-    plt.gca().set_xticks([0.3, 1.3, 2.3])
+    plt.axis([-0.3, 2.9, 0.26, 0.355])
+    plt.gca().set_xticks([0.27, 1.27, 2.27])
     plt.gca().set_xticklabels(['2013', '2014', '2015'])
-    plt.tick_params(labelsize=18)
+    plt.tick_params(labelsize=16)
     plt.legend(["RAW", "MF", "LINE", "HDGE"], ncol=2, fontsize=20, loc='best')
     plt.xlabel("Year", fontsize=20)
     plt.ylabel("Average $MRE$", fontsize=24)
@@ -539,13 +540,13 @@ def leaveOneOut_eval(X, Y):
 if __name__ == '__main__':
     
 #    unittest.main()
-    year = sys.argv[1]
+#    year = sys.argv[1]
 #    r = evaluate_various_flow_features_with_concatenation_model(year, sys.argv[2]) # year and spatial
-    r = evaluate_various_embedding_features_with_lag_model(year, sys.argv[2])
+#    r = evaluate_various_embedding_features_with_lag_model(year, sys.argv[2])
 ##    pickle.dump(r, open("embeddings-{0}.pickle".format(year), "w"))
-    print np.mean(r, axis=1)
+#    print np.mean(r, axis=1)
 #    plot_hourly_evaluation(2014)
-#    barPlot_crime_MRE()
+    barPlot_crime_MRE()
 #    plot_hourly_crime()
     
     

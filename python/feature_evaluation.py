@@ -344,8 +344,8 @@ def main_evaluate_different_years(year):
     Y, D, P, Tf, Gd = extract_raw_samples(year, crime_t=['total'])
     
     # use hourly crime rate as label
-    Yh = pickle.load(open("chicago-hourly-crime-{0}.pickle".format(year)))
-    Yh = Yh / D[:,0] * 10000
+#    Yh = pickle.load(open("chicago-hourly-crime-{0}.pickle".format(year)))
+#    Yh = Yh / D[:,0] * 10000
 
     # use average income as label
 #    header, income = retrieve_income_features()
@@ -353,9 +353,9 @@ def main_evaluate_different_years(year):
 #    Yh = Yh.T
     
     # use average house price as label
-#    Yh = retrieve_averge_house_price()
-#    Yh = np.repeat(Yh[:,None], 24, axis=1)
-#    Yh = Yh.T
+    Yh = retrieve_averge_house_price()
+    Yh = np.repeat(Yh[:,None], 24, axis=1)
+    Yh = Yh.T
     
     assert Yh.shape == (24, N)
     MAE =[]
@@ -363,7 +363,7 @@ def main_evaluate_different_years(year):
     for h in range(24):
         Tf = getTaxiFlow(filename="/taxi-CA-h{0}.matrix".format(h))
         mae, mre = leaveOneOut_error(Yh[h,:].reshape((N,1)), D, P, Tf, Yh[h,:].reshape((N,1)), Gd, 
-                                     Yh[h,:].reshape((N,1)), features=['demo', 'poi', "geo", "taxi"],
+                                     Yh[h,:].reshape((N,1)), features=['demo', 'poi'],
                                        taxi_norm="bydestination")
         print h, mae, mre
         MAE.append(mae)
