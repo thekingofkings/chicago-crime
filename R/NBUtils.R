@@ -97,6 +97,7 @@ leaveOneOut <- function(demos, ca, w2, Y, coeff=FALSE, normalize=FALSE, socialno
 
     errors <- foreach ( i = 1:N, .combine="cbind", .export=c("normalize.social.lag", "spatialWeight", "learnNB"), 
 					   .packages=c("sp", "spdep", "glmmADMB") ) %dopar%  {
+		print(c("current iteration is ", i))
         F <- demos[-i, , drop=FALSE]
         y <- Y[-i]
         y2 <- F$disadvantage.index # demos$poverty.index[-i] #
@@ -190,6 +191,7 @@ leaveOneOut <- function(demos, ca, w2, Y, coeff=FALSE, normalize=FALSE, socialno
         else {
             return(abs(ybar - Y[i]))
         }
+		print(c("current iteration finished ", i))
     }
     # end of anonymous function
 

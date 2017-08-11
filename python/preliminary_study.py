@@ -30,14 +30,37 @@ def generate_point(F, Y):
         for j in range(77):
             if i == j:
                 continue
-            if F[i][j] < 5000 and F[i][j] > 1:
-                x.append(F[i][j])
-                y.append(Y[i] - Y[j])
-            else:
-                xp.append(F[i][j])
-                yp.append(Y[i] - Y[j])
-                lp.append("{0}-{1}".format(i+1,j+1))
+            if F[i][j] < 4000 and F[i][j] >= 0:
+                if i == 31 or j == 31:
+                    xp.append(F[i][j])
+                    yp.append(Y[i] - Y[j])
+                    lp.append("{0}-{1}".format(i+1,j+1))
+                else:
+                    x.append(F[i][j])
+                    y.append(Y[i] - Y[j])
     return x, y, xp, yp, lp
+
+
+
+
+def plot_embedding_cases(Y):
+    with open("multi_view_learning/CAflowFeatures.pickle") as fin:
+        mf = pickle.load(fin)
+        line = pickle.load(fin)
+        dwt = pickle.load(fin)
+        dws = pickle.load(fin)
+        hdge = pickle.load(fin)
+    
+
+
+    for h in range(24):
+        Fn = similarityMatrix(hdge[h])
+        x, y, xp, yp, lp = generate_point(Fn, Y)
+        f = plt.figure()
+        plt.scatter(x, y, color='red')
+        plt.show()
+
+
 
 
 demo = generate_corina_features()
@@ -51,27 +74,21 @@ F = getTaxiFlow(normalization="none")
 
 x, y, xp, yp, lp = generate_point(F, Y)
 
-f = plt.figure()
-plt.scatter(x, y, color='red')
-#a = plt.scatter(xp, yp, color='blue')
+plt.rc("axes", linewidth=2)
+f = plt.figure(figsize=(8,6))
+plt.scatter(x, y, s=16)
+
+plt.plot([-100, -100, 3500, -100], [3000, -3000, 0, 3000], linewidth=2, color='blue')
+plt.scatter(xp, yp, color='red', s=28)
+plt.xlabel("Taxi flow from $r_i$ to $r_j$", fontsize=20)
+plt.ylabel("Crime rate difference $y_i - y_j$", fontsize=20)
 #for i in range(len(lp)):
 #    a.axes.annotate(lp[i], xy=(xp[i], yp[i]))
-plt.show()
+
+plt.tick_params(labelsize=18)
+plt.tight_layout()
+plt.savefig("crime-flow-preliminary.pdf")
 
 
 
-with open("multi_view_learning/CAflowFeatures.pickle") as fin:
-    mf = pickle.load(fin)
-    line = pickle.load(fin)
-    dwt = pickle.load(fin)
-    dws = pickle.load(fin)
-    hdge = pickle.load(fin)
-    
 
-
-for h in range(24):
-    Fn = similarityMatrix(hdge[h])
-    x, y, xp, yp, lp = generate_point(Fn, Y)
-    f = plt.figure()
-    plt.scatter(x, y, color='red')
-    plt.show()

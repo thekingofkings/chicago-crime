@@ -476,6 +476,11 @@ def barPlot_crime_MRE():
             [0.3083, 0.321, 0.329, 0.288],
             [0.322, 0.333, 0.3428, 0.3124]
             ])
+    maes = np.array([
+        [14.52, 15.12, 15.45, 13.79],
+        [12.79, 13.42, 13.76, 12.04],
+        [14.30, 14.74, 15.15, 13.82]
+        ])
     width=0.18
     pos = np.arange(N)
     
@@ -491,8 +496,22 @@ def barPlot_crime_MRE():
     plt.tick_params(labelsize=16)
     plt.legend(["RAW", "MF", "LINE", "HDGE"], ncol=2, fontsize=20, loc='best')
     plt.xlabel("Year", fontsize=20)
-    plt.ylabel("Average $MRE$", fontsize=24)
+    plt.ylabel("$MRE$", fontsize=24)
     plt.savefig("crime-mre.pdf")
+
+    plt.figure(figsize=(8,6))
+    plt.bar(pos, maes[:,0], width, color='g')
+    plt.bar(pos+width, maes[:,1], width, color='r')
+    plt.bar(pos+width*2, maes[:,2], width, color='y')
+    plt.bar(pos+width*3, maes[:,3], width, color='b')
+    plt.axis([-0.3, 2.9, 11, 17])
+    plt.gca().set_xticks([0.27, 1.27, 2.27])
+    plt.gca().set_xticklabels(['2013', '2014', '2015'])
+    plt.tick_params(labelsize=16)
+    plt.legend(["RAW", "MF", "LINE", "HDGE"], ncol=2, fontsize=20, loc='best')
+    plt.xlabel("Year", fontsize=20)
+    plt.ylabel("$MAE$", fontsize=24)
+    plt.savefig("crime-mae.pdf")
     
     
 def plot_hourly_crime():
