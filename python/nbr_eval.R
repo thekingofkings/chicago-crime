@@ -23,8 +23,8 @@ f <- read.csv('f.csv')
 
 
 
-if (length(args) >= 2) {
-	if (args[2] == 'coefficient') {
+if (length(args) > 2) {
+	if (args[3] == 'coefficient') {
 		dat <- data.frame(y, f)
 		mod <- glm.nb(data=dat)
 		
@@ -39,8 +39,8 @@ if (length(args) >= 2) {
 		mod <- glm.nb( data=dat )
 		ybar <- predict(mod, newdata=f[i,], type=c('response') )
 		
-		if (length(args) == 1 && args[1] == 'verbose') {
-			cat(paste(y[i,], ybar, '\n'))
+		if (length(args) == 2 && args[2] == 'verbose') {
+			cat(paste(i, y[i,], ybar, abs(y[i,]-ybar), abs(y[i,]-ybar)/y[i,], '\n'))
 		}
 		errors = c(errors, abs(ybar - y[i,]) )
 	}

@@ -24,7 +24,9 @@ from feature_evaluation import extract_raw_samples, leaveOneOut_error
 from Crime import Tract
 from FeatureUtils import retrieve_income_features, retrieve_averge_house_price
 
+import matplotlib
 import matplotlib.pyplot as plt
+matplotlib.rc('pdf', fonttype=42)
 
 np.set_printoptions(suppress=True)
 N = 77
@@ -494,7 +496,7 @@ def barPlot_crime_MRE():
     plt.gca().set_xticks([0.27, 1.27, 2.27])
     plt.gca().set_xticklabels(['2013', '2014', '2015'])
     plt.tick_params(labelsize=16)
-    plt.legend(["RAW", "MF", "LINE", "HDGE"], ncol=2, fontsize=20, loc='best')
+    plt.legend(["$RAW$", "$MF$", "$LINE$", "$DGE_{flow}$"], ncol=2, fontsize=20, loc='best')
     plt.xlabel("Year", fontsize=20)
     plt.ylabel("$MRE$", fontsize=24)
     plt.savefig("crime-mre.pdf")
@@ -508,7 +510,7 @@ def barPlot_crime_MRE():
     plt.gca().set_xticks([0.27, 1.27, 2.27])
     plt.gca().set_xticklabels(['2013', '2014', '2015'])
     plt.tick_params(labelsize=16)
-    plt.legend(["RAW", "MF", "LINE", "HDGE"], ncol=2, fontsize=20, loc='best')
+    plt.legend(["$RAW$", "$MF$", "$LINE$", "$DGE_{flow}$"], ncol=2, fontsize=20, loc='best')
     plt.xlabel("Year", fontsize=20)
     plt.ylabel("$MAE$", fontsize=24)
     plt.savefig("crime-mae.pdf")

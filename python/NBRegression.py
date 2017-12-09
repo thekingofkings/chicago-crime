@@ -19,6 +19,8 @@ This implementation use multi-processing in Python. Namely muliple R-instance
 will be called to run simultaneously.
 """
 
+import matplotlib
+matplotlib.use("AGG")
 from FeatureUtils import *
 from NegBinStatModel import negativeBinomialRegression
 import warnings
@@ -26,8 +28,6 @@ from LinearModel import linearRegression
 import numpy as np
 import pandas as pd
 from sklearn import cross_validation
-import matplotlib
-matplotlib.use("AGG")
 import matplotlib.pyplot as plt
 import subprocess
 import os.path
@@ -438,8 +438,8 @@ def permutationTest_onChicagoCrimeData(year=2010, features= ["all"], logFeatures
     
     # crime count is normalized by the total population as crime rate
     # here we use the crime count per 10 thousand residents
-#    Y = np.divide(Y, popul) * 10000
-#    Yhat = np.divide(Yhat, popul) * 10000
+    Y = np.divide(Y, popul) * 10000
+    Yhat = np.divide(Yhat, popul) * 10000
     
     W2 = generate_geographical_SpatialLag_ca()
     np.savetxt(here + "/W2.csv", W2, delimiter=",")
@@ -1025,7 +1025,7 @@ if __name__ == '__main__':
     if t == 'leaveOneOut':
         r = leaveOneOut_evaluation_onChicagoCrimeData(2012, features=
                  ['corina', 'spatiallag', 'taxiflow', 'POIdist'],   # temporallag
-                 verboseoutput=False, region='ca', logFeatures=['spatiallag2', 'sociallag2', 'taxiflow2'])
+                 verboseoutput=False, region='ca', logFeatures=[], useRate=False)
     elif t == 'permutation':
         permutationTest_onChicagoCrimeData(2010, ['corina', 'sociallag', 'spatiallag', 'temporallag'], iters=3)
     elif t == 'socialflow':

@@ -15,7 +15,8 @@ from taxiFlow import getTaxiFlow
 import matplotlib.pyplot as plt
 import pickle
 from multi_view_learning.multi_view_prediction import similarityMatrix
-
+import matplotlib
+matplotlib.rc('pdf', fonttype=42)
 
 
 def generate_point(F, Y):

@@ -12,6 +12,8 @@ from shapely.geometry import Polygon, box
 import shapefile
 import os
 here = os.path.dirname(os.path.abspath(__file__))
+import matplotlib
+matplotlib.rc('pdf', fonttype=42)
 
         
 class Tract:
