@@ -36,15 +36,16 @@ def generate_corina_features(region='ca', leaveOut=-1):
         f = open(here + '/../data/Chicago_demographics.csv', 'r')
         c = csv.reader(f)
         header = c.next()
-        fields = ['totpop00_sum', 'popden00', 'pprpovW00', 'Dis46pf0', 'Stb26pf0', 'Divers5f00', 
-                'pnhblWc0', 'phispWc0']
-        fields_dsp = ['total population', 'population density', 'poverty index', 'disadvantage index', 'residential stability',
-                'ethnic diversity', 'pct black', 'pct hispanic']
+        fields = ['totpop00_sum', 'popden00', 'pprpovW00', 'Dis46pf0', 'Stb26pf0', 'Divers5f00',
+                  'pnhblWc0', 'phispWc0']
+        fields_dsp = ['total population', 'population density', 'poverty index',
+                      'disadvantage index', 'residential stability',
+                      'ethnic diversity', 'pct black', 'pct hispanic']
         hidx = []
         for fd in fields:
             hidx.append(header.index(fd))
-        
-        C = np.zeros((77,len(hidx)))
+
+        C = np.zeros((77, len(hidx)))
         for i, row in enumerate(c):
             for j, k in enumerate(hidx):
                 C[i][j] = float(row[k])
@@ -54,14 +55,13 @@ def generate_corina_features(region='ca', leaveOut=-1):
 
         return  fields_dsp, C
     elif region == 'tract':
-        
         from pandas import read_stata
-    
+
         r = read_stata('../data/SE2000_AG20140401_MSAcmsaID.dta')
         cnt = 0
         header = ['pop00', 'ppov00', 'disadv00', 'pdensmi00', 'hetero00', 'phisp00', 'pnhblk00']
         
-        fields_dsp = ['total population', 'poverty index', 'disadvantage index', 
+        fields_dsp = ['total population', 'poverty index', 'disadvantage index',
                       'population density', 'ethnic diversity', 'pct hispanic', 'pct black']
 
         ST = {}
@@ -98,7 +98,7 @@ def generate_geographical_SpatialLag():
 def generate_geographical_SpatialLag_ca(knearest=True, leaveOut=-1):
     """
     Generate the distance matrix for CA pairs.
-    
+
     If knearest is true, then select the 6-nearest neighboring CAs.
     Else, return the distance to all other CAs.
 
@@ -526,7 +526,6 @@ def visualizeGangRelatedCrime():
         print i, popul[i], Y[i], np.where(Yidx == i)
     
     import subprocess
-    import os
     os.chdir("../R")
     t = subprocess.check_output(["Rscript", "nodalFeature_plot.R", "crime"])
     print t
