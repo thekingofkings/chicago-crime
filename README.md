@@ -25,3 +25,6 @@ Every crime arrest record since 2001 to current.
 *Data source 4: country level crime count*
 
 A small dataset, since county is a large unit.
+
+Sample Dataset link
+https://www.dropbox.com/s/i37kw587jqnhk9z/chicago-crime-sample-data.tar.gz?dl=0
